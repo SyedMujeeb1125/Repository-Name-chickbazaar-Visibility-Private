@@ -4,37 +4,63 @@ import { Section } from "@/components/section";
 
 export const metadata: Metadata = {
   title: "About Us",
-  description: "Learn about ChickBazaar and FruitGlobe International Private Limited."
+  description: "Learn about ChickBazaar."
 };
 
 export default function AboutPage() {
   return (
     <>
-      <PageHero eyebrow="About Us" title="Technology-enabled poultry procurement.">
-        ChickBazaar is a technology-enabled poultry procurement platform operated by
-        FruitGlobe International Private Limited.
+      <PageHero
+        eyebrow="ABOUT CHICKBAZAAR"
+        title="India's B2B Poultry Marketplace"
+      >
+        ChickBazaar is a technology-enabled poultry procurement platform that
+        connects retailers, chicken shops, wholesalers, restaurants and poultry
+        farms through a single marketplace.
       </PageHero>
+
       <Section>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-lg border border-slate-100 bg-white p-7 shadow-sm">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange">Mission</p>
-            <h2 className="mt-3 text-2xl font-extrabold text-navy">
-              To simplify poultry procurement for retailers.
+        <div className="space-y-12">
+          <div>
+            <h2 className="text-4xl font-extrabold text-navy">
+              Who We Are
             </h2>
-            <p className="mt-4 leading-7 text-slate-600">
-              We help chicken shops and meat retailers place orders through a single
-              platform while ChickBazaar manages farm sourcing and delivery coordination.
+
+            <p className="mt-6 text-lg leading-8 text-slate-600">
+              ChickBazaar was created to simplify the way poultry is sourced and
+              supplied across India.
             </p>
           </div>
-          <div className="rounded-lg border border-slate-100 bg-white p-7 shadow-sm">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange">Vision</p>
-            <h2 className="mt-3 text-2xl font-extrabold text-navy">
-              To become India&apos;s most trusted poultry supply network.
-            </h2>
-            <p className="mt-4 leading-7 text-slate-600">
-              Our goal is to make live broiler procurement more predictable, transparent,
-              and dependable for retailers across Indian markets.
-            </p>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange">
+                Our Mission
+              </p>
+
+              <h3 className="mt-3 text-3xl font-extrabold text-navy">
+                Simplifying poultry procurement.
+              </h3>
+
+              <p className="mt-4 text-lg leading-8 text-slate-600">
+                We help businesses source fresh live broiler chickens through a
+                reliable procurement platform.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange">
+                Our Vision
+              </p>
+
+              <h3 className="mt-3 text-3xl font-extrabold text-navy">
+                Building India's most trusted poultry supply network.
+              </h3>
+
+              <p className="mt-4 text-lg leading-8 text-slate-600">
+                Creating a nationwide poultry marketplace powered by technology.
+              </p>
+            </div>
           </div>
         </div>
       </Section>
