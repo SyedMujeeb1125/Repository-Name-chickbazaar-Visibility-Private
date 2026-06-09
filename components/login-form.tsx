@@ -1,10 +1,12 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, KeyRound, Mail, Smartphone } from "lucide-react";
 
 export function LoginForm() {
+  const router = useRouter();
   const [otpSent, setOtpSent] = useState(false);
   const [success, setSuccess] = useState("");
   const [mobile, setMobile] = useState("");
@@ -55,7 +57,8 @@ export function LoginForm() {
         throw new Error(data?.message || "Unable to verify OTP.");
       }
 
-      setSuccess("You are logged in successfully.");
+      router.push("/dashboard");
+      router.refresh();
       form.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
