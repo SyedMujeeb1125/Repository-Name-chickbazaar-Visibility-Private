@@ -22,9 +22,22 @@ export async function POST(request: Request) {
   const adminPassword =
     process.env.ADMIN_PASSWORD || "Honey@#_112513";
 
+  console.log("====================================");
+  console.log("ADMIN EMAIL:", adminEmail);
+  console.log("ADMIN PASSWORD:", adminPassword);
+  console.log("ENTERED EMAIL:", email);
+  console.log("ENTERED PASSWORD:", password);
+  console.log("====================================");
+
   if (email !== adminEmail || password !== adminPassword) {
     return NextResponse.json(
-      { message: "Invalid admin credentials." },
+      {
+        message: "Invalid admin credentials.",
+        adminEmail,
+        adminPassword,
+        email,
+        password,
+      },
       { status: 401 }
     );
   }

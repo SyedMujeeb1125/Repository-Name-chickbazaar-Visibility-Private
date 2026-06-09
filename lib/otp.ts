@@ -1,8 +1,12 @@
 import crypto from "crypto";
-import { readDb, writeDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 function otpSecret() {
-  return process.env.OTP_SECRET || process.env.ADMIN_SESSION_SECRET || "change-otp-secret";
+  return (
+    process.env.OTP_SECRET ||
+    process.env.ADMIN_SESSION_SECRET ||
+    "change-otp-secret"
+  );
 }
 
 export function hashOtp(mobile: string, code: string) {
@@ -17,30 +21,56 @@ export function createOtpCode() {
 }
 
 export async function storeOtp(mobile: string, code: string) {
-  const db = await readDb();
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
-  db.otps = db.otps.filter((otp) => otp.mobile !== mobile);
-  db.otps.push({
-    mobile,
-    codeHash: hashOtp(mobile, code),
-    createdAt: now.toISOString(),
-    expiresAt: expiresAt.toISOString()
-  });
-  await writeDb(db);
+
+  await supabase
+    .from("otps")
+    .delete()
+    .eq("mobile", mobile);
+
+  const { error } = await supabase
+    .from("otps")
+    .insert({
+      mobile,
+      code_hash: hashOtp(mobile, code),
+      created_at: now.toISOString(),
+      expires_at: expiresAt.toISOString()
+    });
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function verifyOtp(mobile: string, code: string) {
-  const db = await readDb();
-  const otp = db.otps.find((item) => item.mobile === mobile);
-  if (!otp || new Date(otp.expiresAt).getTime() < Date.now()) {
+  const { data, error } = await supabase
+    .from("otps")
+    .select("*")
+    .eq("mobile", mobile)
+    .single();
+
+  if (error || !data) {
     return false;
   }
-  const expected = hashOtp(mobile, code);
-  const ok = crypto.timingSafeEqual(Buffer.from(otp.codeHash), Buffer.from(expected));
-  if (ok) {
-    db.otps = db.otps.filter((item) => item.mobile !== mobile);
-    await writeDb(db);
+
+  if (new Date(data.expires_at).getTime() < Date.now()) {
+    return false;
   }
+
+  const expected = hashOtp(mobile, code);
+
+  const ok = crypto.timingSafeEqual(
+    Buffer.from(data.code_hash),
+    Buffer.from(expected)
+  );
+
+  if (ok) {
+    await supabase
+      .from("otps")
+      .delete()
+      .eq("mobile", mobile);
+  }
+
   return ok;
 }
