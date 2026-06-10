@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, LogOut, RefreshCw } from "lucide-react";
-import type { FarmPartnerRecord, OrderRecord, RetailerRecord, SubmissionStatus } from "@/lib/types";
+import type {
+  FarmPartnerRecord,
+  OrderRecord,
+  RetailerRecord,
+  SubmissionStatus,
+  PaymentStatus
+} from "@/lib/types";
 
 type AdminRetailer = Omit<RetailerRecord, "gstCertificatePath">;
 
@@ -26,7 +32,7 @@ const statuses: SubmissionStatus[] = [
   "completed",
   "cancelled"
 ];
-const paymentStatuses = [
+const paymentStatuses: PaymentStatus[] = [
   "pending",
   "partially_paid",
   "paid",
@@ -111,9 +117,9 @@ function OrderOperations({
 }) {
   const router = useRouter();
 
-  const [paymentStatus, setPaymentStatus] = useState(
-    order.paymentStatus || "pending"
-  );
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(
+  order.paymentStatus || "pending"
+);
 
   const [assignedFarm, setAssignedFarm] = useState(
     order.assignedFarm || ""
@@ -187,7 +193,15 @@ const finalAmount =
     <div className="mt-4 grid gap-3">
       <select
         value={paymentStatus}
-        onChange={(e) => setPaymentStatus(e.target.value)}
+        onChange={(e) =>
+  setPaymentStatus(
+    e.target.value as
+      | "pending"
+      | "partially_paid"
+      | "paid"
+      | "refunded"
+  )
+}
         className="rounded-md border p-2"
       >
         {paymentStatuses.map((item) => (
