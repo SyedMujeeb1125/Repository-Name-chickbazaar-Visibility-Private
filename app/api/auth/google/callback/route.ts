@@ -68,5 +68,7 @@ if (!retailer?.mobile) {
   retailerCookieOptions()
 );
   cookieStore.delete("google_oauth_state");
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(
+  new URL("/dashboard", request.url)
+);
 }
