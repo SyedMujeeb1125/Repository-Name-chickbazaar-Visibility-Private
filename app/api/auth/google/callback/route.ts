@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createSignedToken, retailerCookieName, retailerCookieOptions } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   if (!code || !state || state !== expectedState) {
     return NextResponse.redirect(new URL("/login?error=google", request.url));
   }
-
+  
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri = process.env.GOOGLE_REDIRECT_URI;
@@ -50,8 +51,22 @@ export async function GET(request: Request) {
   if (!user.email) {
     return NextResponse.redirect(new URL("/login?error=google-email", request.url));
   }
+  const { data: retailer } = await supabase
+  .from("retailers")
+  .select("mobile")
+  .eq("email", user.email)
+  .single();
 
-  cookieStore.set(retailerCookieName, createSignedToken(user.email), retailerCookieOptions());
+if (!retailer?.mobile) {
+  return NextResponse.redirect(
+    new URL("/register?error=google-not-registered", request.url)
+  );
+}
+  cookieStore.set(
+  retailerCookieName,
+  createSignedToken(retailer.mobile),
+  retailerCookieOptions()
+);
   cookieStore.delete("google_oauth_state");
   return NextResponse.redirect(new URL("/", request.url));
 }
