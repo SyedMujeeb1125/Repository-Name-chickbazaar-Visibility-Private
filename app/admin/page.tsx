@@ -17,20 +17,11 @@ export default async function AdminPage() {
   }
 
   const data = await readDb();
+
   const dashboardData: AdminDashboardData = {
     orders: data.orders,
-    farmPartners: data.farmPartners,
-    retailers: data.retailers.map((retailer) => ({
-      id: retailer.id,
-      createdAt: retailer.createdAt,
-      status: retailer.status,
-      shopName: retailer.shopName,
-      ownerName: retailer.ownerName,
-      mobile: retailer.mobile,
-      email: retailer.email,
-      address: retailer.address,
-      gst: retailer.gst
-    }))
+    retailers: data.retailers,
+    farmPartners: data.farmPartners
   };
 
   return <AdminDashboard data={dashboardData} />;

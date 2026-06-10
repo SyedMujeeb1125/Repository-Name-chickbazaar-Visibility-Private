@@ -1,7 +1,14 @@
 import { redirect } from "next/navigation";
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
 import { readDb } from "@/lib/storage";
-
+const orderSteps = [
+  "new",
+  "confirmed",
+  "procured",
+  "dispatched",
+  "delivered",
+  "completed"
+];
 export default async function DashboardPage() {
   const mobile = await getLoggedInRetailerMobile();
 
@@ -65,30 +72,66 @@ export default async function DashboardPage() {
               No orders found.
             </p>
           ) : (
-            myOrders.map((order: any) => (
-              <div
-                key={order.id}
-                className="rounded-lg border p-4"
-              >
-                <div className="flex justify-between">
-                  <div>
-                    <p className="font-bold">
-                      {order.shop_name || order.shopName}
-                    </p>
+            myOrders.map((order: any) => {
+  const currentStep = orderSteps.indexOf(order.status);
 
-                    <p className="text-sm text-slate-500">
-                      {order.birds} birds
-                    </p>
-                  </div>
+  return (
+    <div
+      key={order.id}
+      className="rounded-lg border p-5"
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm font-bold text-orange">
+            {order.orderNumber || order.id}
+          </p>
 
-                  <div>
-                    <span className="rounded bg-slate-100 px-3 py-1 text-sm font-semibold">
-                      {order.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
+          <p className="font-bold text-lg">
+            {order.shopName}
+          </p>
+
+          <p className="text-sm text-slate-500">
+            {order.birds} birds
+          </p>
+
+          <p className="mt-2 text-sm">
+            Payment:{" "}
+            <span className="font-semibold">
+              {order.paymentStatus || "pending"}
+            </span>
+          </p>
+        </div>
+
+        <span className="rounded bg-slate-100 px-3 py-1 text-sm font-semibold">
+          {order.status}
+        </span>
+      </div>
+
+      <div className="mt-4">
+        <p className="font-semibold mb-2">
+          Order Progress
+        </p>
+
+        <div className="grid gap-2">
+          {orderSteps.map((step, index) => (
+            <div
+              key={step}
+              className={`text-sm ${
+                index <= currentStep
+                  ? "text-green-600 font-semibold"
+                  : "text-slate-400"
+              }`}
+            >
+              {index <= currentStep ? "✓" : "○"}{" "}
+              {step.charAt(0).toUpperCase() +
+                step.slice(1)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+})
           )}
         </div>
       </div>

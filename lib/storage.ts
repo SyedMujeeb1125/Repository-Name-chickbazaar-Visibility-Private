@@ -21,9 +21,78 @@ export async function readDb(): Promise<ChickBazaarDb> {
   ]);
 
   return {
-    orders: orders.data || [],
-    retailers: retailers.data || [],
-    farmPartners: farmPartners.data || [],
+    orders: (orders.data || []).map((o: any) => ({
+  id: o.id,
+
+  orderNumber: o.order_number,
+
+  createdAt: o.created_at,
+  status: o.status,
+
+  paymentStatus: o.payment_status,
+paymentAmount: o.payment_amount,
+
+paymentType: o.payment_type,
+requestedWeight: o.requested_weight,
+ratePerKg: o.rate_per_kg,
+actualWeight: o.actual_weight,
+finalAmount: o.final_amount,
+
+assignedFarm: o.assigned_farm,
+trackingNotes: o.tracking_notes,
+
+  shopName: o.shop_name,
+  ownerName: o.owner_name,
+  mobile: o.mobile,
+  email: o.email,
+  address: o.address,
+
+  birds: o.birds,
+  averageWeight: o.average_weight,
+  deliveryDate: o.delivery_date,
+
+  notes: o.notes,
+
+  latitude: o.latitude,
+  longitude: o.longitude
+})),
+    retailers: (retailers.data || []).map((r: any) => ({
+  id: r.id,
+  createdAt: r.created_at,
+  status: r.status,
+
+  shopName: r.shop_name,
+  ownerName: r.owner_name,
+  mobile: r.mobile,
+  email: r.email,
+  address: r.address,
+
+  gst: r.gst,
+  gstCertificatePath: r.gst_certificate_path,
+
+  latitude: r.latitude,
+  longitude: r.longitude
+})),
+
+farmPartners: (farmPartners.data || []).map((f: any) => ({
+  id: f.id,
+  createdAt: f.created_at,
+  status: f.status,
+
+  farmName: f.farm_name,
+  contactPerson: f.contact_person,
+  mobile: f.mobile,
+  email: f.email,
+
+  location: f.location,
+  dailyCapacity: f.daily_capacity,
+  averageBirdWeight: f.average_bird_weight,
+
+  message: f.message,
+
+  latitude: f.latitude,
+  longitude: f.longitude
+})),
     otps: otps.data || []
   };
 }
@@ -34,50 +103,83 @@ export async function writeDb(_: ChickBazaarDb) {
 
 export async function addOrder(order: OrderRecord) {
   await supabase.from("orders").insert({
-    id: order.id,
-    created_at: order.createdAt,
-    status: order.status,
-    shop_name: order.shopName,
-    owner_name: order.ownerName,
-    mobile: order.mobile,
-    email: order.email,
-    address: order.address,
-    birds: order.birds,
-    average_weight: order.averageWeight,
-    delivery_date: order.deliveryDate,
-    notes: order.notes
-  });
+  id: order.id,
+
+  order_number: order.orderNumber,
+
+  created_at: order.createdAt,
+
+  status: order.status,
+
+  payment_status: order.paymentStatus,
+payment_amount: order.paymentAmount,
+
+payment_type: order.paymentType,
+requested_weight: order.requestedWeight,
+rate_per_kg: order.ratePerKg,
+actual_weight: order.actualWeight,
+final_amount: order.finalAmount,
+
+assigned_farm: order.assignedFarm,
+tracking_notes: order.trackingNotes,
+
+  shop_name: order.shopName,
+  owner_name: order.ownerName,
+  mobile: order.mobile,
+  email: order.email,
+  address: order.address,
+
+  birds: order.birds,
+  average_weight: order.averageWeight,
+  delivery_date: order.deliveryDate,
+
+  notes: order.notes,
+
+  latitude: order.latitude,
+  longitude: order.longitude
+});
 }
 
 export async function addRetailer(retailer: RetailerRecord) {
   await supabase.from("retailers").insert({
-    id: retailer.id,
-    created_at: retailer.createdAt,
-    status: retailer.status,
-    shop_name: retailer.shopName,
-    owner_name: retailer.ownerName,
-    mobile: retailer.mobile,
-    email: retailer.email,
-    address: retailer.address,
-    gst: retailer.gst,
-    gst_certificate_path: retailer.gstCertificatePath
-  });
+  id: retailer.id,
+  created_at: retailer.createdAt,
+  status: retailer.status,
+
+  shop_name: retailer.shopName,
+  owner_name: retailer.ownerName,
+  mobile: retailer.mobile,
+  email: retailer.email,
+  address: retailer.address,
+
+  gst: retailer.gst,
+  gst_certificate_path: retailer.gstCertificatePath,
+
+  latitude: retailer.latitude,
+  longitude: retailer.longitude
+});
 }
 
 export async function addFarmPartner(farmPartner: FarmPartnerRecord) {
   await supabase.from("farm_partners").insert({
-    id: farmPartner.id,
-    created_at: farmPartner.createdAt,
-    status: farmPartner.status,
-    farm_name: farmPartner.farmName,
-    contact_person: farmPartner.contactPerson,
-    mobile: farmPartner.mobile,
-    email: farmPartner.email,
-    location: farmPartner.location,
-    daily_capacity: farmPartner.dailyCapacity,
-    average_bird_weight: farmPartner.averageBirdWeight,
-    message: farmPartner.message
-  });
+  id: farmPartner.id,
+  created_at: farmPartner.createdAt,
+  status: farmPartner.status,
+
+  farm_name: farmPartner.farmName,
+  contact_person: farmPartner.contactPerson,
+  mobile: farmPartner.mobile,
+  email: farmPartner.email,
+
+  location: farmPartner.location,
+  daily_capacity: farmPartner.dailyCapacity,
+  average_bird_weight: farmPartner.averageBirdWeight,
+
+  message: farmPartner.message,
+
+  latitude: farmPartner.latitude,
+  longitude: farmPartner.longitude
+});
 }
 
 export async function saveUploadedFile(file: File, prefix: string) {
@@ -98,6 +200,39 @@ export async function updateRecordStatus(
   const { error } = await supabase
     .from(table)
     .update({ status })
+    .eq("id", id);
+
+  return !error;
+}
+export async function updateOrderDetails(
+  id: string,
+  updates: {
+  paymentStatus?: string;
+  assignedFarm?: string;
+  trackingNotes?: string;
+
+  paymentType?: string;
+  requestedWeight?: number;
+  ratePerKg?: number;
+  actualWeight?: number;
+  finalAmount?: number;
+}
+) 
+ {
+  const { error } = await supabase
+    .from("orders")
+    .update({
+  payment_status: updates.paymentStatus,
+
+  payment_type: updates.paymentType,
+  requested_weight: updates.requestedWeight,
+  rate_per_kg: updates.ratePerKg,
+  actual_weight: updates.actualWeight,
+  final_amount: updates.finalAmount,
+
+  assigned_farm: updates.assignedFarm,
+  tracking_notes: updates.trackingNotes
+})
     .eq("id", id);
 
   return !error;

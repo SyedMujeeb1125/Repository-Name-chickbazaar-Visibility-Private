@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { FormShell } from "@/components/form-shell";
 import { SelectInput, TextArea, TextInput } from "@/components/form-fields";
 import { Section } from "@/components/section";
+import { LocationPicker } from "@/components/location-picker";
 
 export const metadata: Metadata = {
   title: "Order Chicken",
@@ -25,6 +26,20 @@ export default function OrderChickenPage() {
           <TextInput label="Mobile Number" name="mobile" type="tel" pattern="[0-9]{10}" placeholder="10 digit mobile number" />
           <TextInput label="Email Address" name="email" type="email" />
           <TextInput label="Number Of Birds Required" name="birds" type="number" min="1" />
+          <TextInput
+  label="Requested Weight (Kg)"
+  name="requestedWeight"
+  type="number"
+  min="1"
+/>
+<SelectInput
+  label="Payment Type"
+  name="paymentType"
+  options={[
+    "advance",
+    "actual_weight"
+  ]}
+/>
           <SelectInput
             label="Preferred Average Weight"
             name="averageWeight"
@@ -33,7 +48,10 @@ export default function OrderChickenPage() {
           <TextInput label="Delivery Date" name="deliveryDate" type="date" />
         </div>
         <TextArea label="Delivery Address" name="address" required />
-        <TextArea label="Additional Notes" name="notes" />
+
+<LocationPicker />
+
+<TextArea label="Additional Notes" name="notes" />
       </FormShell>
     </Section>
   );

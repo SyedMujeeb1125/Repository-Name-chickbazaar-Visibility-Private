@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { FormShell } from "@/components/form-shell";
 import { TextArea, TextInput } from "@/components/form-fields";
 import { Section } from "@/components/section";
+import { LocationPicker } from "@/components/location-picker";
 
 export const metadata: Metadata = {
   title: "Register Your Shop",
@@ -42,6 +43,8 @@ export default function RegisterPage() {
           <TextInput label="Confirm Password" name="confirmPassword" type="password" />
         </div>
         <TextArea label="Address" name="address" required />
+
+        <LocationPicker />
       </FormShell>
     </Section>
   );

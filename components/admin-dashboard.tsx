@@ -17,8 +17,21 @@ type AdminDashboardProps = {
   data: AdminDashboardData;
 };
 
-const statuses: SubmissionStatus[] = ["new", "contacted", "fulfilled", "rejected"];
-
+const statuses: SubmissionStatus[] = [
+  "new",
+  "confirmed",
+  "procured",
+  "dispatched",
+  "delivered",
+  "completed",
+  "cancelled"
+];
+const paymentStatuses = [
+  "pending",
+  "partially_paid",
+  "paid",
+  "refunded"
+];
 function StatusSelect({
   collection,
   id,
@@ -58,7 +71,237 @@ function StatusSelect({
     </select>
   );
 }
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  const R = 6371;
 
+  const dLat =
+    ((lat2 - lat1) * Math.PI) / 180;
+
+  const dLon =
+    ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) *
+      Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    );
+
+  return R * c;
+}
+function OrderOperations({
+  order,
+  farms
+}: {
+  order: OrderRecord;
+  farms: FarmPartnerRecord[];
+}) {
+  const router = useRouter();
+
+  const [paymentStatus, setPaymentStatus] = useState(
+    order.paymentStatus || "pending"
+  );
+
+  const [assignedFarm, setAssignedFarm] = useState(
+    order.assignedFarm || ""
+  );
+
+  const [trackingNotes, setTrackingNotes] = useState(
+    order.trackingNotes || ""
+  );
+
+  const [saving, setSaving] = useState(false);
+  const [paymentType, setPaymentType] = useState(
+  order.paymentType || "advance"
+);
+
+const [ratePerKg, setRatePerKg] = useState(
+  order.ratePerKg || 0
+);
+
+const [actualWeight, setActualWeight] = useState(
+  order.actualWeight || 0
+);
+const finalAmount =
+  Number(ratePerKg) * Number(actualWeight);
+  const recommendedFarm =
+  order.latitude &&
+  order.longitude
+    ? farms
+        .filter(
+          (farm) =>
+            farm.latitude &&
+            farm.longitude
+        )
+        .map((farm) => ({
+          farm,
+          distance: calculateDistance(
+            Number(order.latitude),
+            Number(order.longitude),
+            Number(farm.latitude),
+            Number(farm.longitude)
+          )
+        }))
+        .sort(
+          (a, b) =>
+            a.distance - b.distance
+        )[0]
+    : null;
+  async function save() {
+    setSaving(true);
+
+    const formData = new FormData();
+
+    formData.set("id", order.id);
+    formData.set("paymentStatus", paymentStatus);
+    formData.set("assignedFarm", assignedFarm);
+    formData.set("trackingNotes", trackingNotes);
+    formData.set("paymentType", paymentType);
+    formData.set("ratePerKg", String(ratePerKg));
+    formData.set("actualWeight", String(actualWeight));
+    formData.set("finalAmount", String(finalAmount));
+
+    await fetch("/api/admin/order-details", {
+      method: "POST",
+      body: formData
+    });
+
+    setSaving(false);
+    router.refresh();
+  }
+
+  return (
+    <div className="mt-4 grid gap-3">
+      <select
+        value={paymentStatus}
+        onChange={(e) => setPaymentStatus(e.target.value)}
+        className="rounded-md border p-2"
+      >
+        {paymentStatuses.map((item) => (
+          <option key={item} value={item}>
+            {item}
+          </option>
+        ))}
+      </select>
+      {recommendedFarm ? (
+  <div className="rounded-md border border-green-300 bg-green-50 p-3 text-sm">
+    <div className="font-bold text-green-700">
+      Recommended Farm
+    </div>
+
+    <div>
+      {recommendedFarm.farm.farmName}
+    </div>
+
+    <div>
+      {recommendedFarm.distance.toFixed(1)} km away
+    </div>
+
+    <button
+      type="button"
+      onClick={() =>
+        setAssignedFarm(
+          recommendedFarm.farm.farmName
+        )
+      }
+      className="mt-2 rounded bg-green-600 px-3 py-1 text-white"
+    >
+      Assign Recommended Farm
+    </button>
+  </div>
+) : null}
+<div className="rounded-md bg-slate-100 p-2 text-sm">
+  <strong>Assigned Farm:</strong>{" "}
+  {assignedFarm || "Not Assigned"}
+</div>
+      <select
+        value={assignedFarm}
+        onChange={(e) => setAssignedFarm(e.target.value)}
+        className="rounded-md border p-2"
+      >
+        <option value="">
+          Select Farm
+        </option>
+
+        {farms.map((farm) => (
+          <option
+            key={farm.id}
+            value={farm.farmName}
+          >
+            {farm.farmName}
+          </option>
+        ))}
+      </select>
+      <select
+  value={paymentType}
+  onChange={(e) => setPaymentType(e.target.value)}
+  className="rounded-md border p-2"
+>
+  <option value="advance">
+    Advance Payment
+  </option>
+
+  <option value="actual_weight">
+    Pay On Actual Weight
+  </option>
+</select>
+
+<input
+  type="number"
+  value={ratePerKg}
+  onChange={(e) =>
+    setRatePerKg(Number(e.target.value))
+  }
+  placeholder="Rate Per Kg"
+  className="rounded-md border p-2"
+/>
+
+<input
+  type="number"
+  value={actualWeight}
+  onChange={(e) =>
+    setActualWeight(Number(e.target.value))
+  }
+  placeholder="Actual Weight (Kg)"
+  className="rounded-md border p-2"
+/>
+
+<div className="rounded-md bg-green-50 p-3 font-bold text-green-700">
+  Final Amount: ₹{finalAmount}
+</div>
+      <textarea
+        value={trackingNotes}
+        onChange={(e) =>
+          setTrackingNotes(e.target.value)
+        }
+        placeholder="Tracking Notes"
+        className="rounded-md border p-2"
+      />
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        className="rounded-md bg-orange px-4 py-2 text-white"
+      >
+        {saving ? "Saving..." : "Save"}
+      </button>
+    </div>
+  );
+}
 function EmptyState({ label }: { label: string }) {
   return <p className="rounded-lg border border-slate-100 bg-white p-5 text-sm text-slate-500">{label}</p>;
 }
@@ -120,17 +363,46 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
               <article key={order.id} className="rounded-lg border border-slate-100 bg-white p-5 shadow-sm">
                 <div className="flex flex-col justify-between gap-4 lg:flex-row">
                   <div>
-                    <h3 className="text-lg font-extrabold text-navy">{order.shopName}</h3>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {order.ownerName} · {order.mobile} · {order.email}
-                    </p>
+                    <div>
+  <p className="text-sm font-bold text-orange">
+    {order.orderNumber || order.id}
+  </p>
+
+  <h3 className="text-lg font-extrabold text-navy">
+    {order.shopName}
+  </h3>
+</div>
+                    <p className="mt-2 text-sm font-semibold text-slate-700">
+  Payment: {order.paymentStatus || "pending"}
+</p>
                     <p className="mt-2 text-sm text-slate-600">
                       {order.birds} birds · {order.averageWeight} · Delivery {order.deliveryDate}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">{order.address}</p>
-                    {order.notes ? <p className="mt-2 text-sm text-slate-500">{order.notes}</p> : null}
+                    {order.notes ? (
+  <p className="mt-2 text-sm text-slate-500">
+    {order.notes}
+  </p>
+) : null}
+
+{order.trackingNotes ? (
+  <p className="mt-2 text-sm font-semibold text-orange">
+    Tracking: {order.trackingNotes}
+  </p>
+) : null}
                   </div>
-                  <StatusSelect collection="orders" id={order.id} status={order.status} />
+                  <div className="flex flex-col gap-3">
+  <StatusSelect
+    collection="orders"
+    id={order.id}
+    status={order.status}
+  />
+
+  <OrderOperations
+    order={order}
+    farms={data.farmPartners}
+  />
+</div>
                 </div>
               </article>
             ))
@@ -154,6 +426,16 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                     </p>
                     <p className="mt-2 text-sm font-semibold text-slate-700">GST: {retailer.gst}</p>
                     <p className="mt-2 text-sm text-slate-600">{retailer.address}</p>
+                    {retailer.latitude && retailer.longitude ? (
+  <a
+    href={`https://www.google.com/maps?q=${retailer.latitude},${retailer.longitude}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-2 inline-block text-sm font-bold text-orange"
+  >
+    📍 View on Google Maps
+  </a>
+) : null}
                     <a
                       href={`/api/admin/certificate/${retailer.id}`}
                       className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-orange hover:text-navy"
@@ -186,6 +468,16 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                     <p className="mt-2 text-sm text-slate-600">
                       {farm.location} · Capacity {farm.dailyCapacity} · Avg {farm.averageBirdWeight}
                     </p>
+                    {farm.latitude && farm.longitude ? (
+  <a
+    href={`https://www.google.com/maps?q=${farm.latitude},${farm.longitude}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-2 inline-block text-sm font-bold text-orange"
+  >
+    📍 View Farm Location
+  </a>
+) : null}
                     <p className="mt-2 text-sm text-slate-500">{farm.message}</p>
                   </div>
                   <StatusSelect collection="farmPartners" id={farm.id} status={farm.status} />

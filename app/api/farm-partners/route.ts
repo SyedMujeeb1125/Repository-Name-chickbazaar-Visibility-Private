@@ -26,18 +26,24 @@ export async function POST(request: Request) {
   }
 
   const farmPartner: FarmPartnerRecord = {
-    id: createId("farm"),
-    createdAt: new Date().toISOString(),
-    status: "new",
-    farmName: value(formData, "farmName"),
-    contactPerson: value(formData, "contactPerson"),
-    mobile: value(formData, "mobile"),
-    email: value(formData, "email"),
-    location: value(formData, "location"),
-    dailyCapacity: value(formData, "dailyCapacity"),
-    averageBirdWeight: value(formData, "averageBirdWeight"),
-    message: value(formData, "message")
-  };
+  id: createId("farm"),
+  createdAt: new Date().toISOString(),
+  status: "new",
+
+  farmName: value(formData, "farmName"),
+  contactPerson: value(formData, "contactPerson"),
+  mobile: value(formData, "mobile"),
+  email: value(formData, "email"),
+
+  location: value(formData, "location"),
+  dailyCapacity: value(formData, "dailyCapacity"),
+  averageBirdWeight: value(formData, "averageBirdWeight"),
+
+  message: value(formData, "message"),
+
+  latitude: Number(formData.get("latitude") || 0),
+  longitude: Number(formData.get("longitude") || 0)
+};
 
   await addFarmPartner(farmPartner);
   return NextResponse.json({ message: "Farm partner request saved.", id: farmPartner.id });

@@ -18,23 +18,27 @@ export function createSignedToken(payload: string) {
 }
 
 export function verifySignedToken(token?: string) {
-  if (!token) {
-    return null;
-  }
+  if (!token) return null;
+
   const [encoded, signature] = token.split(".");
-  if (!encoded || !signature) {
-    return null;
-  }
+  if (!encoded || !signature) return null;
+
   const expected = sign(encoded);
+
   if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
     return null;
   }
+
   return Buffer.from(encoded, "base64url").toString("utf8");
 }
 
 export async function isAdminAuthenticated() {
   const cookieStore = await cookies();
   const value = cookieStore.get(adminCookieName)?.value;
+
+  console.log("ADMIN COOKIE:", value);
+  console.log("DECODED:", verifySignedToken(value));
+
   return verifySignedToken(value) === "admin";
 }
 

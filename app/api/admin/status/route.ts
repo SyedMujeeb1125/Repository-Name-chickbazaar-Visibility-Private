@@ -4,7 +4,15 @@ import { updateRecordStatus } from "@/lib/storage";
 import type { SubmissionStatus } from "@/lib/types";
 
 const collections = ["orders", "retailers", "farmPartners"] as const;
-const statuses: SubmissionStatus[] = ["new", "contacted", "fulfilled", "rejected"];
+const statuses: SubmissionStatus[] = [
+  "new",
+  "confirmed",
+  "procured",
+  "dispatched",
+  "delivered",
+  "completed",
+  "cancelled"
+];
 
 export async function POST(request: Request) {
   if (!(await isAdminAuthenticated())) {

@@ -28,7 +28,27 @@ export default function FarmPartnerPage() {
           <TextInput label="Daily Capacity" name="dailyCapacity" type="number" min="1" />
           <TextInput label="Average Bird Weight" name="averageBirdWeight" placeholder="Example: 1.8 Kg" />
         </div>
-        <TextArea label="Message" name="message" required />
+        <>
+  <div className="grid gap-5 sm:grid-cols-2">
+    <TextInput
+      label="Latitude"
+      name="latitude"
+      placeholder="12.971599"
+    />
+
+    <TextInput
+      label="Longitude"
+      name="longitude"
+      placeholder="77.594566"
+    />
+  </div>
+
+  <TextArea
+    label="Message"
+    name="message"
+    required
+  />
+</>
       </FormShell>
     </Section>
   );

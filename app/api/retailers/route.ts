@@ -26,17 +26,22 @@ export async function POST(request: Request) {
   }
 
   const retailer: RetailerRecord = {
-    id: createId("retailer"),
-    createdAt: new Date().toISOString(),
-    status: "new",
-    shopName: value(formData, "shopName"),
-    ownerName: value(formData, "ownerName"),
-    mobile: value(formData, "mobile"),
-    email: value(formData, "email"),
-    address: value(formData, "address"),
-    gst: value(formData, "gst").toUpperCase(),
-    gstCertificatePath: await saveUploadedFile(certificate, "gst")
-  };
+  id: createId("retailer"),
+  createdAt: new Date().toISOString(),
+  status: "new",
+
+  shopName: value(formData, "shopName"),
+  ownerName: value(formData, "ownerName"),
+  mobile: value(formData, "mobile"),
+  email: value(formData, "email"),
+  address: value(formData, "address"),
+
+  gst: value(formData, "gst").toUpperCase(),
+  gstCertificatePath: await saveUploadedFile(certificate, "gst"),
+
+  latitude: Number(formData.get("latitude") || 0),
+  longitude: Number(formData.get("longitude") || 0)
+};
 
   await addRetailer(retailer);
   return NextResponse.json({ message: "Retailer registration saved.", id: retailer.id });
