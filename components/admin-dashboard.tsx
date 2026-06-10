@@ -261,7 +261,13 @@ const finalAmount =
       </select>
       <select
   value={paymentType}
-  onChange={(e) => setPaymentType(e.target.value)}
+  onChange={(e) =>
+  setPaymentType(
+    e.target.value as
+      | "advance"
+      | "actual_weight"
+  )
+}
   className="rounded-md border p-2"
 >
   <option value="advance">
