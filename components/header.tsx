@@ -3,21 +3,47 @@
 import Link from "next/link";
 import { Menu, ShoppingCart, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const navItems = [
+const publicNavItems = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/order-chicken", label: "Order Chicken" },
-  { href: "/farm-partner", label: "Become A Farm Partner" },
-  { href: "/login", label: "Login" },
-  { href: "/register", label: "Register" }
+  { href: "/farm-partner", label: "Become A Farm Partner" }
 ];
 
 export function Header() {
   const pathname = usePathname();
+  const [loggedIn, setLoggedIn] =
+  useState(false);
   const [open, setOpen] = useState(false);
-
+  useEffect(() => {
+  fetch("/api/auth/me")
+    .then((res) => res.json())
+    .then((data) =>
+      setLoggedIn(data.loggedIn)
+    )
+    .catch(() => {});
+}, []);
+  const navItems = loggedIn
+  ? [
+      ...publicNavItems,
+      {
+        href: "/dashboard",
+        label: "My Dashboard"
+      }
+    ]
+  : [
+      ...publicNavItems,
+      {
+        href: "/login",
+        label: "Login"
+      },
+      {
+        href: "/register",
+        label: "Register"
+      }
+    ];
   return (
     <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">

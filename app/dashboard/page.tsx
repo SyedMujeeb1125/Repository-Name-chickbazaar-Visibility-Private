@@ -17,7 +17,9 @@ export default async function DashboardPage() {
   }
 
   const db = await readDb();
-
+  const retailer = db.retailers.find(
+  (r: any) => r.mobile === mobile
+  );
   const myOrders = db.orders.filter(
     (order: any) => order.mobile === mobile
   );
@@ -43,7 +45,28 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-extrabold text-navy">
         My Dashboard
       </h1>
+      {retailer?.status === "new" ? (
+  <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+    <p className="font-bold text-yellow-800">
+      Account Under Review
+    </p>
 
+    <p className="text-sm text-yellow-700">
+      Your retailer profile is being verified by ChickBazaar.
+      Ordering will be enabled after approval.
+    </p>
+  </div>
+) : (
+  <div className="mt-4 rounded-lg border border-green-300 bg-green-50 p-4">
+    <p className="font-bold text-green-800">
+      Approved Retailer
+    </p>
+
+    <p className="text-sm text-green-700">
+      Your account is verified and fully active.
+    </p>
+  </div>
+)}
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <div className="rounded-lg bg-navy p-5 text-white">
           <p>Total Orders</p>
