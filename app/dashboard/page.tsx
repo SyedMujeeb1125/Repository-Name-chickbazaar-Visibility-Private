@@ -42,9 +42,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="text-3xl font-extrabold text-navy">
-        My Dashboard
-      </h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  <h1 className="text-3xl font-extrabold text-navy">
+    My Dashboard
+  </h1>
+
+  {retailer?.status === "confirmed" ? (
+    <a
+      href="/order-chicken"
+      className="inline-flex items-center justify-center rounded-md bg-orange px-5 py-3 font-bold text-white"
+    >
+      Place New Order
+    </a>
+  ) : (
+    <button
+      disabled
+      className="cursor-not-allowed rounded-md bg-slate-300 px-5 py-3 font-bold text-white"
+    >
+      Awaiting Approval
+    </button>
+  )}
+</div>
       {retailer?.status === "new" ? (
   <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
     <p className="font-bold text-yellow-800">

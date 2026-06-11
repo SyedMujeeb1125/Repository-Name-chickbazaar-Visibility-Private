@@ -31,6 +31,14 @@ export function Header() {
       {
         href: "/dashboard",
         label: "My Dashboard"
+      },
+      {
+        href: "/dashboard/profile",
+        label: "My Profile"
+      },
+      {
+        href: "/api/logout",
+        label: "Logout"
       }
     ]
   : [
