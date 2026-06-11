@@ -135,14 +135,16 @@ function OrderOperations({
 );
 
 const [ratePerKg, setRatePerKg] = useState(
-  order.ratePerKg || 0
+  order.ratePerKg?.toString() || ""
 );
 
 const [actualWeight, setActualWeight] = useState(
-  order.actualWeight || 0
+  order.actualWeight?.toString() || ""
 );
+
 const finalAmount =
-  Number(ratePerKg) * Number(actualWeight);
+  Number(ratePerKg || 0) *
+  Number(actualWeight || 0);
   const recommendedFarm =
   order.latitude &&
   order.longitude
@@ -283,7 +285,7 @@ const finalAmount =
   type="number"
   value={ratePerKg}
   onChange={(e) =>
-    setRatePerKg(Number(e.target.value))
+    setRatePerKg(e.target.value)
   }
   placeholder="Rate Per Kg"
   className="rounded-md border p-2"
@@ -293,7 +295,7 @@ const finalAmount =
   type="number"
   value={actualWeight}
   onChange={(e) =>
-    setActualWeight(Number(e.target.value))
+    setActualWeight(e.target.value)
   }
   placeholder="Actual Weight (Kg)"
   className="rounded-md border p-2"

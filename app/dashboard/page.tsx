@@ -44,8 +44,8 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
   <h1 className="text-3xl font-extrabold text-navy">
-    My Dashboard
-  </h1>
+  My Dashboard
+</h1>
 
   {retailer?.status === "confirmed" ? (
     <a
@@ -141,6 +141,49 @@ export default async function DashboardPage() {
               {order.paymentStatus || "pending"}
             </span>
           </p>
+          
+          <div className="mt-3 rounded-lg bg-slate-50 p-4 space-y-2 text-sm">
+  <p>
+    <strong>Payment Type:</strong>{" "}
+    {order.paymentType || "-"}
+  </p>
+
+  <p>
+    <strong>Requested Weight:</strong>{" "}
+    {order.requestedWeight || "-"} Kg
+  </p>
+
+  <p>
+    <strong>Rate Per Kg:</strong>{" "}
+    {order.ratePerKg
+      ? `₹${order.ratePerKg}`
+      : "Not Updated"}
+  </p>
+
+  <p>
+    <strong>Actual Weight:</strong>{" "}
+    {order.actualWeight
+      ? `${order.actualWeight} Kg`
+      : "Not Updated"}
+  </p>
+
+  <p className="text-lg font-bold text-green-700">
+    Final Amount:{" "}
+    {order.finalAmount
+      ? `₹${order.finalAmount}`
+      : "Pending Calculation"}
+  </p>
+
+  <p>
+    <strong>Assigned Farm:</strong>{" "}
+    {order.assignedFarm || "-"}
+  </p>
+
+  <p>
+    <strong>Tracking Notes:</strong>{" "}
+    {order.trackingNotes || "-"}
+  </p>
+</div>
         </div>
 
         <span className="rounded bg-slate-100 px-3 py-1 text-sm font-semibold">
