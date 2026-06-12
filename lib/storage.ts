@@ -236,4 +236,15 @@ export async function updateOrderDetails(
     .eq("id", id);
 
   return !error;
+} export async function getTodayRate() {
+  const { data } = await supabase
+    .from("daily_rates")
+    .select("*")
+    .order("effective_date", {
+      ascending: false
+    })
+    .limit(1)
+    .single();
+
+  return data;
 }

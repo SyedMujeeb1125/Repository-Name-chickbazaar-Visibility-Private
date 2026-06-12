@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
-import { readDb } from "@/lib/storage";
+import { readDb, getTodayRate } from "@/lib/storage";
 const orderSteps = [
   "new",
   "confirmed",
@@ -19,6 +19,7 @@ export default async function DashboardPage() {
   }
 
   const db = await readDb();
+  const todayRate = await getTodayRate();
   const retailer = db.retailers.find(
   (r: any) => r.mobile === mobile
   );
@@ -93,6 +94,15 @@ export default async function DashboardPage() {
     </p>
   </div>
 )}
+      <div className="mt-8 rounded-xl bg-orange p-6 text-white shadow-sm">
+  <p className="text-sm uppercase tracking-wide">
+    Today's Live Broiler Rate
+  </p>
+
+  <p className="mt-2 text-4xl font-extrabold">
+    ₹{todayRate?.rate || 0}/kg
+  </p>
+</div>
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <div className="rounded-lg bg-navy p-5 text-white">
           <p>Total Orders</p>
