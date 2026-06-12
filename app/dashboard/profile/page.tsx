@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
 import { readDb } from "@/lib/storage";
