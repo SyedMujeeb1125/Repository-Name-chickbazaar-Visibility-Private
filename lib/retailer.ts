@@ -7,11 +7,9 @@ export async function getLoggedInRetailerMobile() {
   const token =
     cookieStore.get(retailerCookieName)?.value;
 
-  console.log("RETAILER COOKIE:", token);
+  if (!token) {
+    return null;
+  }
 
-  const decoded = verifySignedToken(token);
-
-  console.log("DECODED MOBILE:", decoded);
-
-  return decoded;
+  return verifySignedToken(token);
 }
