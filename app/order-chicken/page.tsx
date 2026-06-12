@@ -59,7 +59,8 @@ export default async function OrderChickenPage() {
       <pre className="mb-4 rounded bg-black p-4 text-white text-xs overflow-auto">
 {JSON.stringify(
   {
-    mobile
+    mobile,
+    retailer
   },
   null,
   2
