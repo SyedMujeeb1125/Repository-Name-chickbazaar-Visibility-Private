@@ -123,119 +123,142 @@ export default async function DashboardPage() {
   const currentStep = orderSteps.indexOf(order.status);
 
   return (
-    <div
-      key={order.id}
-      className="rounded-lg border p-5"
-    >
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-  <p className="text-sm font-bold text-orange">
-    {order.orderNumber || order.id}
-  </p>
-
-  {index === 0 && (
-    <span className="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">
-      LATEST ORDER
-    </span>
-  )}
-</div>
-
-<p className="text-xs text-slate-500">
-  Placed On:{" "}
-  {new Date(
-    order.createdAt || Date.now()
-  ).toLocaleString()}
-</p>
-
-<p className="font-bold text-lg">
-  {order.shopName}
-</p>
-
-          <p className="text-sm text-slate-500">
-            {order.birds} birds
+  <div
+    key={order.id}
+    className="rounded-xl border bg-white p-6 shadow-sm"
+  >
+    {/* Header */}
+    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-lg font-bold text-orange">
+            {order.orderNumber || order.id}
           </p>
 
-          <p className="mt-2 text-sm">
-            Payment:{" "}
-            <span className="font-semibold">
-              {order.paymentStatus || "pending"}
+          {index === 0 && (
+            <span className="rounded bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
+              LATEST ORDER
             </span>
-          </p>
-          
-          <div className="mt-3 rounded-lg bg-slate-50 p-4 space-y-2 text-sm">
-  <p>
-    <strong>Payment Type:</strong>{" "}
-    {order.paymentType || "-"}
-  </p>
-
-  <p>
-    <strong>Requested Weight:</strong>{" "}
-    {order.requestedWeight || "-"} Kg
-  </p>
-
-  <p>
-    <strong>Rate Per Kg:</strong>{" "}
-    {order.ratePerKg
-      ? `₹${order.ratePerKg}`
-      : "Not Updated"}
-  </p>
-
-  <p>
-    <strong>Actual Weight:</strong>{" "}
-    {order.actualWeight
-      ? `${order.actualWeight} Kg`
-      : "Not Updated"}
-  </p>
-
-  <p className="text-lg font-bold text-green-700">
-    Final Amount:{" "}
-    {order.finalAmount
-      ? `₹${order.finalAmount}`
-      : "Pending Calculation"}
-  </p>
-
-  <p>
-    <strong>Assigned Farm:</strong>{" "}
-    {order.assignedFarm || "-"}
-  </p>
-
-  <p>
-    <strong>Tracking Notes:</strong>{" "}
-    {order.trackingNotes || "-"}
-  </p>
-</div>
+          )}
         </div>
 
-        <span className="rounded bg-slate-100 px-3 py-1 text-sm font-semibold">
-          {order.status}
-        </span>
-      </div>
-
-      <div className="mt-4">
-        <p className="font-semibold mb-2">
-          Order Progress
+        <p className="text-sm text-slate-500">
+          Placed On:{" "}
+          {new Date(
+            order.createdAt || Date.now()
+          ).toLocaleString()}
         </p>
 
-        <div className="grid gap-2">
-          {orderSteps.map((step, index) => (
+        <h3 className="mt-2 text-2xl font-bold">
+          {order.shopName}
+        </h3>
+
+        <p className="text-slate-500">
+          {order.birds} Birds
+        </p>
+      </div>
+
+      <span className="rounded-lg bg-orange/10 px-4 py-2 font-bold text-orange">
+        {order.status?.toUpperCase()}
+      </span>
+    </div>
+
+    {/* Main Content */}
+    <div className="mt-6 grid gap-6 lg:grid-cols-2">
+
+      {/* Left Side */}
+      <div className="rounded-lg bg-slate-50 p-5">
+        <h4 className="mb-4 text-lg font-bold">
+          Payment & Delivery Details
+        </h4>
+
+        <div className="space-y-3 text-sm">
+          <p>
+            <strong>Payment Type:</strong>{" "}
+            {order.paymentType || "-"}
+          </p>
+
+          <p>
+            <strong>Requested Weight:</strong>{" "}
+            {order.requestedWeight || "-"} Kg
+          </p>
+
+          <p>
+            <strong>Rate Per Kg:</strong>{" "}
+            {order.ratePerKg
+              ? `₹${order.ratePerKg}`
+              : "Not Updated"}
+          </p>
+
+          <p>
+            <strong>Actual Weight:</strong>{" "}
+            {order.actualWeight
+              ? `${order.actualWeight} Kg`
+              : "Not Updated"}
+          </p>
+
+          <div className="rounded-lg bg-green-50 p-4">
+            <p className="text-xs uppercase text-green-700">
+              Final Amount
+            </p>
+
+            <p className="text-3xl font-extrabold text-green-700">
+              {order.finalAmount
+                ? `₹${order.finalAmount}`
+                : "Pending"}
+            </p>
+          </div>
+
+          <p>
+            <strong>Assigned Farm:</strong>{" "}
+            {order.assignedFarm || "-"}
+          </p>
+
+          <p>
+            <strong>Tracking Notes:</strong>{" "}
+            {order.trackingNotes || "-"}
+          </p>
+
+          <p>
+            <strong>Payment Status:</strong>{" "}
+            {order.paymentStatus || "pending"}
+          </p>
+        </div>
+      </div>
+
+      {/* Right Side */}
+      <div className="rounded-lg bg-slate-50 p-5">
+        <h4 className="mb-4 text-lg font-bold">
+          Order Progress
+        </h4>
+
+        <div className="space-y-3">
+          {orderSteps.map((step, stepIndex) => (
             <div
               key={step}
-              className={`text-sm ${
-                index <= currentStep
+              className={`flex items-center gap-3 ${
+                stepIndex <= currentStep
                   ? "text-green-600 font-semibold"
                   : "text-slate-400"
               }`}
             >
-              {index <= currentStep ? "✓" : "○"}{" "}
-              {step.charAt(0).toUpperCase() +
-                step.slice(1)}
+              <span className="text-lg">
+                {stepIndex <= currentStep
+                  ? "✓"
+                  : "○"}
+              </span>
+
+              <span>
+                {step.charAt(0).toUpperCase() +
+                  step.slice(1)}
+              </span>
             </div>
           ))}
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 })
           )}
         </div>
