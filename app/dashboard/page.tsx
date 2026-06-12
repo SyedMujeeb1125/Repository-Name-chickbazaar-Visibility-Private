@@ -20,8 +20,14 @@ export default async function DashboardPage() {
   const retailer = db.retailers.find(
   (r: any) => r.mobile === mobile
   );
-  const myOrders = db.orders.filter(
+  const myOrders = db.orders
+  .filter(
     (order: any) => order.mobile === mobile
+  )
+  .sort(
+    (a: any, b: any) =>
+      new Date(b.createdAt || b.id).getTime() -
+      new Date(a.createdAt || a.id).getTime()
   );
 
   const totalOrders = myOrders.length;
@@ -113,7 +119,7 @@ export default async function DashboardPage() {
               No orders found.
             </p>
           ) : (
-            myOrders.map((order: any) => {
+            myOrders.map((order: any, index: number) => {
   const currentStep = orderSteps.indexOf(order.status);
 
   return (
@@ -123,13 +129,28 @@ export default async function DashboardPage() {
     >
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm font-bold text-orange">
-            {order.orderNumber || order.id}
-          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+  <p className="text-sm font-bold text-orange">
+    {order.orderNumber || order.id}
+  </p>
 
-          <p className="font-bold text-lg">
-            {order.shopName}
-          </p>
+  {index === 0 && (
+    <span className="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">
+      LATEST ORDER
+    </span>
+  )}
+</div>
+
+<p className="text-xs text-slate-500">
+  Placed On:{" "}
+  {new Date(
+    order.createdAt || Date.now()
+  ).toLocaleString()}
+</p>
+
+<p className="font-bold text-lg">
+  {order.shopName}
+</p>
 
           <p className="text-sm text-slate-500">
             {order.birds} birds
