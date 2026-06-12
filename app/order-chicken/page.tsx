@@ -56,16 +56,7 @@ export default async function OrderChickenPage() {
       className="bg-slate-50"
       innerClassName="max-w-3xl"
     >
-      <pre className="mb-4 rounded bg-black p-4 text-white text-xs overflow-auto">
-{JSON.stringify(
-  {
-    mobile,
-    retailer
-  },
-  null,
-  2
-)}
-</pre>
+     
       <FormShell
         title="Order Chicken"
         description="Place your requirement for live broiler chickens. ChickBazaar will source from partner farms and coordinate delivery."
