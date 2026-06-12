@@ -49,30 +49,7 @@ function StatusSelect({
   status: SubmissionStatus;
 }) {
   const router = useRouter();
-  const [newRate, setNewRate] = useState("");
-const [updatingRate, setUpdatingRate] =
-  useState(false);
-
-async function updateRate() {
-  setUpdatingRate(true);
-
-  const formData = new FormData();
-
-  formData.set("rate", newRate);
-
-  await fetch(
-    "/api/admin/update-rate",
-    {
-      method: "POST",
-      body: formData
-    }
-  );
-
-  setUpdatingRate(false);
-  setNewRate("");
-
-  router.refresh();
-}
+  
   const [value, setValue] = useState(status);
 
   async function updateStatus(nextStatus: SubmissionStatus) {
@@ -141,6 +118,8 @@ function OrderOperations({
   farms: FarmPartnerRecord[];
 }) {
   const router = useRouter();
+
+  
 
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(
   order.paymentStatus || "pending"
@@ -359,11 +338,33 @@ export function AdminDashboard({
 }: AdminDashboardProps) {
   const router = useRouter();
 
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
+  const [newRate, setNewRate] = useState("");
+  const [updatingRate, setUpdatingRate] =
+    useState(false);
+
+  async function updateRate() {
+    setUpdatingRate(true);
+
+    const formData = new FormData();
+
+    formData.set("rate", newRate);
+
+    await fetch("/api/admin/update-rate", {
+      method: "POST",
+      body: formData
+    });
+
+    setUpdatingRate(false);
+    setNewRate("");
+
     router.refresh();
   }
+
+  async function logout() {
+  await fetch("/api/admin/logout", { method: "POST" });
+  router.push("/admin/login");
+  router.refresh();
+}
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -404,7 +405,7 @@ export function AdminDashboard({
           <p className="mt-2 text-3xl font-extrabold">{data.farmPartners.length}</p>
         </div>
       </div>
-      <div className="mt-6 rounded-xl bg-orange p-6 text-white shadow-sm">
+      <div className="mt-6 rounded-xl bg-orange p-6 text-white">
   <p className="text-sm uppercase tracking-wide">
     Today's Live Broiler Rate
   </p>
@@ -413,9 +414,28 @@ export function AdminDashboard({
     ₹{todayRate?.rate || 0}/kg
   </p>
 
-  <p className="mt-2 text-sm text-white/80">
-    Current market rate visible to all retailers.
-  </p>
+  <div className="mt-4 flex gap-3">
+    <input
+      type="number"
+      value={newRate}
+      onChange={(e) =>
+        setNewRate(e.target.value)
+      }
+      placeholder="Enter new rate"
+      className="rounded-md px-3 py-2 text-black"
+    />
+
+    <button
+      type="button"
+      onClick={updateRate}
+      disabled={updatingRate}
+      className="rounded-md bg-white px-4 py-2 font-bold text-orange"
+    >
+      {updatingRate
+        ? "Updating..."
+        : "Update Rate"}
+    </button>
+  </div>
 </div>
 
       <section className="mt-10">

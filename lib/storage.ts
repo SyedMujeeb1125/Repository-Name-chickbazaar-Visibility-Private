@@ -240,7 +240,7 @@ export async function updateOrderDetails(
   const { data } = await supabase
     .from("daily_rates")
     .select("*")
-    .order("effective_date", {
+    .order("created_at", {
       ascending: false
     })
     .limit(1)
