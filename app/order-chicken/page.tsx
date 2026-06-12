@@ -56,8 +56,15 @@ export default async function OrderChickenPage() {
       innerClassName="max-w-3xl"
     >
       <pre className="mb-4 rounded bg-black p-4 text-white text-xs overflow-auto">
-        {JSON.stringify(retailer, null, 2)}
-      </pre>
+{JSON.stringify(
+  {
+    mobile,
+    retailer
+  },
+  null,
+  2
+)}
+</pre>
 
       <FormShell
         title="Order Chicken"
