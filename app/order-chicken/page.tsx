@@ -9,6 +9,7 @@ import { Section } from "@/components/section";
 import { LocationPicker } from "@/components/location-picker";
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
 import { readDb } from "@/lib/storage";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Order Chicken",
@@ -55,16 +56,6 @@ export default async function OrderChickenPage() {
       className="bg-slate-50"
       innerClassName="max-w-3xl"
     >
-      <pre className="mb-4 rounded bg-black p-4 text-white text-xs overflow-auto">
-{JSON.stringify(
-  {
-    mobile,
-    retailer
-  },
-  null,
-  2
-)}
-</pre>
 
       <FormShell
         title="Order Chicken"
