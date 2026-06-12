@@ -52,8 +52,7 @@ export function Header() {
         {
           href: "/dashboard/profile",
           label: "My Profile"
-        },
-    
+        }
       ]
     : [
         ...publicNavItems,
@@ -111,6 +110,17 @@ export function Header() {
               </Link>
             );
           })}
+
+          {loggedIn && (
+            <button
+              onClick={() => {
+                window.location.href = "/api/logout";
+              }}
+              className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-red-600"
+            >
+              Logout
+            </button>
+          )}
         </nav>
 
         <button
@@ -141,6 +151,18 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+
+            {loggedIn && (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  window.location.href = "/api/logout";
+                }}
+                className="rounded-md px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:text-red-600"
+              >
+                Logout
+              </button>
+            )}
           </div>
         </nav>
       )}
