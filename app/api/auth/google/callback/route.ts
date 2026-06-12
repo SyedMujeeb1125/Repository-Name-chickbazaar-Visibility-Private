@@ -62,11 +62,13 @@ if (!retailer?.mobile) {
     new URL("/register?error=google-not-registered", request.url)
   );
 }
+console.log("GOOGLE LOGIN RETAILER:", retailer);
+console.log("SETTING COOKIE FOR:", retailer?.mobile);
   cookieStore.set(
   retailerCookieName,
   createSignedToken(retailer.mobile),
   retailerCookieOptions()
-);
+); console.log("COOKIE SET SUCCESS");
   cookieStore.delete("google_oauth_state");
   return NextResponse.redirect(
   new URL("/dashboard", request.url)
