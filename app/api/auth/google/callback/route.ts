@@ -64,9 +64,18 @@ if (!retailer?.mobile) {
 }
 console.log("GOOGLE LOGIN RETAILER:", retailer);
 console.log("SETTING COOKIE FOR:", retailer?.mobile);
-  cookieStore.set(
+console.log(
+  "SECRET EXISTS:",
+  !!process.env.ADMIN_SESSION_SECRET
+);
+  const token = createSignedToken(retailer.mobile);
+
+console.log("SETTING COOKIE:", token);
+console.log("MOBILE:", retailer.mobile);
+
+cookieStore.set(
   retailerCookieName,
-  createSignedToken(retailer.mobile),
+  token,
   retailerCookieOptions()
 ); console.log("COOKIE SET SUCCESS");
   cookieStore.delete("google_oauth_state");
