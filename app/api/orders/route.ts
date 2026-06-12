@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { addOrder, createId, readDb } from "@/lib/storage";
+import {
+  addOrder,
+  createId,
+  readDb,
+  getTodayRate
+} from "@/lib/storage";
 import type { OrderRecord } from "@/lib/types";
 
 function value(formData: FormData, key: string) {
@@ -46,6 +51,8 @@ const longitude = Number(formData.get("longitude") || 0);
 
 const db = await readDb();
 
+const todayRate = await getTodayRate();
+
 const nearestFarm =
   db.farmPartners
     .filter(
@@ -66,10 +73,7 @@ const nearestFarm =
       (a, b) =>
         a.distance - b.distance
     )[0];
-    console.log(
-  "requestedWeight:",
-  formData.get("requestedWeight")
-);
+    
   const order: OrderRecord = {
   id: createId("order"),
 
@@ -92,7 +96,7 @@ const nearestFarm =
 requestedWeight: Number(
   formData.get("requestedWeight") || 0
 ),
-
+ ratePerKg: Number(todayRate?.rate || 0),
   assignedFarm:
   nearestFarm?.farm.farmName || "",
   trackingNotes: "",
