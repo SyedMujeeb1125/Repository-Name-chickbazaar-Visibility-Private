@@ -212,9 +212,15 @@ export default async function DashboardPage() {
           </div>
 
           <p>
-            <strong>Assigned Farm:</strong>{" "}
-            {order.assignedFarm || "-"}
-          </p>
+  <strong>Procurement Status:</strong>{" "}
+  {order.status === "procured"
+    ? "Birds Procured"
+    : order.status === "dispatched"
+    ? "Vehicle Dispatched"
+    : order.status === "delivered"
+    ? "Delivered"
+    : "In Progress"}
+</p>
 
           <p>
             <strong>Tracking Notes:</strong>{" "}
