@@ -49,6 +49,30 @@ function StatusSelect({
   status: SubmissionStatus;
 }) {
   const router = useRouter();
+  const [newRate, setNewRate] = useState("");
+const [updatingRate, setUpdatingRate] =
+  useState(false);
+
+async function updateRate() {
+  setUpdatingRate(true);
+
+  const formData = new FormData();
+
+  formData.set("rate", newRate);
+
+  await fetch(
+    "/api/admin/update-rate",
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  setUpdatingRate(false);
+  setNewRate("");
+
+  router.refresh();
+}
   const [value, setValue] = useState(status);
 
   async function updateStatus(nextStatus: SubmissionStatus) {
