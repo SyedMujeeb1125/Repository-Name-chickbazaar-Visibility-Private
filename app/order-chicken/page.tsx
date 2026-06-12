@@ -8,7 +8,7 @@ import {
 import { Section } from "@/components/section";
 import { LocationPicker } from "@/components/location-picker";
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
-import { readDb } from "@/lib/storage";
+import { readDb, getTodayRate } from "@/lib/storage";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 export default async function OrderChickenPage() {
   const mobile = await getLoggedInRetailerMobile();
+
+  const todayRate = await getTodayRate();
 
   const db = await readDb();
 
@@ -52,19 +54,28 @@ export default async function OrderChickenPage() {
   }
 
   return (
-    <Section
-      className="bg-slate-50"
-      innerClassName="max-w-3xl"
+  <Section
+    className="bg-slate-50"
+    innerClassName="max-w-3xl"
+  >
+    <div className="mb-6 rounded-xl bg-orange p-5 text-white">
+      <p className="text-sm uppercase tracking-wide">
+        Today's Live Broiler Rate
+      </p>
+
+      <p className="mt-1 text-3xl font-extrabold">
+        ₹{todayRate?.rate || 0}/kg
+      </p>
+    </div>
+
+    <FormShell
+      title="Order Chicken"
+      description="Place your requirement for live broiler chickens. ChickBazaar will source from partner farms and coordinate delivery."
+      successTitle="Thank you for your order."
+      successMessage="Our team will contact you shortly."
+      buttonText="Place Order"
+      endpoint="/api/orders"
     >
-     
-      <FormShell
-        title="Order Chicken"
-        description="Place your requirement for live broiler chickens. ChickBazaar will source from partner farms and coordinate delivery."
-        successTitle="Thank you for your order."
-        successMessage="Our team will contact you shortly."
-        buttonText="Place Order"
-        endpoint="/api/orders"
-      >
         <div className="grid gap-5 sm:grid-cols-2">
           <TextInput
             label="Shop Name"

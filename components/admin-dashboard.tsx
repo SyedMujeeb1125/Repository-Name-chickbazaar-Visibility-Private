@@ -21,6 +21,7 @@ export type AdminDashboardData = {
 
 type AdminDashboardProps = {
   data: AdminDashboardData;
+  todayRate: any;
 };
 
 const statuses: SubmissionStatus[] = [
@@ -328,7 +329,10 @@ function EmptyState({ label }: { label: string }) {
   return <p className="rounded-lg border border-slate-100 bg-white p-5 text-sm text-slate-500">{label}</p>;
 }
 
-export function AdminDashboard({ data }: AdminDashboardProps) {
+export function AdminDashboard({
+  data,
+  todayRate
+}: AdminDashboardProps) {
   const router = useRouter();
 
   async function logout() {
@@ -376,6 +380,19 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
           <p className="mt-2 text-3xl font-extrabold">{data.farmPartners.length}</p>
         </div>
       </div>
+      <div className="mt-6 rounded-xl bg-orange p-6 text-white shadow-sm">
+  <p className="text-sm uppercase tracking-wide">
+    Today's Live Broiler Rate
+  </p>
+
+  <p className="mt-2 text-4xl font-extrabold">
+    ₹{todayRate?.rate || 0}/kg
+  </p>
+
+  <p className="mt-2 text-sm text-white/80">
+    Current market rate visible to all retailers.
+  </p>
+</div>
 
       <section className="mt-10">
         <h2 className="text-2xl font-extrabold text-navy">Orders</h2>
