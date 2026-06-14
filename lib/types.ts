@@ -25,6 +25,9 @@ export type OrderRecord = {
   paymentStatus?: PaymentStatus;
   paymentAmount?: number;
 
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+
   paymentType?: "advance" | "actual_weight";
 
   requestedWeight?: number;

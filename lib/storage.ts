@@ -31,6 +31,8 @@ export async function readDb(): Promise<ChickBazaarDb> {
 
   paymentStatus: o.payment_status,
 paymentAmount: o.payment_amount,
+razorpayOrderId: o.razorpay_order_id,
+razorpayPaymentId: o.razorpay_payment_id,
 
 paymentType: o.payment_type,
 requestedWeight: o.requested_weight,
@@ -113,6 +115,9 @@ export async function addOrder(order: OrderRecord) {
 
   payment_status: order.paymentStatus,
 payment_amount: order.paymentAmount,
+
+razorpay_order_id: order.razorpayOrderId,
+razorpay_payment_id: order.razorpayPaymentId,
 
 payment_type: order.paymentType,
 requested_weight: order.requestedWeight,
@@ -208,6 +213,11 @@ export async function updateOrderDetails(
   id: string,
   updates: {
   paymentStatus?: string;
+  paymentAmount?: number;
+
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+
   assignedFarm?: string;
   trackingNotes?: string;
 
@@ -223,6 +233,10 @@ export async function updateOrderDetails(
     .from("orders")
     .update({
   payment_status: updates.paymentStatus,
+  payment_amount: updates.paymentAmount,
+
+  razorpay_order_id: updates.razorpayOrderId,
+  razorpay_payment_id: updates.razorpayPaymentId,
 
   payment_type: updates.paymentType,
   requested_weight: updates.requestedWeight,

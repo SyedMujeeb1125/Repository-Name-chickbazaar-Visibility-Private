@@ -67,10 +67,28 @@ export default async function OrderChickenPage() {
         ₹{todayRate?.rate || 0}/kg
       </p>
     </div>
+    <div className="mb-6 rounded-xl bg-orange p-5 text-white">
+  <p className="text-sm uppercase tracking-wide">
+    Today's Live Broiler Rate
+  </p>
 
+  <p className="mt-1 text-3xl font-extrabold">
+    ₹{todayRate?.rate || 0}/kg
+  </p>
+</div>
+
+<div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+  <p className="font-bold text-blue-900">
+    Delivery Schedule
+  </p>
+
+  <p className="mt-1 text-sm text-blue-700">
+    Orders placed today will be delivered tomorrow before 8:00 AM.
+  </p>
+</div>
     <FormShell
       title="Order Chicken"
-      description="Place your requirement for live broiler chickens. ChickBazaar will source from partner farms and coordinate delivery."
+      description="Place your requirement today. ChickBazaar will procure birds overnight and deliver before 8:00 AM on the next day."
       successTitle="Thank you for your order."
       successMessage="Our team will contact you shortly."
       buttonText="Place Order"
@@ -144,10 +162,18 @@ export default async function OrderChickenPage() {
           />
 
           <TextInput
-            label="Delivery Date"
-            name="deliveryDate"
-            type="date"
-          />
+  label="Delivery Date"
+  name="deliveryDate"
+  type="date"
+  defaultValue={
+    new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    )
+      .toISOString()
+      .split("T")[0]
+  }
+  readOnly
+/>
         </div>
 
         <TextArea
