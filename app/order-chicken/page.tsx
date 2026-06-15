@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { FormShell } from "@/components/form-shell";
 import {
-  SelectInput,
   TextArea,
   TextInput
 } from "@/components/form-fields";
 import { Section } from "@/components/section";
-import { LocationPicker } from "@/components/location-picker";
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
 import { readDb, getTodayRate } from "@/lib/storage";
+import { DeliveryAddressSelector } from "@/components/delivery-address-selector";
+import { OrderConfigurator } from "@/components/order-configurator";
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -29,11 +30,46 @@ export default async function OrderChickenPage() {
         (r: any) => r.mobile === mobile
       )
     : null;
+    const retailerStatus =
+  retailer?.status as
+    | "new"
+    | "approved"
+    | "blocked"
+    | "rejected"
+    | undefined;
+
+  const tomorrowDate = new Date(
+    Date.now() + 24 * 60 * 60 * 1000
+  )
+    .toISOString()
+    .split("T")[0];
 
   if (
-    retailer &&
-    retailer.status !== "confirmed"
-  ) {
+  retailer &&
+  retailerStatus === "blocked"
+) {
+  return (
+    <Section
+      className="bg-slate-50"
+      innerClassName="max-w-3xl"
+    >
+      <div className="rounded-lg border border-red-300 bg-red-50 p-6">
+        <h1 className="text-2xl font-bold text-red-700">
+          Account Blocked
+        </h1>
+
+        <p className="mt-3 text-red-600">
+          Please contact ChickBazaar support.
+        </p>
+      </div>
+    </Section>
+  );
+}
+
+if (
+  retailer &&
+  retailerStatus !== "approved"
+) {
     return (
       <Section
         className="bg-slate-50"
@@ -54,46 +90,38 @@ export default async function OrderChickenPage() {
   }
 
   return (
-  <Section
-    className="bg-slate-50"
-    innerClassName="max-w-3xl"
-  >
-    <div className="mb-6 rounded-xl bg-orange p-5 text-white">
-      <p className="text-sm uppercase tracking-wide">
-        Today's Live Broiler Rate
-      </p>
-
-      <p className="mt-1 text-3xl font-extrabold">
-        ₹{todayRate?.rate || 0}/kg
-      </p>
-    </div>
-    <div className="mb-6 rounded-xl bg-orange p-5 text-white">
-  <p className="text-sm uppercase tracking-wide">
-    Today's Live Broiler Rate
-  </p>
-
-  <p className="mt-1 text-3xl font-extrabold">
-    ₹{todayRate?.rate || 0}/kg
-  </p>
-</div>
-
-<div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
-  <p className="font-bold text-blue-900">
-    Delivery Schedule
-  </p>
-
-  <p className="mt-1 text-sm text-blue-700">
-    Orders placed today will be delivered tomorrow before 8:00 AM.
-  </p>
-</div>
-    <FormShell
-      title="Order Chicken"
-      description="Place your requirement today. ChickBazaar will procure birds overnight and deliver before 8:00 AM on the next day."
-      successTitle="Thank you for your order."
-      successMessage="Our team will contact you shortly."
-      buttonText="Place Order"
-      endpoint="/api/orders"
+    <Section
+      className="bg-slate-50"
+      innerClassName="max-w-3xl"
     >
+      <div className="mb-6 rounded-xl bg-orange p-5 text-white">
+        <p className="text-sm uppercase tracking-wide">
+          Today's Live Broiler Rate
+        </p>
+
+        <p className="mt-1 text-3xl font-extrabold">
+          ₹{todayRate?.rate || 0}/kg
+        </p>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <p className="font-bold text-blue-900">
+          Delivery Schedule
+        </p>
+
+        <p className="mt-1 text-sm text-blue-700">
+          Orders placed today will be delivered tomorrow before 8:00 AM.
+        </p>
+      </div>
+
+      <FormShell
+        title="Order Chicken"
+        description="Place your requirement today. ChickBazaar will procure birds overnight and deliver before 8:00 AM on the next day."
+        successTitle="Thank you for your order."
+        successMessage="Our team will contact you shortly."
+        buttonText="Place Order"
+        endpoint="/api/orders"
+      >
         <div className="grid gap-5 sm:grid-cols-2">
           <TextInput
             label="Shop Name"
@@ -128,66 +156,34 @@ export default async function OrderChickenPage() {
           />
 
           <TextInput
-            label="Number Of Birds Required"
-            name="birds"
-            type="number"
-            min="1"
+            label="Delivery Date"
+            name="deliveryDate"
+            type="date"
+            defaultValue={tomorrowDate}
+            min={tomorrowDate}
           />
-
-          <TextInput
-            label="Requested Weight (Kg)"
-            name="requestedWeight"
-            type="number"
-            min="1"
-          />
-
-          <SelectInput
-            label="Payment Type"
-            name="paymentType"
-            options={[
-              "advance",
-              "actual_weight"
-            ]}
-          />
-
-          <SelectInput
-            label="Preferred Average Weight"
-            name="averageWeight"
-            options={[
-              "1.5 Kg",
-              "1.8 Kg",
-              "2.0 Kg",
-              "2.2 Kg"
-            ]}
-          />
-
-          <TextInput
-  label="Delivery Date"
-  name="deliveryDate"
-  type="date"
-  defaultValue={
-    new Date(
-      Date.now() + 24 * 60 * 60 * 1000
-    )
-      .toISOString()
-      .split("T")[0]
-  }
-  readOnly
-/>
         </div>
 
-        <TextArea
-          label="Delivery Address"
-          name="address"
-          required
-          defaultValue={retailer?.address || ""}
+        <OrderConfigurator
+          rate={Number(todayRate?.rate || 0)}
         />
 
-        <LocationPicker />
+        <DeliveryAddressSelector
+  registeredAddress={
+    retailer?.address || ""
+  }
+  shops={
+    db.retailerLocations.filter(
+      (shop: any) =>
+        shop.retailerMobile === mobile
+    )
+  }
+/>
 
         <TextArea
-          label="Additional Notes"
+          label="Additional Notes (Optional)"
           name="notes"
+          required={false}
         />
       </FormShell>
     </Section>

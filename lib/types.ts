@@ -1,4 +1,29 @@
-export type SubmissionStatus =
+export type RetailerRecord = {
+  id: string;
+
+  createdAt: string;
+
+  status: OrderStatus;
+
+  shopName: string;
+
+  ownerName: string;
+
+  mobile: string;
+
+  email: string;
+
+  address: string;
+
+  gst: string;
+
+  gstCertificatePath?: string;
+
+  latitude?: number;
+
+  longitude?: number;
+};
+export type OrderStatus =
   | "new"
   | "confirmed"
   | "procured"
@@ -6,6 +31,12 @@ export type SubmissionStatus =
   | "delivered"
   | "completed"
   | "cancelled";
+
+export type PartnerStatus =
+  | "new"
+  | "approved"
+  | "blocked"
+  | "rejected";
 
 export type PaymentStatus =
   | "pending"
@@ -20,7 +51,7 @@ export type OrderRecord = {
 
   createdAt: string;
 
-  status: SubmissionStatus;
+  status: OrderStatus;
 
   paymentStatus?: PaymentStatus;
   paymentAmount?: number;
@@ -39,6 +70,7 @@ export type OrderRecord = {
   finalAmount?: number;
 
   shopName: string;
+  deliveryShopName?: string;
   ownerName: string;
   mobile: string;
   email: string;
@@ -56,28 +88,45 @@ export type OrderRecord = {
   latitude?: number;
   longitude?: number;
 };
-export type RetailerRecord = {
+export type RetailerLocationRecord = {
   id: string;
-  createdAt: string;
-  status: SubmissionStatus;
+
+  retailerMobile: string;
 
   shopName: string;
-  ownerName: string;
-  mobile: string;
-  email: string;
-  address: string;
 
-  gst: string;
-  gstCertificatePath: string;
+  contactPerson: string;
+
+  mobile: string;
+
+  address: string;
 
   latitude?: number;
   longitude?: number;
+
+  createdAt: string;
+};
+
+export type FarmInventoryRecord = {
+  id: string;
+
+  farmId: string;
+
+  inventoryDate: string;
+
+  weightCategory: string;
+
+  birdCount: number;
+
+  procurementPrice?: number;
+
+  createdAt: string;
 };
 
 export type FarmPartnerRecord = {
   id: string;
   createdAt: string;
-  status: SubmissionStatus;
+  status: PartnerStatus;
 
   farmName: string;
   contactPerson: string;
@@ -103,7 +152,14 @@ export type OtpRecord = {
 
 export type ChickBazaarDb = {
   orders: OrderRecord[];
+
   retailers: RetailerRecord[];
+
+  retailerLocations: RetailerLocationRecord[];
+
   farmPartners: FarmPartnerRecord[];
+
+  farmInventory: FarmInventoryRecord[];
+
   otps: OtpRecord[];
 };

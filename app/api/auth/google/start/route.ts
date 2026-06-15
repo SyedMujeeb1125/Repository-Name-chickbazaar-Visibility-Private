@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
+  console.log(
+  "GOOGLE CLIENT:",
+  process.env.GOOGLE_CLIENT_ID
+);
   const redirectUri = process.env.GOOGLE_REDIRECT_URI;
 
   if (!clientId || !redirectUri) {
@@ -30,6 +34,10 @@ export async function GET() {
   url.searchParams.set("scope", "openid email profile");
   url.searchParams.set("state", state);
   url.searchParams.set("prompt", "select_account");
+
+  console.log("GOOGLE CLIENT:", clientId);
+  console.log("REDIRECT URI:", redirectUri);
+  console.log("GOOGLE URL:", url.toString());
 
   return NextResponse.redirect(url);
 }

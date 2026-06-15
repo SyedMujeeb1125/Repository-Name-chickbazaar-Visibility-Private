@@ -20,8 +20,26 @@ export async function GET(
     return NextResponse.json({ message: "Retailer not found." }, { status: 404 });
   }
 
-  const bytes = await readFile(retailer.gstCertificatePath);
-  const fileName = path.basename(retailer.gstCertificatePath);
+  const certificatePath =
+  retailer.gstCertificatePath;
+
+if (!certificatePath) {
+  return NextResponse.json(
+    {
+      message:
+        "GST certificate not found"
+    },
+    { status: 404 }
+  );
+}
+
+const bytes = await readFile(
+  certificatePath
+);
+
+const fileName = path.basename(
+  certificatePath
+);
 
   return new NextResponse(bytes, {
     headers: {

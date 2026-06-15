@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, LogOut, RefreshCw } from "lucide-react";
 import type {
-  FarmPartnerRecord,
   OrderRecord,
   RetailerRecord,
-  SubmissionStatus,
+  FarmPartnerRecord,
+  OrderStatus,
+  PartnerStatus,
   PaymentStatus
 } from "@/lib/types";
 
@@ -24,7 +25,7 @@ type AdminDashboardProps = {
   todayRate: any;
 };
 
-const statuses: SubmissionStatus[] = [
+const statuses = [
   "new",
   "confirmed",
   "procured",
@@ -46,13 +47,15 @@ function StatusSelect({
 }: {
   collection: "orders" | "retailers" | "farmPartners";
   id: string;
-  status: SubmissionStatus;
+  status: string;
 }) {
   const router = useRouter();
   
   const [value, setValue] = useState(status);
 
-  async function updateStatus(nextStatus: SubmissionStatus) {
+  async function updateStatus(
+  nextStatus: string
+) {
     setValue(nextStatus);
     const formData = new FormData();
     formData.set("collection", collection);
@@ -68,7 +71,11 @@ function StatusSelect({
   return (
     <select
       value={value}
-      onChange={(event) => updateStatus(event.target.value as SubmissionStatus)}
+      onChange={(event) =>
+  updateStatus(
+    event.target.value
+  )
+}
       className="focus-ring min-h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-navy"
     >
       {statuses.map((item) => (
@@ -343,22 +350,34 @@ export function AdminDashboard({
     useState(false);
 
   async function updateRate() {
-    setUpdatingRate(true);
+  setUpdatingRate(true);
 
-    const formData = new FormData();
+  const formData = new FormData();
+  formData.set("rate", newRate);
 
-    formData.set("rate", newRate);
-
-    await fetch("/api/admin/update-rate", {
+  const response = await fetch(
+    "/api/admin/update-rate",
+    {
       method: "POST",
       body: formData
-    });
+    }
+  );
 
+  const result = await response.json();
+
+  if (!response.ok) {
+    alert(result.message || "Failed to update rate");
     setUpdatingRate(false);
-    setNewRate("");
-
-    router.refresh();
+    return;
   }
+
+  alert("Rate updated successfully");
+
+  setUpdatingRate(false);
+  setNewRate("");
+
+  router.refresh();
+}
 
   async function logout() {
   await fetch("/api/admin/logout", { method: "POST" });

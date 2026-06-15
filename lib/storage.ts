@@ -5,7 +5,9 @@ import type {
   FarmPartnerRecord,
   OrderRecord,
   RetailerRecord,
-  SubmissionStatus
+  RetailerLocationRecord,
+  OrderStatus,
+  PartnerStatus
 } from "@/lib/types";
 
 export function createId(prefix: string) {
@@ -13,12 +15,27 @@ export function createId(prefix: string) {
 }
 
 export async function readDb(): Promise<ChickBazaarDb> {
-  const [orders, retailers, farmPartners, otps] = await Promise.all([
-    supabase.from("orders").select("*"),
-    supabase.from("retailers").select("*"),
-    supabase.from("farm_partners").select("*"),
-    supabase.from("otps").select("*")
-  ]);
+  const [
+  orders,
+  retailers,
+  retailerLocations,
+  farmPartners,
+  farmInventory,
+  otps
+] = await Promise.all([
+  supabase.from("orders").select("*"),
+  supabase.from("retailers").select("*"),
+
+  supabase
+    .from("retailer_locations")
+    .select("*"),
+
+  supabase.from("farm_partners").select("*"),
+  supabase
+  .from("farm_inventory")
+  .select("*"),
+  supabase.from("otps").select("*")
+]);
 
   return {
     orders: (orders.data || []).map((o: any) => ({
@@ -58,6 +75,30 @@ trackingNotes: o.tracking_notes,
   latitude: o.latitude,
   longitude: o.longitude
 })),
+
+farmInventory:
+  (farmInventory.data || []).map(
+    (i: any) => ({
+      id: i.id,
+
+      farmId: i.farm_id,
+
+      inventoryDate:
+        i.inventory_date,
+
+      weightCategory:
+        i.weight_category,
+
+      birdCount:
+        i.bird_count,
+
+      procurementPrice:
+        i.procurement_price,
+
+      createdAt:
+        i.created_at
+    })
+  ),
     retailers: (retailers.data || []).map((r: any) => ({
   id: r.id,
   createdAt: r.created_at,
@@ -75,6 +116,37 @@ trackingNotes: o.tracking_notes,
   latitude: r.latitude,
   longitude: r.longitude
 })),
+
+retailerLocations:
+  (retailerLocations.data || []).map(
+    (r: any) => ({
+      id: r.id,
+
+      retailerMobile:
+        r.retailer_mobile,
+
+      shopName:
+        r.shop_name,
+
+      contactPerson:
+        r.contact_person,
+
+      mobile:
+        r.mobile,
+
+      address:
+        r.address,
+
+      latitude:
+        r.latitude,
+
+      longitude:
+        r.longitude,
+
+      createdAt:
+        r.created_at
+    })
+  ),
 
 farmPartners: (farmPartners.data || []).map((f: any) => ({
   id: f.id,
@@ -194,7 +266,7 @@ export async function saveUploadedFile(file: File, prefix: string) {
 export async function updateRecordStatus(
   collection: "orders" | "retailers" | "farmPartners",
   id: string,
-  status: SubmissionStatus
+  status: OrderStatus | PartnerStatus
 ) {
   let table = "";
 
@@ -261,4 +333,37 @@ export async function updateOrderDetails(
     .single();
 
   return data;
+}
+export async function addRetailerLocation(
+  location: RetailerLocationRecord
+) {
+  await supabase
+    .from("retailer_locations")
+    .insert({
+      id: location.id,
+
+      retailer_mobile:
+        location.retailerMobile,
+
+      shop_name:
+        location.shopName,
+
+      contact_person:
+        location.contactPerson,
+
+      mobile:
+        location.mobile,
+
+      address:
+        location.address,
+
+      latitude:
+        location.latitude,
+
+      longitude:
+        location.longitude,
+
+      created_at:
+        location.createdAt
+    });
 }

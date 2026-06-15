@@ -105,6 +105,10 @@ requestedWeight: Number(
   longitude,
 
   shopName: value(formData, "shopName"),
+  deliveryShopName: value(
+  formData,
+  "deliveryShopName"
+),
   ownerName: value(formData, "ownerName"),
   mobile: value(formData, "mobile"),
   email: value(formData, "email"),
