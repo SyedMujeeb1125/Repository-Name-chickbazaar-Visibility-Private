@@ -47,10 +47,38 @@ export function AdminFarmsList({
       (f) =>
         f.status === "approved"
     ).length;
+   const blockedCount =
+  farms.filter(
+    (f) =>
+      f.status === "blocked"
+  ).length;
 
+const [search, setSearch] =
+  useState("");
+
+const filtered =
+  farms.filter((farm) => {
+    const term =
+      search.toLowerCase();
+
+    return (
+      farm.farmName
+        ?.toLowerCase()
+        .includes(term) ||
+      farm.contactPerson
+        ?.toLowerCase()
+        .includes(term) ||
+      farm.mobile?.includes(
+        search
+      ) ||
+      farm.location
+        ?.toLowerCase()
+        .includes(term)
+    );
+  });
   return (
     <div>
-      <div className="mb-6 grid gap-4 md:grid-cols-2">
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
 
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Pending Farms</p>
@@ -60,19 +88,49 @@ export function AdminFarmsList({
           </p>
         </div>
 
-        <div className="rounded-xl bg-green-600 p-5 text-white">
-          <p>Approved Farms</p>
+        <div className="mb-6 grid gap-4 md:grid-cols-3">
 
-          <p className="text-3xl font-bold">
-            {approvedCount}
-          </p>
-        </div>
+  <div className="rounded-xl bg-orange p-5 text-white">
+    <p>Pending Farms</p>
+
+    <p className="text-3xl font-bold">
+      {pendingCount}
+    </p>
+  </div>
+
+  <div className="rounded-xl bg-green-600 p-5 text-white">
+    <p>Approved Farms</p>
+
+    <p className="text-3xl font-bold">
+      {approvedCount}
+    </p>
+  </div>
+
+  <div className="rounded-xl bg-red-600 p-5 text-white">
+    <p>Blocked Farms</p>
+
+    <p className="text-3xl font-bold">
+      {blockedCount}
+    </p>
+  </div>
+
+</div>
 
       </div>
-
+      <input
+  type="text"
+  placeholder="Search by farm name, contact person, mobile or location"
+  value={search}
+  onChange={(e) =>
+    setSearch(
+      e.target.value
+    )
+  }
+  className="mb-6 w-full rounded-lg border p-3"
+/>
       <div className="space-y-4">
 
-        {farms.map((farm) => (
+        {filtered.map((farm) => (
           <div
             key={farm.id}
             className="rounded-lg border bg-white p-5"
@@ -182,10 +240,14 @@ export function AdminFarmsList({
               )}
 
             </div>
-
+            
           </div>
         ))}
-
+        {filtered.length === 0 && (
+  <div className="rounded-lg border bg-white p-5 text-center text-slate-500">
+    No farms found
+  </div>
+)}
       </div>
     </div>
   );

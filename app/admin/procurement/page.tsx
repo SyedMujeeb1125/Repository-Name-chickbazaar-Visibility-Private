@@ -1,7 +1,13 @@
-import { readDb } from "@/lib/storage";
+import {
+  readDb,
+  getTodayRate
+} from "@/lib/storage";
 
 export default async function ProcurementPage() {
   const db = await readDb();
+
+  const todayRate =
+    await getTodayRate();
 
   const tomorrow = new Date(
     Date.now() + 24 * 60 * 60 * 1000
@@ -43,6 +49,44 @@ export default async function ProcurementPage() {
       {}
     );
 
+  const inventorySummary =
+    db.farmInventory.reduce(
+      (acc: any, item: any) => {
+        acc[item.weightCategory] =
+          (acc[item.weightCategory] || 0) +
+          Number(item.birdCount || 0);
+
+        return acc;
+      },
+      {}
+    );
+
+  const costSummary =
+    db.farmInventory.reduce(
+      (acc: any, item: any) => {
+        if (
+          !acc[item.weightCategory]
+        ) {
+          acc[item.weightCategory] = {
+            totalCost: 0,
+            count: 0
+          };
+        }
+
+        acc[item.weightCategory]
+          .totalCost +=
+          Number(
+            item.procurementPrice || 0
+          );
+
+        acc[item.weightCategory]
+          .count += 1;
+
+        return acc;
+      },
+      {}
+    );
+
   const farmSummary =
     procurementOrders.reduce(
       (acc: any, order: any) => {
@@ -70,7 +114,6 @@ export default async function ProcurementPage() {
       </p>
 
       <div className="mb-6 grid gap-4 md:grid-cols-2">
-
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Total Orders</p>
 
@@ -86,7 +129,6 @@ export default async function ProcurementPage() {
             {totalBirds}
           </p>
         </div>
-
       </div>
 
       <div className="mb-6 rounded-xl border bg-white p-5">
@@ -94,10 +136,13 @@ export default async function ProcurementPage() {
           Birds Required by Weight
         </h2>
 
-        {Object.entries(weightSummary).length === 0 ? (
+        {Object.entries(weightSummary)
+          .length === 0 ? (
           <p>No orders found.</p>
         ) : (
-          Object.entries(weightSummary).map(
+          Object.entries(
+            weightSummary
+          ).map(
             ([weight, birds]) => (
               <div
                 key={weight}
@@ -114,15 +159,79 @@ export default async function ProcurementPage() {
         )}
       </div>
 
-      <div className="rounded-xl border bg-white p-5">
+      <div className="mb-6 rounded-xl border bg-white p-5">
+        <h2 className="mb-4 text-xl font-bold">
+          Demand vs Available Inventory
+        </h2>
+
+        {Object.entries(
+          weightSummary
+        ).map(
+          ([weight, demand]) => {
+            const available =
+              inventorySummary[
+                weight
+              ] || 0;
+
+            const difference =
+              available -
+              Number(demand);
+
+            return (
+              <div
+                key={weight}
+                className="border-b py-3"
+              >
+                <p>
+                  <strong>
+                    {weight}
+                  </strong>
+                </p>
+
+                <p>
+                  Demand:{" "}
+                  {String(demand)}
+                </p>
+
+                <p>
+                  Available:{" "}
+                  {available}
+                </p>
+
+                <p
+                  className={
+                    difference >= 0
+                      ? "font-semibold text-green-600"
+                      : "font-semibold text-red-600"
+                  }
+                >
+                  {difference >= 0
+                    ? `Surplus ${difference}`
+                    : `Shortage ${Math.abs(
+                        difference
+                      )}`}
+                </p>
+              </div>
+            );
+          }
+        )}
+      </div>
+
+      <div className="mb-6 rounded-xl border bg-white p-5">
         <h2 className="mb-4 text-xl font-bold">
           Farm Allocation
         </h2>
 
-        {Object.entries(farmSummary).length === 0 ? (
-          <p>No farm allocations found.</p>
+        {Object.entries(farmSummary)
+          .length === 0 ? (
+          <p>
+            No farm allocations
+            found.
+          </p>
         ) : (
-          Object.entries(farmSummary).map(
+          Object.entries(
+            farmSummary
+          ).map(
             ([farm, birds]) => (
               <div
                 key={farm}
@@ -136,6 +245,80 @@ export default async function ProcurementPage() {
               </div>
             )
           )
+        )}
+      </div>
+
+      <div className="rounded-xl border bg-white p-5">
+        <h2 className="mb-4 text-xl font-bold">
+          Procurement Margin Analysis
+        </h2>
+
+        {Object.entries(
+          weightSummary
+        ).map(
+          ([weight, demand]) => {
+            const avgCost =
+              costSummary[
+                weight
+              ]
+                ? Math.round(
+                    costSummary[
+                      weight
+                    ].totalCost /
+                      costSummary[
+                        weight
+                      ].count
+                  )
+                : 0;
+
+            const sellRate =
+              Number(
+                todayRate?.rate || 0
+              );
+
+            const margin =
+              sellRate -
+              avgCost;
+
+            return (
+              <div
+                key={weight}
+                className="border-b py-3"
+              >
+                <p>
+                  <strong>
+                    {weight}
+                  </strong>
+                </p>
+
+                <p>
+                  Demand:{" "}
+                  {String(demand)} Birds
+                </p>
+
+                <p>
+                  Avg Farm Cost:
+                  ₹{avgCost}
+                </p>
+
+                <p>
+                  Selling Rate:
+                  ₹{sellRate}
+                </p>
+
+                <p
+                  className={
+                    margin >= 0
+                      ? "font-semibold text-green-600"
+                      : "font-semibold text-red-600"
+                  }
+                >
+                  Margin:
+                  ₹{margin}/Kg
+                </p>
+              </div>
+            );
+          }
         )}
       </div>
     </div>
