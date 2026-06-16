@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { updateRecordStatus } from "@/lib/storage";
+import {
+  updateRecordStatus,
+  addLedgerEntry,
+  readDb
+} from "@/lib/storage";
 import type {
   OrderStatus,
   PartnerStatus
@@ -41,6 +45,43 @@ export async function POST(request: Request) {
   }
 
   const ok = await updateRecordStatus(collection, id, status);
+  if (
+  ok &&
+  collection === "orders" &&
+  status === "completed"
+) {
+  const db = await readDb();
+
+  const order = db.orders.find(
+    (o: any) => o.id === id
+  );
+
+  const retailer =
+    db.retailers.find(
+      (r: any) =>
+        r.mobile ===
+        order?.mobile
+    );
+
+  if (
+    order &&
+    retailer &&
+    order.finalAmount
+  ) {
+    await addLedgerEntry(
+      retailer.id,
+      order.id,
+      Number(
+        order.finalAmount
+      ),
+      0,
+      `Order ${
+        order.orderNumber ||
+        order.id
+      }`
+    );
+  }
+}
   if (!ok) {
     return NextResponse.json({ message: "Record not found." }, { status: 404 });
   }

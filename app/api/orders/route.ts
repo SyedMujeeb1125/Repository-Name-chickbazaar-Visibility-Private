@@ -39,13 +39,47 @@ function calculateDistance(
 }
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const required = ["shopName", "ownerName", "mobile", "email", "address", "birds", "averageWeight", "deliveryDate"];
+  const required = [
+  "shopName",
+  "ownerName",
+  "mobile",
+  "email",
+  "address",
+  "deliveryDate"
+];
 
   for (const key of required) {
     if (!value(formData, key)) {
       return NextResponse.json({ message: `${key} is required.` }, { status: 400 });
     }
   }
+
+  const birds = value(
+  formData,
+  "birds"
+);
+
+const requestedWeight =
+  Number(
+    formData.get(
+      "requestedWeight"
+    ) || 0
+  );
+
+if (
+  !birds &&
+  requestedWeight <= 0
+) {
+  return NextResponse.json(
+    {
+      message:
+        "Enter either birds or requested weight."
+    },
+    {
+      status: 400
+    }
+  );
+}
   const latitude = Number(formData.get("latitude") || 0);
 const longitude = Number(formData.get("longitude") || 0);
 
@@ -113,8 +147,15 @@ requestedWeight: Number(
   mobile: value(formData, "mobile"),
   email: value(formData, "email"),
   address: value(formData, "address"),
-  birds: value(formData, "birds"),
-  averageWeight: value(formData, "averageWeight"),
+  birds:
+  value(formData, "birds") ||
+  "0",
+
+averageWeight:
+  value(
+    formData,
+    "averageWeight"
+  ) || "",
   deliveryDate: value(formData, "deliveryDate"),
   notes: value(formData, "notes")
 };

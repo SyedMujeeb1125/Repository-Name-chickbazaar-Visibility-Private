@@ -56,7 +56,17 @@ const estimatedValue =
       : estimatedValue;
 
   return (
-    <div className="space-y-6 rounded-xl border bg-white p-5">
+  <div className="space-y-6 rounded-xl border bg-white p-5">
+
+    <input
+      type="hidden"
+      name="orderBy"
+      value={orderBy}
+    />
+
+    <h3 className="text-xl font-bold text-navy">
+      Order Configuration
+    </h3>
       <h3 className="text-xl font-bold text-navy">
         Order Configuration
       </h3>

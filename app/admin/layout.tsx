@@ -22,6 +22,13 @@ export default function AdminLayout({
               Orders
             </Link>
 
+            <Link
+  href="/admin/allocation"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Allocation
+</Link>
+
             <Link href="/admin/retailers" className="block rounded p-3 hover:bg-white/10">
               Retailers
             </Link>

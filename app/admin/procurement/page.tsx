@@ -1,10 +1,18 @@
 import {
   readDb,
-  getTodayRate
+  getTodayRate,
+  getAllocations,
+  getFulfillments
 } from "@/lib/storage";
 
 export default async function ProcurementPage() {
   const db = await readDb();
+
+  const allocations =
+  await getAllocations();
+
+const fulfillments =
+  await getFulfillments();
 
   const todayRate =
     await getTodayRate();
@@ -102,6 +110,20 @@ export default async function ProcurementPage() {
       },
       {}
     );
+
+    const fulfillmentSummary =
+  fulfillments.reduce(
+    (acc: any, item: any) => {
+      acc[item.farm_id] =
+        (acc[item.farm_id] || 0) +
+        Number(
+          item.accepted_birds || 0
+        );
+
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div>
@@ -316,11 +338,82 @@ export default async function ProcurementPage() {
                   Margin:
                   ₹{margin}/Kg
                 </p>
+                
               </div>
             );
           }
         )}
       </div>
+      <div className="mt-6 rounded-xl border bg-white p-5">
+  <h2 className="mb-4 text-xl font-bold">
+    Farm Fulfillment Status
+  </h2>
+
+  {db.farmPartners
+    .filter(
+      (farm: any) =>
+        farm.status === "approved"
+    )
+    .map((farm: any) => {
+
+      const allocated =
+        allocations
+          .filter(
+            (a: any) =>
+              a.farm_id ===
+              farm.id
+          )
+          .reduce(
+            (
+              sum: number,
+              a: any
+            ) =>
+              sum +
+              Number(
+                a.allocated_birds || 0
+              ),
+            0
+          );
+
+      const accepted =
+        fulfillmentSummary[
+          farm.id
+        ] || 0;
+
+      const pending =
+        allocated -
+        accepted;
+
+      return (
+        <div
+          key={farm.id}
+          className="border-b py-3"
+        >
+          <p className="font-semibold">
+            {farm.farmName}
+          </p>
+
+          <p>
+            Allocated: {allocated}
+          </p>
+
+          <p>
+            Accepted: {accepted}
+          </p>
+
+          <p
+            className={
+              pending > 0
+                ? "font-semibold text-red-600"
+                : "font-semibold text-green-600"
+            }
+          >
+            Pending: {pending}
+          </p>
+        </div>
+      );
+    })}
+</div>
     </div>
   );
 }

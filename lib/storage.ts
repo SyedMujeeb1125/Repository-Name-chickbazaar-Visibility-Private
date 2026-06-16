@@ -37,6 +37,8 @@ export async function readDb(): Promise<ChickBazaarDb> {
   supabase.from("otps").select("*")
 ]);
 
+
+
   return {
     orders: (orders.data || []).map((o: any) => ({
   id: o.id,
@@ -174,6 +176,16 @@ farmPartners: (farmPartners.data || []).map((f: any) => ({
 export async function writeDb(_: ChickBazaarDb) {
   return;
 }
+export async function getAllocations() {
+  const { data } = await supabase
+    .from("farm_allocations")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
+
+  return data || [];
+}
 
 export async function addOrder(order: OrderRecord) {
   await supabase.from("orders").insert({
@@ -236,6 +248,16 @@ export async function addRetailer(retailer: RetailerRecord) {
   longitude: retailer.longitude
 });
 }
+export async function getFulfillments() {
+  const { data } = await supabase
+    .from("farm_fulfillments")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
+
+  return data || [];
+}
 
 export async function addFarmPartner(farmPartner: FarmPartnerRecord) {
   await supabase.from("farm_partners").insert({
@@ -257,6 +279,37 @@ export async function addFarmPartner(farmPartner: FarmPartnerRecord) {
   latitude: farmPartner.latitude,
   longitude: farmPartner.longitude
 });
+}
+
+export async function getRetailerLedger() {
+  const { data } = await supabase
+    .from("retailer_ledger")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
+
+  return data || [];
+}
+
+export async function addLedgerEntry(
+  retailerId: string,
+  orderId: string,
+  debit: number,
+  credit: number,
+  remarks: string
+) {
+  const { error } = await supabase
+    .from("retailer_ledger")
+    .insert({
+      retailer_id: retailerId,
+      order_id: orderId,
+      debit,
+      credit,
+      remarks
+    });
+
+  return !error;
 }
 
 export async function saveUploadedFile(file: File, prefix: string) {
