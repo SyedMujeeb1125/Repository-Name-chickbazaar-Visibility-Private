@@ -126,13 +126,12 @@ console.log(
   retailer
 );
   if (!retailer?.mobile) {
-    return NextResponse.redirect(
-      new URL(
-        "/register?error=google-not-registered",
-        request.url
-      )
-    );
-  }
+  return NextResponse.json({
+    googleEmail: user.email,
+    retailers,
+    retailer
+  });
+}
 
   const token = createSignedToken(
     retailer.mobile
