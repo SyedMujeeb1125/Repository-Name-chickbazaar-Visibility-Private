@@ -95,9 +95,7 @@ export async function GET(request: Request) {
     (await userResponse.json()) as {
       email?: string;
     };
-    console.log("GOOGLE USER:", user);
-console.log("GOOGLE EMAIL:", user.email);
-
+    
   if (!user.email) {
     return NextResponse.redirect(
       new URL(
@@ -116,21 +114,14 @@ const retailer = retailers?.find(
   (r: any) =>
     r.status === "approved"
 );
-console.log(
-  "RETAILERS FOUND:",
-  retailers
-);
 
-console.log(
-  "SELECTED RETAILER:",
-  retailer
-);
   if (!retailer?.mobile) {
-  return NextResponse.json({
-    googleEmail: user.email,
-    retailers,
-    retailer
-  });
+  return NextResponse.redirect(
+    new URL(
+      "/register?error=google-not-registered",
+      request.url
+    )
+  );
 }
 
   const token = createSignedToken(
