@@ -105,11 +105,15 @@ export async function GET(request: Request) {
     );
   }
 
-  const { data: retailer } = await supabase
-    .from("retailers")
-    .select("mobile")
-    .eq("email", user.email)
-    .single();
+  const { data: retailers } = await supabase
+  .from("retailers")
+  .select("mobile,status")
+  .eq("email", user.email);
+
+const retailer = retailers?.find(
+  (r: any) =>
+    r.status === "approved"
+);
 
   if (!retailer?.mobile) {
     return NextResponse.redirect(
