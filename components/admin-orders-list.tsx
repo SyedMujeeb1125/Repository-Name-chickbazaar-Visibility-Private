@@ -14,6 +14,8 @@ export function AdminOrdersList({
 
   const [search, setSearch] =
     useState("");
+    const [statusFilter, setStatusFilter] =
+  useState("all");
 
   const [selectedDate, setSelectedDate] =
     useState(today);
@@ -46,18 +48,26 @@ const matchesOrderDate =
     order.createdAt.startsWith(
       orderDateFilter
     ));
+    const matchesStatus =
+  statusFilter === "all"
+    ? true
+    : order.status ===
+      statusFilter;
 
       return (
   matchesSearch &&
   matchesDeliveryDate &&
-  matchesOrderDate
+  matchesOrderDate &&
+  matchesStatus
 );
     });
   }, [
-    orders,
-    search,
-    selectedDate
-  ]);
+  orders,
+  search,
+  selectedDate,
+  orderDateFilter,
+  statusFilter
+]);
 
   const totalBirds =
     filtered.reduce(
@@ -104,9 +114,9 @@ const matchesOrderDate =
         </div>
 
         <div className="rounded-xl bg-navy p-5 text-white">
-          <p>Delivery Date</p>
-          <div className="rounded-xl bg-blue-600 p-5 text-white">
-  <p>Order Date</p>
+  <p className="mb-2">
+    Order Date
+  </p>
 
   <input
     type="date"
@@ -116,21 +126,24 @@ const matchesOrderDate =
         e.target.value
       )
     }
-    className="mt-2 w-full rounded bg-white p-2 text-black"
+    className="mb-4 w-full rounded bg-white p-2 text-black"
+  />
+
+  <p className="mb-2">
+    Delivery Date
+  </p>
+
+  <input
+    type="date"
+    value={selectedDate}
+    onChange={(e) =>
+      setSelectedDate(
+        e.target.value
+      )
+    }
+    className="w-full rounded bg-white p-2 text-black"
   />
 </div>
-
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) =>
-              setSelectedDate(
-                e.target.value
-              )
-            }
-            className="mt-2 w-full rounded bg-white p-2 text-black"
-          />
-        </div>
 
       </div>
 
@@ -176,6 +189,58 @@ const matchesOrderDate =
         }
         className="mb-6 w-full rounded-lg border p-3"
       />
+      <div className="mb-4 flex flex-wrap gap-2">
+
+  <button
+    onClick={() => setStatusFilter("all")}
+    className="rounded bg-slate-700 px-4 py-2 text-white"
+  >
+    All
+  </button>
+
+  <button
+    onClick={() => setStatusFilter("new")}
+    className="rounded bg-orange px-4 py-2 text-white"
+  >
+    New
+  </button>
+
+  <button
+    onClick={() => setStatusFilter("confirmed")}
+    className="rounded bg-blue-600 px-4 py-2 text-white"
+  >
+    Confirmed
+  </button>
+
+  <button
+    onClick={() => setStatusFilter("procured")}
+    className="rounded bg-purple-600 px-4 py-2 text-white"
+  >
+    Procured
+  </button>
+
+  <button
+    onClick={() => setStatusFilter("dispatched")}
+    className="rounded bg-indigo-600 px-4 py-2 text-white"
+  >
+    Dispatched
+  </button>
+
+  <button
+    onClick={() => setStatusFilter("delivered")}
+    className="rounded bg-green-600 px-4 py-2 text-white"
+  >
+    Delivered
+  </button>
+
+  <button
+    onClick={() => setStatusFilter("completed")}
+    className="rounded bg-emerald-700 px-4 py-2 text-white"
+  >
+    Completed
+  </button>
+
+</div>
 
       <div className="space-y-4">
 
@@ -221,6 +286,15 @@ const matchesOrderDate =
   {order.finalAmount
     ? `₹${order.finalAmount}`
     : "Pending"}
+</p>
+<p>
+  Advance Paid:
+  ₹{order.paymentAmount || 0}
+</p>
+
+<p className="font-semibold text-red-600">
+  Outstanding:
+  ₹{order.outstandingAmount || 0}
 </p>
 
               <p>

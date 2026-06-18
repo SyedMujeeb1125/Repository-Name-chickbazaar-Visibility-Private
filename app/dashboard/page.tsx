@@ -219,16 +219,28 @@ export default async function DashboardPage() {
           </p>
 
           <div className="rounded-lg bg-green-50 p-4">
-            <p className="text-xs uppercase text-green-700">
-              Final Amount
-            </p>
+  <p className="text-xs uppercase text-green-700">
+    Final Amount
+  </p>
 
-            <p className="text-3xl font-extrabold text-green-700">
-              {order.finalAmount
-                ? `₹${order.finalAmount}`
-                : "Pending"}
-            </p>
-          </div>
+  <p className="text-3xl font-extrabold text-green-700">
+    {order.finalAmount
+      ? `₹${order.finalAmount}`
+      : "Pending"}
+  </p>
+
+  <div className="mt-3 border-t pt-3 text-sm">
+    <p>
+      <strong>Advance Paid:</strong> ₹
+      {order.paymentAmount || 0}
+    </p>
+
+    <p className="font-semibold text-red-600">
+      <strong>Outstanding:</strong> ₹
+      {order.outstandingAmount || 0}
+    </p>
+  </div>
+</div>
 
           <p>
   <strong>Procurement Status:</strong>{" "}
@@ -264,6 +276,17 @@ export default async function DashboardPage() {
 <p>
   <strong>Payment Status:</strong>{" "}
   {order.paymentStatus || "pending"}
+</p>
+<p>
+  <strong>Order Date:</strong>{" "}
+  {new Date(
+    order.createdAt || Date.now()
+  ).toLocaleDateString()}
+</p>
+
+<p>
+  <strong>Delivery Date:</strong>{" "}
+  {order.deliveryDate || "-"}
 </p>
 
 {order.advanceRequired > 0 &&

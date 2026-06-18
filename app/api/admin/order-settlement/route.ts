@@ -29,19 +29,35 @@ export async function POST(
 
   const finalAmount =
     actualWeight * ratePerKg;
+    const { data: order } = await supabase
+  .from("orders")
+  .select("payment_amount")
+  .eq("id", orderId)
+  .single();
+
+const advancePaid =
+  Number(
+    order?.payment_amount || 0
+  );
+
+const outstandingAmount =
+  finalAmount - advancePaid;
 
   const { error } = await supabase
     .from("orders")
     .update({
-      actual_weight:
-        actualWeight,
+  actual_weight:
+    actualWeight,
 
-      rate_per_kg:
-        ratePerKg,
+  rate_per_kg:
+    ratePerKg,
 
-      final_amount:
-        finalAmount
-    })
+  final_amount:
+    finalAmount,
+
+  outstanding_amount:
+    outstandingAmount
+})
     .eq("id", orderId);
 
   if (error) {
