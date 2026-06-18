@@ -22,6 +22,34 @@ export function AdminOrdersList({
     const [orderDateFilter, setOrderDateFilter] =
   useState("");
 
+  const statusCounts = {
+  all: orders.length,
+
+  new: orders.filter(
+    (o) => o.status === "new"
+  ).length,
+
+  confirmed: orders.filter(
+    (o) => o.status === "confirmed"
+  ).length,
+
+  procured: orders.filter(
+    (o) => o.status === "procured"
+  ).length,
+
+  dispatched: orders.filter(
+    (o) => o.status === "dispatched"
+  ).length,
+
+  delivered: orders.filter(
+    (o) => o.status === "delivered"
+  ).length,
+
+  completed: orders.filter(
+    (o) => o.status === "completed"
+  ).length
+};
+
   const filtered = useMemo(() => {
     return orders.filter((order) => {
       const term =
@@ -195,49 +223,49 @@ const matchesOrderDate =
     onClick={() => setStatusFilter("all")}
     className="rounded bg-slate-700 px-4 py-2 text-white"
   >
-    All
+    All ({statusCounts.all})
   </button>
 
   <button
     onClick={() => setStatusFilter("new")}
     className="rounded bg-orange px-4 py-2 text-white"
   >
-    New
+    New ({statusCounts.new})
   </button>
 
   <button
     onClick={() => setStatusFilter("confirmed")}
     className="rounded bg-blue-600 px-4 py-2 text-white"
   >
-    Confirmed
+    Confirmed ({statusCounts.confirmed})
   </button>
 
   <button
     onClick={() => setStatusFilter("procured")}
     className="rounded bg-purple-600 px-4 py-2 text-white"
   >
-    Procured
+    Procured ({statusCounts.procured})
   </button>
 
   <button
     onClick={() => setStatusFilter("dispatched")}
     className="rounded bg-indigo-600 px-4 py-2 text-white"
   >
-    Dispatched
+    Dispatched ({statusCounts.dispatched})
   </button>
 
   <button
     onClick={() => setStatusFilter("delivered")}
     className="rounded bg-green-600 px-4 py-2 text-white"
   >
-    Delivered
+    Delivered ({statusCounts.delivered})
   </button>
 
   <button
     onClick={() => setStatusFilter("completed")}
     className="rounded bg-emerald-700 px-4 py-2 text-white"
   >
-    Completed
+    Completed ({statusCounts.completed})
   </button>
 
 </div>
