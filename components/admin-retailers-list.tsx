@@ -19,6 +19,32 @@ export function AdminRetailersList({
   id: string,
   status: string
 ) {
+  async function updateCategory(
+  retailerId: string,
+  category: string
+) {
+  const formData = new FormData();
+
+  formData.set(
+    "retailerId",
+    retailerId
+  );
+
+  formData.set(
+    "category",
+    category
+  );
+
+  await fetch(
+    "/api/admin/retailer-category",
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  window.location.reload();
+}
   const formData = new FormData();
 
   formData.set(
@@ -35,6 +61,32 @@ export function AdminRetailersList({
 
   await fetch(
     "/api/admin/status",
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  window.location.reload();
+}
+async function updateCategory(
+  retailerId: string,
+  category: string
+) {
+  const formData = new FormData();
+
+  formData.set(
+    "retailerId",
+    retailerId
+  );
+
+  formData.set(
+    "category",
+    category
+  );
+
+  await fetch(
+    "/api/admin/retailer-category",
     {
       method: "POST",
       body: formData
@@ -145,6 +197,49 @@ export function AdminRetailersList({
               <p className="font-semibold text-orange">
                 Total Shops: {shopCount}
               </p>
+              <p className="font-semibold text-blue-600">
+  Category:{" "}
+  {retailer.creditCategory || "new"}
+</p>
+<div className="mt-2 flex gap-2 flex-wrap">
+
+  <button
+    onClick={() =>
+      updateCategory(
+        retailer.id,
+        "new"
+      )
+    }
+    className="rounded bg-orange px-3 py-1 text-sm font-semibold text-white"
+  >
+    New
+  </button>
+
+  <button
+    onClick={() =>
+      updateCategory(
+        retailer.id,
+        "trusted"
+      )
+    }
+    className="rounded bg-blue-600 px-3 py-1 text-sm font-semibold text-white"
+  >
+    Trusted
+  </button>
+
+  <button
+    onClick={() =>
+      updateCategory(
+        retailer.id,
+        "premium"
+      )
+    }
+    className="rounded bg-green-600 px-3 py-1 text-sm font-semibold text-white"
+  >
+    Premium
+  </button>
+
+</div>
 
               <button
                 onClick={() =>

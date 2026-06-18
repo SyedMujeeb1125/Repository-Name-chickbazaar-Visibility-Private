@@ -5,6 +5,11 @@ export type RetailerRecord = {
 
   status: OrderStatus;
 
+  creditCategory?:
+    | "new"
+    | "trusted"
+    | "premium";
+
   shopName: string;
 
   ownerName: string;
@@ -68,6 +73,12 @@ export type OrderRecord = {
   actualWeight?: number;
 
   finalAmount?: number;
+
+  estimatedAmount?: number;
+
+  advancePercentage?: number;
+
+  advanceRequired?: number;
 
   shopName: string;
   deliveryShopName?: string;

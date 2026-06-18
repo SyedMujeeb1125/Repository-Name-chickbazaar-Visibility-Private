@@ -1,15 +1,24 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
+import {
+  updateOrderDetails,
+  createInvoice,
+  generateInvoiceNumber,
+  readDb,
+  invoiceExists
+} from "@/lib/storage";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
     const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    } = body;
+  orderId,
+  paymentAmount,
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature
+} = body;
 
     if (
       !razorpay_order_id ||
@@ -40,11 +49,83 @@ export async function POST(request: Request) {
       .digest("hex");
 
     const verified =
-      expectedSignature === razorpay_signature;
+  expectedSignature ===
+  razorpay_signature;
 
-    return NextResponse.json({
-      verified
+if (
+  verified &&
+  orderId
+) {
+
+  await updateOrderDetails(
+    orderId,
+    {
+      paymentStatus:
+        "paid",
+
+      paymentAmount:
+        Number(
+          paymentAmount || 0
+        ),
+
+      razorpayOrderId:
+        razorpay_order_id,
+
+      razorpayPaymentId:
+        razorpay_payment_id
+    }
+  );
+
+  const db = await readDb();
+
+const order = db.orders.find(
+  (o: any) => o.id === orderId
+);
+
+const retailer = db.retailers.find(
+  (r: any) =>
+    r.mobile === order?.mobile
+);
+
+if (order && retailer) {
+  const alreadyExists =
+    await invoiceExists(order.id);
+
+  if (!alreadyExists) {
+    await createInvoice({
+      invoiceNumber:
+        generateInvoiceNumber(),
+
+      orderId: order.id,
+
+      retailerId:
+        retailer.id || "",
+
+      retailerName:
+        retailer.shopName || "",
+
+      orderNumber:
+        order.orderNumber || order.id,
+
+      actualWeight:
+        order.requestedWeight || 0,
+
+      ratePerKg:
+        order.ratePerKg || 0,
+
+      amount:
+        Number(paymentAmount || 0),
+
+      remarks:
+        "Advance Payment Receipt"
     });
+  }
+}
+}
+
+return NextResponse.json({
+  verified
+});
   } catch (error) {
     console.error(error);
 

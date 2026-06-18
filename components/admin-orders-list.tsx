@@ -181,6 +181,18 @@ export function AdminOrdersList({
               </p>
 
               <p>
+  Actual Weight:
+  {order.actualWeight || "-"}
+</p>
+
+<p>
+  Final Amount:
+  {order.finalAmount
+    ? `₹${order.finalAmount}`
+    : "Pending"}
+</p>
+
+              <p>
                 Birds: {order.birds}
               </p>
 
@@ -197,9 +209,100 @@ export function AdminOrdersList({
                 {order.deliveryDate}
               </p>
 
-              <p>
-                Status: {order.status}
-              </p>
+              <div className="mt-3">
+  <form
+    action="/api/admin/status"
+    method="POST"
+    className="flex gap-2 items-center"
+  >
+    <input
+      type="hidden"
+      name="collection"
+      value="orders"
+    />
+
+    <input
+      type="hidden"
+      name="id"
+      value={order.id}
+    />
+
+    <select
+      name="status"
+      defaultValue={order.status}
+      className="rounded border p-2"
+    >
+      <option value="new">New</option>
+      <option value="confirmed">
+        Confirmed
+      </option>
+      <option value="procured">
+        Procured
+      </option>
+      <option value="dispatched">
+        Dispatched
+      </option>
+      <option value="delivered">
+        Delivered
+      </option>
+      <option value="completed">
+        Completed
+      </option>
+      <option value="cancelled">
+        Cancelled
+      </option>
+    </select>
+
+    <button
+      type="submit"
+      className="rounded bg-orange px-4 py-2 text-white"
+    >
+      Update
+    </button>
+  </form>
+  <form
+  action="/api/admin/order-settlement"
+  method="POST"
+  className="mt-4 border-t pt-4"
+>
+  <input
+    type="hidden"
+    name="orderId"
+    value={order.id}
+  />
+
+  <div className="grid gap-3 md:grid-cols-2">
+
+    <input
+      type="number"
+      step="0.01"
+      name="actualWeight"
+      placeholder="Actual Weight"
+      className="rounded border p-2"
+    />
+
+    <input
+      type="number"
+      step="0.01"
+      name="ratePerKg"
+      defaultValue={
+        order.ratePerKg || 0
+      }
+      className="rounded border p-2"
+    />
+  </div>
+
+  <button
+    className="mt-3 rounded bg-green-600 px-4 py-2 text-white"
+  >
+    Save Settlement
+  </button>
+</form>
+
+  <p className="mt-2 text-sm text-slate-600">
+    Current Status: {order.status}
+  </p>
+</div>
             </div>
           )
         )}

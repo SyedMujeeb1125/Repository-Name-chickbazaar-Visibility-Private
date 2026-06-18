@@ -56,6 +56,7 @@ export default async function DashboardPage() {
   My Dashboard
 </h1>
 
+  <div className="flex gap-3 flex-wrap">
   {retailer?.status === "confirmed" ? (
     <a
       href="/order-chicken"
@@ -71,6 +72,14 @@ export default async function DashboardPage() {
       Awaiting Approval
     </button>
   )}
+
+  <a
+    href="/invoices"
+    className="inline-flex items-center justify-center rounded-md bg-green-600 px-5 py-3 font-bold text-white"
+  >
+    My Invoices
+  </a>
+</div>
 </div>
       {retailer?.status === "new" ? (
   <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
@@ -233,14 +242,39 @@ export default async function DashboardPage() {
 </p>
 
           <p>
-            <strong>Tracking Notes:</strong>{" "}
-            {order.trackingNotes || "-"}
-          </p>
+  <strong>Tracking Notes:</strong>{" "}
+  {order.trackingNotes || "-"}
+</p>
 
-          <p>
-            <strong>Payment Status:</strong>{" "}
-            {order.paymentStatus || "pending"}
-          </p>
+<p>
+  <strong>Estimated Amount:</strong>{" "}
+  ₹{order.estimatedAmount || 0}
+</p>
+
+<p>
+  <strong>Advance Required:</strong>{" "}
+  ₹{order.advanceRequired || 0}
+</p>
+
+<p>
+  <strong>Credit Category:</strong>{" "}
+  {retailer?.creditCategory || "new"}
+</p>
+
+<p>
+  <strong>Payment Status:</strong>{" "}
+  {order.paymentStatus || "pending"}
+</p>
+
+{order.advanceRequired > 0 &&
+  order.paymentStatus !== "paid" && (
+    <a
+      href={`/payment/${order.id}`}
+      className="mt-3 inline-block rounded bg-green-600 px-4 py-2 font-semibold text-white"
+    >
+      Pay Advance ₹{order.advanceRequired}
+    </a>
+)}
         </div>
       </div>
 

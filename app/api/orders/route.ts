@@ -39,6 +39,35 @@ function calculateDistance(
 }
 export async function POST(request: Request) {
   const formData = await request.formData();
+  const orderBy = String(
+  formData.get("orderBy") || "weight"
+);
+
+if (
+  orderBy === "weight" &&
+  !value(formData, "requestedWeight")
+) {
+  return NextResponse.json(
+    {
+      message:
+        "Requested Weight is required."
+    },
+    { status: 400 }
+  );
+}
+
+if (
+  orderBy === "birds" &&
+  !value(formData, "birds")
+) {
+  return NextResponse.json(
+    {
+      message:
+        "Bird count is required."
+    },
+    { status: 400 }
+  );
+}
   const required = [
   "shopName",
   "ownerName",
@@ -53,37 +82,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: `${key} is required.` }, { status: 400 });
     }
   }
-
-  const birds = value(
-  formData,
-  "birds"
-);
-
-const requestedWeight =
-  Number(
-    formData.get(
-      "requestedWeight"
-    ) || 0
-  );
-
-if (
-  !birds &&
-  requestedWeight <= 0
-) {
-  return NextResponse.json(
-    {
-      message:
-        "Enter either birds or requested weight."
-    },
-    {
-      status: 400
-    }
-  );
-}
   const latitude = Number(formData.get("latitude") || 0);
 const longitude = Number(formData.get("longitude") || 0);
 
 const db = await readDb();
+const retailer = db.retailers.find(
+  (r: any) =>
+    r.mobile ===
+    value(formData, "mobile")
+);
 
 const todayRate = await getTodayRate();
 
@@ -107,7 +114,34 @@ const nearestFarm =
       (a, b) =>
         a.distance - b.distance
     )[0];
-    
+   const requestedWeight = Number(
+  formData.get("requestedWeight") || 0
+);
+
+const ratePerKg = Number(
+  todayRate?.rate || 0
+);
+
+const estimatedAmount =
+  requestedWeight * ratePerKg;
+
+const category =
+  retailer?.creditCategory ||
+  "new";
+
+const advancePercentage =
+  category === "premium"
+    ? 0
+    : category === "trusted"
+    ? 10
+    : 20;
+
+const advanceRequired =
+  Math.round(
+    (estimatedAmount *
+      advancePercentage) /
+      100
+  ); 
   const order: OrderRecord = {
   id: createId("order"),
 
@@ -127,10 +161,15 @@ const nearestFarm =
     | "advance"
     | "actual_weight",
 
-requestedWeight: Number(
-  formData.get("requestedWeight") || 0
-),
- ratePerKg: Number(todayRate?.rate || 0),
+requestedWeight,
+
+ratePerKg,
+
+estimatedAmount,
+
+advancePercentage,
+
+advanceRequired,
   assignedFarm:
   nearestFarm?.farm.farmName || "",
   trackingNotes: "",
@@ -139,23 +178,15 @@ requestedWeight: Number(
   longitude,
 
   shopName: value(formData, "shopName"),
-  deliveryShopName: value(
-  formData,
-  "deliveryShopName"
-),
   ownerName: value(formData, "ownerName"),
   mobile: value(formData, "mobile"),
   email: value(formData, "email"),
   address: value(formData, "address"),
   birds:
-  value(formData, "birds") ||
-  "0",
-
-averageWeight:
-  value(
-    formData,
-    "averageWeight"
-  ) || "",
+  orderBy === "birds"
+    ? value(formData, "birds")
+    : "0",
+  averageWeight: value(formData, "averageWeight"),
   deliveryDate: value(formData, "deliveryDate"),
   notes: value(formData, "notes")
 };

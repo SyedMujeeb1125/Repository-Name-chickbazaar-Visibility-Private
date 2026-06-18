@@ -58,6 +58,14 @@ requestedWeight: o.requested_weight,
 ratePerKg: o.rate_per_kg,
 actualWeight: o.actual_weight,
 finalAmount: o.final_amount,
+estimatedAmount:
+  o.estimated_amount,
+
+advancePercentage:
+  o.advance_percentage,
+
+advanceRequired:
+  o.advance_required,
 
 assignedFarm: o.assigned_farm,
 trackingNotes: o.tracking_notes,
@@ -105,6 +113,7 @@ farmInventory:
   id: r.id,
   createdAt: r.created_at,
   status: r.status,
+  creditCategory: r.credit_category,
 
   shopName: r.shop_name,
   ownerName: r.owner_name,
@@ -208,6 +217,14 @@ requested_weight: order.requestedWeight,
 rate_per_kg: order.ratePerKg,
 actual_weight: order.actualWeight,
 final_amount: order.finalAmount,
+estimated_amount:
+  order.estimatedAmount,
+
+advance_percentage:
+  order.advancePercentage,
+
+advance_required:
+  order.advanceRequired,
 
 assigned_farm: order.assignedFarm,
 tracking_notes: order.trackingNotes,
@@ -234,6 +251,7 @@ export async function addRetailer(retailer: RetailerRecord) {
   id: retailer.id,
   created_at: retailer.createdAt,
   status: retailer.status,
+  credit_category: retailer.creditCategory,
 
   shop_name: retailer.shopName,
   owner_name: retailer.ownerName,
@@ -312,8 +330,134 @@ export async function addLedgerEntry(
   return !error;
 }
 
+export async function recordRetailerPayment({
+  retailer_id,
+  amount,
+  remarks,
+}: {
+  retailer_id: string;
+  amount: number;
+  remarks?: string;
+}) {
+  const { data, error } = await supabase
+    .from("retailer_ledger")
+    .insert([
+      {
+        retailer_id,
+        credit: amount,
+        debit: 0,
+        remarks: remarks || "Payment Received",
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+export async function getRetailerOutstanding(
+  retailerId: string
+) {
+  const { data, error } = await supabase
+    .from("retailer_ledger")
+    .select("*")
+    .eq("retailer_id", retailerId);
+
+  if (error) throw error;
+
+  const totalDebit = data.reduce(
+    (sum, row) => sum + Number(row.debit || 0),
+    0
+  );
+
+  const totalCredit = data.reduce(
+    (sum, row) => sum + Number(row.credit || 0),
+    0
+  );
+
+  return {
+    totalDebit,
+    totalCredit,
+    outstanding: totalDebit - totalCredit,
+  };
+}
+export async function addOrderStatusHistory(
+  orderId: string,
+  status: string,
+  remarks?: string
+) {
+  const { error } = await supabase
+    .from("order_status_history")
+    .insert([
+      {
+        order_id: orderId,
+        status,
+        remarks,
+      },
+    ]);
+
+  if (error) throw error;
+}
+export async function getOrderStatusHistory(
+  orderId: string
+) {
+  const { data, error } = await supabase
+    .from("order_status_history")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("created_at");
+
+  if (error) throw error;
+
+  return data || [];
+}
+
 export async function saveUploadedFile(file: File, prefix: string) {
   return `${prefix}_${Date.now()}_${file.name}`;
+}
+export async function createInvoice({
+  invoiceNumber,
+  orderId,
+  retailerId,
+  retailerName,
+  orderNumber,
+  actualWeight,
+  ratePerKg,
+  amount,
+  remarks
+}: {
+  invoiceNumber: string;
+  orderId: string;
+  retailerId: string;
+  retailerName: string;
+  orderNumber: string;
+  actualWeight: number;
+  ratePerKg: number;
+  amount: number;
+  remarks?: string;
+}) {
+  const { error } = await supabase
+    .from("invoices")
+    .insert({
+      invoice_number: invoiceNumber,
+      order_id: orderId,
+      retailer_id: retailerId,
+      retailer_name: retailerName,
+      order_number: orderNumber,
+      actual_weight: actualWeight,
+      rate_per_kg: ratePerKg,
+      amount,
+      remarks
+    });
+
+  if (error) throw error;
+}
+export function generateInvoiceNumber() {
+  return `INV-${new Date().getFullYear()}-${Date.now()
+    .toString()
+    .slice(-6)}`;
 }
 
 export async function updateRecordStatus(
@@ -334,48 +478,103 @@ export async function updateRecordStatus(
 
   return !error;
 }
+export async function getInvoices() {
+  const { data, error } =
+    await supabase
+      .from("invoices")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+export async function ledgerDebitExists(
+  orderId: string
+) {
+  const { data } = await supabase
+    .from("retailer_ledger")
+    .select("id")
+    .eq("order_id", orderId)
+    .gt("debit", 0)
+    .limit(1);
+
+  return (data?.length || 0) > 0;
+}
+export async function invoiceExists(
+  orderId: string
+) {
+  const { data } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("order_id", orderId)
+    .limit(1);
+
+  return (data?.length || 0) > 0;
+}
 export async function updateOrderDetails(
   id: string,
   updates: {
-  paymentStatus?: string;
-  paymentAmount?: number;
+    paymentStatus?: string;
+    paymentAmount?: number;
 
-  razorpayOrderId?: string;
-  razorpayPaymentId?: string;
+    razorpayOrderId?: string;
+    razorpayPaymentId?: string;
 
-  assignedFarm?: string;
-  trackingNotes?: string;
+    assignedFarm?: string;
+    trackingNotes?: string;
 
-  paymentType?: string;
-  requestedWeight?: number;
-  ratePerKg?: number;
-  actualWeight?: number;
-  finalAmount?: number;
-}
-) 
- {
+    paymentType?: string;
+    requestedWeight?: number;
+    ratePerKg?: number;
+    actualWeight?: number;
+    finalAmount?: number;
+  }
+  
+) {
   const { error } = await supabase
     .from("orders")
     .update({
-  payment_status: updates.paymentStatus,
-  payment_amount: updates.paymentAmount,
+      payment_status: updates.paymentStatus,
+      payment_amount: updates.paymentAmount,
 
-  razorpay_order_id: updates.razorpayOrderId,
-  razorpay_payment_id: updates.razorpayPaymentId,
+      razorpay_order_id:
+        updates.razorpayOrderId,
 
-  payment_type: updates.paymentType,
-  requested_weight: updates.requestedWeight,
-  rate_per_kg: updates.ratePerKg,
-  actual_weight: updates.actualWeight,
-  final_amount: updates.finalAmount,
+      razorpay_payment_id:
+        updates.razorpayPaymentId,
 
-  assigned_farm: updates.assignedFarm,
-  tracking_notes: updates.trackingNotes
-})
+      assigned_farm:
+        updates.assignedFarm,
+
+      tracking_notes:
+        updates.trackingNotes,
+
+      payment_type:
+        updates.paymentType,
+
+      requested_weight:
+        updates.requestedWeight,
+
+      rate_per_kg:
+        updates.ratePerKg,
+
+      actual_weight:
+        updates.actualWeight,
+
+      final_amount:
+        updates.finalAmount
+    })
     .eq("id", id);
 
+  
   return !error;
-} export async function getTodayRate() {
+}
+export async function getTodayRate() {
   const { data } = await supabase
     .from("daily_rates")
     .select("*")
@@ -387,6 +586,7 @@ export async function updateOrderDetails(
 
   return data;
 }
+
 export async function addRetailerLocation(
   location: RetailerLocationRecord
 ) {
@@ -419,4 +619,21 @@ export async function addRetailerLocation(
       created_at:
         location.createdAt
     });
+}
+
+export async function updateRetailerCategory(
+  retailerId: string,
+  category:
+    | "new"
+    | "trusted"
+    | "premium"
+) {
+  const { error } = await supabase
+    .from("retailers")
+    .update({
+      credit_category: category
+    })
+    .eq("id", retailerId);
+
+  return !error;
 }

@@ -105,11 +105,25 @@ export default async function AdminPage() {
         </Link>
 
         <Link
+  href="/admin/invoices"
+  className="rounded-xl border bg-white p-6 font-semibold hover:bg-slate-50"
+>
+  Invoices
+</Link>
+
+        <Link
           href="/admin/retailers"
           className="rounded-xl border bg-white p-6 font-semibold hover:bg-slate-50"
         >
           Manage Retailers
         </Link>
+
+        <Link
+  href="/admin/settlement"
+  className="rounded-xl border bg-white p-6 font-semibold hover:bg-slate-50"
+>
+  Settlement
+</Link>
 
         <Link
           href="/admin/farms"

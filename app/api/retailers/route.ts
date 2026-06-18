@@ -30,6 +30,8 @@ export async function POST(request: Request) {
   createdAt: new Date().toISOString(),
   status: "new",
 
+  creditCategory: "new",
+
   shopName: value(formData, "shopName"),
   ownerName: value(formData, "ownerName"),
   mobile: value(formData, "mobile"),
