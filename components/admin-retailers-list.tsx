@@ -11,6 +11,8 @@ export function AdminRetailersList({
 }) {
   const [search, setSearch] =
     useState("");
+    const [statusFilter, setStatusFilter] =
+  useState("all");
 
   const [openRetailer, setOpenRetailer] =
     useState<string | null>(null);
@@ -97,25 +99,35 @@ async function updateCategory(
 }
 
   const filtered = retailers.filter(
-    (retailer) => {
-      const term =
-        search.toLowerCase();
+  (retailer) => {
+    const term =
+      search.toLowerCase();
 
-      return (
-        retailer.shopName
-          ?.toLowerCase()
-          .includes(term) ||
-        retailer.ownerName
-          ?.toLowerCase()
-          .includes(term) ||
-        retailer.mobile
-          ?.includes(search) ||
-        retailer.email
-          ?.toLowerCase()
-          .includes(term)
-      );
-    }
-  );
+    const matchesSearch =
+      retailer.shopName
+        ?.toLowerCase()
+        .includes(term) ||
+      retailer.ownerName
+        ?.toLowerCase()
+        .includes(term) ||
+      retailer.mobile
+        ?.includes(search) ||
+      retailer.email
+        ?.toLowerCase()
+        .includes(term);
+
+    const matchesStatus =
+      statusFilter === "all"
+        ? true
+        : retailer.status ===
+          statusFilter;
+
+    return (
+      matchesSearch &&
+      matchesStatus
+    );
+  }
+);
 
   const pendingCount =
     retailers.filter(
@@ -149,6 +161,46 @@ async function updateCategory(
         </div>
 
       </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+
+  <button
+    onClick={() =>
+      setStatusFilter("all")
+    }
+    className="rounded bg-slate-700 px-4 py-2 text-white"
+  >
+    All ({retailers.length})
+  </button>
+
+  <button
+    onClick={() =>
+      setStatusFilter("new")
+    }
+    className="rounded bg-orange px-4 py-2 text-white"
+  >
+    Pending ({pendingCount})
+  </button>
+
+  <button
+    onClick={() =>
+      setStatusFilter("approved")
+    }
+    className="rounded bg-green-600 px-4 py-2 text-white"
+  >
+    Approved ({approvedCount})
+  </button>
+
+  <button
+    onClick={() =>
+      setStatusFilter("blocked")
+    }
+    className="rounded bg-red-600 px-4 py-2 text-white"
+  >
+    Blocked
+  </button>
+
+</div>
 
       <input
         type="text"
