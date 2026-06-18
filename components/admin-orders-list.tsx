@@ -18,37 +18,10 @@ export function AdminOrdersList({
   useState("all");
 
   const [selectedDate, setSelectedDate] =
-    useState(today);
+  useState("");
     const [orderDateFilter, setOrderDateFilter] =
   useState("");
 
-  const statusCounts = {
-  all: orders.length,
-
-  new: orders.filter(
-    (o) => o.status === "new"
-  ).length,
-
-  confirmed: orders.filter(
-    (o) => o.status === "confirmed"
-  ).length,
-
-  procured: orders.filter(
-    (o) => o.status === "procured"
-  ).length,
-
-  dispatched: orders.filter(
-    (o) => o.status === "dispatched"
-  ).length,
-
-  delivered: orders.filter(
-    (o) => o.status === "delivered"
-  ).length,
-
-  completed: orders.filter(
-    (o) => o.status === "completed"
-  ).length
-};
 
   const filtered = useMemo(() => {
     return orders.filter((order) => {
@@ -76,7 +49,8 @@ const matchesOrderDate =
     order.createdAt.startsWith(
       orderDateFilter
     ));
-    const matchesStatus =
+
+        const matchesStatus =
   statusFilter === "all"
     ? true
     : order.status ===
@@ -97,6 +71,34 @@ const matchesOrderDate =
   statusFilter
 ]);
 
+const statusCounts = {
+  all: orders.length,
+
+  new: orders.filter(
+    (o) => o.status === "new"
+  ).length,
+
+  confirmed: orders.filter(
+    (o) => o.status === "confirmed"
+  ).length,
+
+  procured: orders.filter(
+    (o) => o.status === "procured"
+  ).length,
+
+  dispatched: orders.filter(
+    (o) => o.status === "dispatched"
+  ).length,
+
+  delivered: orders.filter(
+    (o) => o.status === "delivered"
+  ).length,
+
+  completed: orders.filter(
+    (o) => o.status === "completed"
+  ).length
+};
+
   const totalBirds =
     filtered.reduce(
       (sum, order) =>
@@ -104,6 +106,25 @@ const matchesOrderDate =
         Number(order.birds || 0),
       0
     );
+    const totalOutstanding =
+  filtered.reduce(
+    (sum, order) =>
+      sum +
+      Number(
+        order.outstandingAmount || 0
+      ),
+    0
+  );
+
+const totalAdvanceCollected =
+  filtered.reduce(
+    (sum, order) =>
+      sum +
+      Number(
+        order.paymentAmount || 0
+      ),
+    0
+  );
 
   const birdSizeSummary =
     filtered.reduce(
@@ -123,7 +144,7 @@ const matchesOrderDate =
 
   return (
     <div>
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-5">
 
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Total Orders</p>
@@ -140,6 +161,42 @@ const matchesOrderDate =
             {totalBirds}
           </p>
         </div>
+        <div className="mb-6 grid gap-4 md:grid-cols-5">
+
+  {/* Total Orders */}
+  <div className="rounded-xl bg-orange p-5 text-white">
+    ...
+  </div>
+
+  {/* Total Birds */}
+  <div className="rounded-xl bg-green-600 p-5 text-white">
+    ...
+  </div>
+
+  {/* Outstanding Amount */}
+  <div className="rounded-xl bg-red-600 p-5 text-white">
+    <p>Outstanding Amount</p>
+
+    <p className="text-3xl font-bold">
+      ₹{totalOutstanding}
+    </p>
+  </div>
+
+  {/* Advance Collected */}
+  <div className="rounded-xl bg-green-700 p-5 text-white">
+    <p>Advance Collected</p>
+
+    <p className="text-3xl font-bold">
+      ₹{totalAdvanceCollected}
+    </p>
+  </div>
+
+  {/* Date Filters */}
+  <div className="rounded-xl bg-navy p-5 text-white">
+    ...
+  </div>
+
+</div>
 
         <div className="rounded-xl bg-navy p-5 text-white">
   <p className="mb-2">
@@ -272,8 +329,18 @@ const matchesOrderDate =
 
       <div className="space-y-4">
 
-        {filtered.map(
-          (order) => (
+        {[...filtered]
+  .sort(
+    (a: any, b: any) =>
+      new Date(
+        b.createdAt || 0
+      ).getTime() -
+      new Date(
+        a.createdAt || 0
+      ).getTime()
+  )
+  .map(
+    (order) => (
             <div
               key={order.id}
               className="rounded-lg border bg-white p-5"
