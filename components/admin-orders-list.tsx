@@ -177,10 +177,17 @@ export function AdminOrdersList({
 )}
 
               <p>
-                Mobile: {order.mobile}
-              </p>
+  Mobile: {order.mobile}
+</p>
 
-              <p>
+<p>
+  Order Date:{" "}
+  {new Date(
+    order.createdAt || Date.now()
+  ).toLocaleDateString()}
+</p>
+
+<p>
   Actual Weight:
   {order.actualWeight || "-"}
 </p>
@@ -205,9 +212,11 @@ export function AdminOrdersList({
 </p>
 
               <p>
-                Delivery:{" "}
-                {order.deliveryDate}
-              </p>
+  Delivery Date:{" "}
+  {new Date(
+    order.deliveryDate
+  ).toLocaleDateString()}
+</p>
 
               <div className="mt-3">
   <form

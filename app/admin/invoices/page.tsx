@@ -5,8 +5,8 @@ export default async function InvoicesPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold text-red-600">
-  CHICKBAZAAR INVOICE TEST PAGE
+      <h1 className="mb-6 text-3xl font-bold">
+  Invoice Management
 </h1>
 
       <div className="space-y-4">
