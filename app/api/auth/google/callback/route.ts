@@ -95,6 +95,8 @@ export async function GET(request: Request) {
     (await userResponse.json()) as {
       email?: string;
     };
+    console.log("GOOGLE USER:", user);
+console.log("GOOGLE EMAIL:", user.email);
 
   if (!user.email) {
     return NextResponse.redirect(
@@ -114,7 +116,15 @@ const retailer = retailers?.find(
   (r: any) =>
     r.status === "approved"
 );
+console.log(
+  "RETAILERS FOUND:",
+  retailers
+);
 
+console.log(
+  "SELECTED RETAILER:",
+  retailer
+);
   if (!retailer?.mobile) {
     return NextResponse.redirect(
       new URL(
