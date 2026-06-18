@@ -17,6 +17,8 @@ export function AdminOrdersList({
 
   const [selectedDate, setSelectedDate] =
     useState(today);
+    const [orderDateFilter, setOrderDateFilter] =
+  useState("");
 
   const filtered = useMemo(() => {
     return orders.filter((order) => {
@@ -33,15 +35,23 @@ export function AdminOrdersList({
         order.mobile
           ?.includes(search);
 
-      const matchesDate =
-        !selectedDate ||
-        order.deliveryDate ===
-          selectedDate;
+      const matchesDeliveryDate =
+  !selectedDate ||
+  order.deliveryDate ===
+    selectedDate;
+
+const matchesOrderDate =
+  !orderDateFilter ||
+  (order.createdAt &&
+    order.createdAt.startsWith(
+      orderDateFilter
+    ));
 
       return (
-        matchesSearch &&
-        matchesDate
-      );
+  matchesSearch &&
+  matchesDeliveryDate &&
+  matchesOrderDate
+);
     });
   }, [
     orders,
@@ -95,6 +105,20 @@ export function AdminOrdersList({
 
         <div className="rounded-xl bg-navy p-5 text-white">
           <p>Delivery Date</p>
+          <div className="rounded-xl bg-blue-600 p-5 text-white">
+  <p>Order Date</p>
+
+  <input
+    type="date"
+    value={orderDateFilter}
+    onChange={(e) =>
+      setOrderDateFilter(
+        e.target.value
+      )
+    }
+    className="mt-2 w-full rounded bg-white p-2 text-black"
+  />
+</div>
 
           <input
             type="date"
