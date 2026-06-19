@@ -106,25 +106,7 @@ const statusCounts = {
         Number(order.birds || 0),
       0
     );
-    const totalOutstanding =
-  filtered.reduce(
-    (sum, order) =>
-      sum +
-      Number(
-        order.outstandingAmount || 0
-      ),
-    0
-  );
-
-const totalAdvanceCollected =
-  filtered.reduce(
-    (sum, order) =>
-      sum +
-      Number(
-        order.paymentAmount || 0
-      ),
-    0
-  );
+    
 
   const birdSizeSummary =
     filtered.reduce(
@@ -144,61 +126,25 @@ const totalAdvanceCollected =
 
   return (
     <div>
-      <div className="mb-6 grid gap-4 md:grid-cols-5">
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
 
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Total Orders</p>
 
-          <p className="text-3xl font-bold">
+          <p className="text-xl font-bold">
             {filtered.length}
           </p>
         </div>
 
-        <div className="rounded-xl bg-green-600 p-5 text-white">
+        <div className="rounded-xl bg-green-600 p-3 text-white">
           <p>Total Birds</p>
 
-          <p className="text-3xl font-bold">
+          <p className="text-xl font-bold">
             {totalBirds}
           </p>
         </div>
-        <div className="mb-6 grid gap-4 md:grid-cols-5">
-
-  {/* Total Orders */}
-  <div className="rounded-xl bg-orange p-5 text-white">
-    ...
-  </div>
-
-  {/* Total Birds */}
-  <div className="rounded-xl bg-green-600 p-5 text-white">
-    ...
-  </div>
-
-  {/* Outstanding Amount */}
-  <div className="rounded-xl bg-red-600 p-5 text-white">
-    <p>Outstanding Amount</p>
-
-    <p className="text-3xl font-bold">
-      ₹{totalOutstanding}
-    </p>
-  </div>
-
-  {/* Advance Collected */}
-  <div className="rounded-xl bg-green-700 p-5 text-white">
-    <p>Advance Collected</p>
-
-    <p className="text-3xl font-bold">
-      ₹{totalAdvanceCollected}
-    </p>
-  </div>
-
-  {/* Date Filters */}
-  <div className="rounded-xl bg-navy p-5 text-white">
-    ...
-  </div>
-
-</div>
-
-        <div className="rounded-xl bg-navy p-5 text-white">
+        
+        <div className="rounded-xl bg-navy p-3 text-white">
   <p className="mb-2">
     Order Date
   </p>
@@ -366,9 +312,11 @@ const totalAdvanceCollected =
 
 <p>
   Order Date:{" "}
-  {new Date(
-    order.createdAt || Date.now()
-  ).toLocaleDateString()}
+  {order.createdAt
+    ? new Date(order.createdAt)
+        .toISOString()
+        .split("T")[0]
+    : "-"}
 </p>
 
 <p>
@@ -406,9 +354,7 @@ const totalAdvanceCollected =
 
               <p>
   Delivery Date:{" "}
-  {new Date(
-    order.deliveryDate
-  ).toLocaleDateString()}
+  {order.deliveryDate || "-"}
 </p>
 
               <div className="mt-3">

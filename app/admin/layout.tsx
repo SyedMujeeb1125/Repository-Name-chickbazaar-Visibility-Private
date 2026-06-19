@@ -53,6 +53,12 @@ export default function AdminLayout({
 >
   Procurement
 </Link>
+<Link
+  href="/admin/outstanding"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Outstanding
+</Link>
           </nav>
         </aside>
 
