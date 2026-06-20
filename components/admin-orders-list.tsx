@@ -450,6 +450,18 @@ const statusCounts = {
   <p className="mt-2 text-sm text-slate-600">
     Current Status: {order.status}
   </p>
+  <p
+  className={`mt-2 font-semibold ${
+    order.finalAmount > 0
+      ? "text-green-600"
+      : "text-red-600"
+  }`}
+>
+  Settlement:{" "}
+  {order.finalAmount > 0
+    ? "Completed"
+    : "Pending"}
+</p>
 </div>
             </div>
           )

@@ -115,6 +115,9 @@ farmInventory:
   status: r.status,
   creditCategory: r.credit_category,
 
+  creditLimit: r.credit_limit,
+  availableCredit: r.available_credit,
+
   shopName: r.shop_name,
   ownerName: r.owner_name,
   mobile: r.mobile,
@@ -628,10 +631,22 @@ export async function updateRetailerCategory(
     | "trusted"
     | "premium"
 ) {
+  let creditLimit = 0;
+
+  if (category === "trusted") {
+    creditLimit = 50000;
+  }
+
+  if (category === "premium") {
+    creditLimit = 100000;
+  }
+
   const { error } = await supabase
     .from("retailers")
     .update({
-      credit_category: category
+      credit_category: category,
+      credit_limit: creditLimit,
+      available_credit: creditLimit
     })
     .eq("id", retailerId);
 

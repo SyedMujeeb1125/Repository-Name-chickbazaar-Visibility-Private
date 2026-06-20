@@ -49,6 +49,15 @@ export default async function DashboardPage() {
       order.status === "completed"
   ).length;
 
+  const totalOutstanding = myOrders.reduce(
+  (sum: number, order: any) =>
+    sum +
+    Number(
+      order.outstandingAmount || 0
+    ),
+  0
+);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -57,7 +66,7 @@ export default async function DashboardPage() {
 </h1>
 
   <div className="flex gap-3 flex-wrap">
-  {retailer?.status === "confirmed" ? (
+  {retailer?.status !== "new" ? (
     <a
       href="/order-chicken"
       className="inline-flex items-center justify-center rounded-md bg-orange px-5 py-3 font-bold text-white"
@@ -112,22 +121,36 @@ export default async function DashboardPage() {
     ₹{todayRate?.rate || 0}/kg
   </p>
 </div>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg bg-navy p-5 text-white">
-          <p>Total Orders</p>
-          <p className="text-3xl font-bold">{totalOrders}</p>
-        </div>
+      <div className="mt-8 grid gap-4 md:grid-cols-5">
+  <div className="rounded-lg bg-navy p-5 text-white">
+    <p>Total Orders</p>
+    <p className="text-3xl font-bold">{totalOrders}</p>
+  </div>
 
-        <div className="rounded-lg bg-orange p-5 text-white">
-          <p>Pending Orders</p>
-          <p className="text-3xl font-bold">{pendingOrders}</p>
-        </div>
+  <div className="rounded-lg bg-orange p-5 text-white">
+    <p>Pending Orders</p>
+    <p className="text-3xl font-bold">{pendingOrders}</p>
+  </div>
 
-        <div className="rounded-lg bg-green-600 p-5 text-white">
-          <p>Completed Orders</p>
-          <p className="text-3xl font-bold">{completedOrders}</p>
-        </div>
-      </div>
+  <div className="rounded-lg bg-green-600 p-5 text-white">
+    <p>Completed Orders</p>
+    <p className="text-3xl font-bold">{completedOrders}</p>
+  </div>
+
+  <div className="rounded-lg bg-red-600 p-5 text-white">
+    <p>Outstanding Balance</p>
+    <p className="text-3xl font-bold">
+      ₹{totalOutstanding}
+    </p>
+  </div>
+
+  <div className="rounded-lg bg-purple-600 p-5 text-white">
+    <p>Credit Category</p>
+    <p className="text-3xl font-bold">
+      {retailer?.creditCategory || "New"}
+    </p>
+  </div>
+</div>
 
       <div className="mt-10 rounded-lg border bg-white p-6">
         <h2 className="text-xl font-bold">

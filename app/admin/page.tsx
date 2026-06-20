@@ -26,12 +26,43 @@ export default async function AdminPage() {
     ).length;
 
   const totalBirds =
-    db.orders.reduce(
-      (sum: number, order: any) =>
-        sum +
-        Number(order.birds || 0),
-      0
-    );
+  db.orders.reduce(
+    (sum: number, order: any) =>
+      sum +
+      Number(order.birds || 0),
+    0
+  );
+  const today = new Date()
+  .toISOString()
+  .split("T")[0];
+
+const todaysOrders =
+  db.orders.filter(
+    (o: any) =>
+      o.createdAt &&
+      o.createdAt.startsWith(today)
+  ).length;
+
+const totalOutstanding =
+  db.orders.reduce(
+    (sum: number, order: any) =>
+      sum +
+      Number(
+        order.outstandingAmount || 0
+      ),
+    0
+  );
+  const recentOrders = [...db.orders]
+  .sort(
+    (a: any, b: any) =>
+      new Date(
+        b.createdAt || b.id
+      ).getTime() -
+      new Date(
+        a.createdAt || a.id
+      ).getTime()
+  )
+  .slice(0, 5);
 
   return (
     <div>
@@ -39,7 +70,7 @@ export default async function AdminPage() {
         Admin Dashboard
       </h1>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-4">
+      <div className="mb-8 grid gap-4 md:grid-cols-6">
 
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Total Orders</p>
@@ -68,6 +99,19 @@ export default async function AdminPage() {
             {totalBirds}
           </p>
         </div>
+        <div className="rounded-xl bg-red-600 p-5 text-white">
+  <p>Outstanding</p>
+
+  <p className="text-3xl font-bold">
+    ₹{totalOutstanding}
+  </p>
+</div>
+<div className="rounded-xl bg-purple-600 p-5 text-white">
+  <p>Today's Orders</p>
+  <p className="text-3xl font-bold">
+    {todaysOrders}
+  </p>
+</div>
 
       </div>
 
@@ -96,6 +140,12 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
+        <Link
+  href="/admin/outstanding"
+  className="rounded-xl border bg-white p-6 font-semibold hover:bg-slate-50"
+>
+  Outstanding Dashboard
+</Link>
 
         <Link
           href="/admin/orders"
@@ -133,6 +183,47 @@ export default async function AdminPage() {
         </Link>
 
       </div>
+      <div className="mt-8 rounded-xl border bg-white p-6">
+  <h2 className="mb-4 text-xl font-bold">
+    Recent Orders
+  </h2>
+
+  {recentOrders.length === 0 ? (
+    <p>No orders found.</p>
+  ) : (
+    <div className="space-y-3">
+      {recentOrders.map(
+        (order: any) => (
+          <div
+            key={order.id}
+            className="flex items-center justify-between border-b pb-3"
+          >
+            <div>
+              <p className="font-semibold">
+                {order.orderNumber ||
+                  order.id}
+              </p>
+
+              <p className="text-sm text-slate-500">
+                {order.shopName}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="font-semibold">
+                {order.birds} Birds
+              </p>
+
+              <p className="text-sm text-slate-500">
+                {order.status}
+              </p>
+            </div>
+          </div>
+        )
+      )}
+    </div>
+  )}
+</div>
     </div>
   );
 }

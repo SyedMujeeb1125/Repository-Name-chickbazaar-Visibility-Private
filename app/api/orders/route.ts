@@ -135,6 +135,24 @@ const advancePercentage =
     : category === "trusted"
     ? 10
     : 20;
+ const availableCredit =
+  Number(
+    (retailer as any)?.availableCredit || 0
+  );
+
+if (
+  category !== "new" &&
+  estimatedAmount >
+    availableCredit
+) {
+  return NextResponse.json(
+    {
+      message:
+        `Credit limit exceeded. Available Credit: ₹${availableCredit}`
+    },
+    { status: 400 }
+  );
+}   
 
 const advanceRequired =
   Math.round(

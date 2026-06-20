@@ -124,6 +124,49 @@ const fulfillments =
     },
     {}
   );
+  const shortageBirds =
+  Object.entries(weightSummary)
+    .reduce(
+      (
+        sum: number,
+        [weight, demand]
+      ) => {
+        const available =
+          inventorySummary[
+            weight
+          ] || 0;
+
+        return (
+          sum +
+          Math.max(
+            0,
+            Number(demand) -
+              available
+          )
+        );
+      },
+      0
+    );
+
+const allocatedBirds =
+  allocations.reduce(
+    (sum: number, a: any) =>
+      sum +
+      Number(
+        a.allocated_birds || 0
+      ),
+    0
+  );
+
+const acceptedBirds =
+  fulfillments.reduce(
+    (sum: number, f: any) =>
+      sum +
+      Number(
+        f.accepted_birds || 0
+      ),
+    0
+  );
 
   return (
     <div>
@@ -135,7 +178,7 @@ const fulfillments =
         Delivery Date: {tomorrow}
       </p>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-2">
+      <div className="mb-6 grid gap-4 md:grid-cols-5">
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Total Orders</p>
 
@@ -151,7 +194,31 @@ const fulfillments =
             {totalBirds}
           </p>
         </div>
-      </div>
+      
+      <div className="rounded-xl bg-red-600 p-5 text-white">
+  <p>Bird Shortage</p>
+
+  <p className="text-3xl font-bold">
+    {shortageBirds}
+  </p>
+</div>
+
+<div className="rounded-xl bg-blue-600 p-5 text-white">
+  <p>Allocated Birds</p>
+
+  <p className="text-3xl font-bold">
+    {allocatedBirds}
+  </p>
+</div>
+
+<div className="rounded-xl bg-purple-600 p-5 text-white">
+  <p>Accepted Birds</p>
+
+  <p className="text-3xl font-bold">
+    {acceptedBirds}
+  </p>
+</div>
+</div>
 
       <div className="mb-6 rounded-xl border bg-white p-5">
         <h2 className="mb-4 text-xl font-bold">
@@ -349,6 +416,8 @@ const fulfillments =
     Farm Fulfillment Status
   </h2>
 
+  <div className="grid gap-4 md:grid-cols-3">
+
   {db.farmPartners
     .filter(
       (farm: any) =>
@@ -387,7 +456,7 @@ const fulfillments =
       return (
         <div
           key={farm.id}
-          className="border-b py-3"
+          className="rounded-lg border bg-slate-50 p-4"
         >
           <p className="font-semibold">
             {farm.farmName}
@@ -411,8 +480,11 @@ const fulfillments =
             Pending: {pending}
           </p>
         </div>
-      );
+            );
     })}
+
+  </div>
+
 </div>
     </div>
   );
