@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, ShoppingCart, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const publicNavItems = [
   { href: "/", label: "Home" },
@@ -70,24 +71,18 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
-          href="/"
-          className="flex items-center gap-2"
-          aria-label="ChickBazaar home"
-        >
-          <span className="grid h-10 w-10 place-items-center rounded-md bg-navy text-white">
-            <ShoppingCart size={21} strokeWidth={2.4} />
-          </span>
-
-          <span className="leading-tight">
-            <span className="block text-lg font-extrabold text-navy">
-              ChickBazaar
-            </span>
-
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-orange">
-              B2B Poultry
-            </span>
-          </span>
-        </Link>
+  href="/"
+  aria-label="ChickBazaar home"
+>
+  <Image
+  src="/logo.png"
+  alt="ChickBazaar"
+  width={420}
+  height={95}
+  priority
+  className="h-auto w-auto max-h-20"
+/>
+</Link>
 
         <nav
           className="hidden items-center gap-1 lg:flex"

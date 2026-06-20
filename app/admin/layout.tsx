@@ -59,6 +59,13 @@ export default function AdminLayout({
 >
   Outstanding
 </Link>
+
+<Link
+  href="/admin/collections"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Collections
+</Link>
           </nav>
         </aside>
 

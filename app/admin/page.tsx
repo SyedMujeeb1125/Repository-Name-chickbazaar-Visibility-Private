@@ -1,8 +1,53 @@
 import Link from "next/link";
-import { readDb } from "@/lib/storage";
+import {
+  readDb,
+  getRetailerLedger
+} from "@/lib/storage";
 
 export default async function AdminPage() {
   const db = await readDb();
+
+  const ledger =
+  await getRetailerLedger();
+
+const ledgerOutstanding =
+  ledger.reduce(
+    (sum: number, row: any) =>
+      sum +
+      Number(row.debit || 0) -
+      Number(row.credit || 0),
+    0
+  );
+
+const totalCollected =
+  ledger.reduce(
+    (sum: number, row: any) =>
+      sum +
+      Number(row.credit || 0),
+    0
+  );
+
+const blockedRetailers =
+  db.retailers.filter(
+    (r: any) =>
+      Number(
+        r.availableCredit || 0
+      ) === 0 &&
+      Number(
+        r.creditLimit || 0
+      ) > 0
+  ).length;
+
+const healthyRetailers =
+  db.retailers.filter(
+    (r: any) =>
+      Number(
+        r.availableCredit || 0
+      ) >
+      Number(
+        r.creditLimit || 0
+      ) * 0.5
+  ).length;
 
   const totalOrders =
     db.orders.length;
@@ -70,7 +115,7 @@ const totalOutstanding =
         Admin Dashboard
       </h1>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-6">
+      <div className="mb-8 grid gap-4 md:grid-cols-4 lg:grid-cols-8">
 
         <div className="rounded-xl bg-orange p-5 text-white">
           <p>Total Orders</p>
@@ -99,6 +144,37 @@ const totalOutstanding =
             {totalBirds}
           </p>
         </div>
+        <div className="rounded-xl bg-red-600 p-5 text-white">
+  <p>Outstanding</p>
+
+  <p className="text-3xl font-bold">
+    ₹{ledgerOutstanding}
+  </p>
+</div>
+
+<div className="rounded-xl bg-green-700 p-5 text-white">
+  <p>Collected</p>
+
+  <p className="text-3xl font-bold">
+    ₹{totalCollected}
+  </p>
+</div>
+
+<div className="rounded-xl bg-red-800 p-5 text-white">
+  <p>Blocked</p>
+
+  <p className="text-3xl font-bold">
+    {blockedRetailers}
+  </p>
+</div>
+
+<div className="rounded-xl bg-emerald-600 p-5 text-white">
+  <p>Healthy</p>
+
+  <p className="text-3xl font-bold">
+    {healthyRetailers}
+  </p>
+</div>
         <div className="rounded-xl bg-red-600 p-5 text-white">
   <p>Outstanding</p>
 

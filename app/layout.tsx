@@ -28,6 +28,11 @@ export const metadata: Metadata = {
     url: "https://www.chickbazaar.com",
     siteName: "ChickBazaar",
     type: "website"
+  },
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png"
   }
 };
 
@@ -38,7 +43,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-white antialiased`}>
+      <body
+        className={`${inter.className} min-h-screen bg-white antialiased`}
+      >
         <Header />
         <main>{children}</main>
         <Footer />

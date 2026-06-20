@@ -386,6 +386,22 @@ export async function getRetailerOutstanding(
     outstanding: totalDebit - totalCredit,
   };
 }
+export async function getRetailerPayments(
+  retailerId: string
+) {
+  const { data, error } = await supabase
+    .from("retailer_ledger")
+    .select("*")
+    .eq("retailer_id", retailerId)
+    .gt("credit", 0)
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) throw error;
+
+  return data || [];
+}
 export async function addOrderStatusHistory(
   orderId: string,
   status: string,
