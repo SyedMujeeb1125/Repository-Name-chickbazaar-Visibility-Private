@@ -21,7 +21,8 @@ export async function readDb(): Promise<ChickBazaarDb> {
   retailerLocations,
   farmPartners,
   farmInventory,
-  otps
+  otps,
+  users
 ] = await Promise.all([
   supabase.from("orders").select("*"),
   supabase.from("retailers").select("*"),
@@ -31,10 +32,14 @@ export async function readDb(): Promise<ChickBazaarDb> {
     .select("*"),
 
   supabase.from("farm_partners").select("*"),
+
   supabase
-  .from("farm_inventory")
-  .select("*"),
-  supabase.from("otps").select("*")
+    .from("farm_inventory")
+    .select("*"),
+
+  supabase.from("otps").select("*"),
+
+  supabase.from("users").select("*")
 ]);
 
 
@@ -68,6 +73,7 @@ advanceRequired:
   o.advance_required,
 
 assignedFarm: o.assigned_farm,
+assignedDriver: o.assigned_driver,
 trackingNotes: o.tracking_notes,
 
   shopName: o.shop_name,
@@ -113,6 +119,7 @@ farmInventory:
   id: r.id,
   createdAt: r.created_at,
   status: r.status,
+  zone: r.zone,
   creditCategory: r.credit_category,
 
   creditLimit: r.credit_limit,
@@ -167,6 +174,8 @@ farmPartners: (farmPartners.data || []).map((f: any) => ({
   createdAt: f.created_at,
   status: f.status,
 
+  zone: f.zone,
+
   farmName: f.farm_name,
   contactPerson: f.contact_person,
   mobile: f.mobile,
@@ -181,6 +190,27 @@ farmPartners: (farmPartners.data || []).map((f: any) => ({
   latitude: f.latitude,
   longitude: f.longitude
 })),
+    users:
+  (users.data || []).map(
+    (u: any) => ({
+      id: u.id,
+
+      createdAt:
+        u.created_at,
+
+      zone: u.zone,
+
+      name: u.name,
+
+      mobile: u.mobile,
+
+      email: u.email,
+
+      role: u.role,
+
+      active: u.active
+    })
+  ),
     otps: otps.data || []
   };
 }
@@ -247,6 +277,25 @@ tracking_notes: order.trackingNotes,
   latitude: order.latitude,
   longitude: order.longitude
 });
+}
+
+export async function addUser(user: any) {
+  const { error } = await supabase
+    .from("users")
+    .insert({
+      id: user.id,
+      created_at: user.createdAt,
+
+      name: user.name,
+      mobile: user.mobile,
+      email: user.email,
+
+      role: user.role,
+
+      active: user.active
+    });
+
+  if (error) throw error;
 }
 
 export async function addRetailer(retailer: RetailerRecord) {
@@ -545,6 +594,7 @@ export async function updateOrderDetails(
     razorpayPaymentId?: string;
 
     assignedFarm?: string;
+    assignedDriver?: string;
     trackingNotes?: string;
 
     paymentType?: string;
@@ -568,10 +618,13 @@ export async function updateOrderDetails(
         updates.razorpayPaymentId,
 
       assigned_farm:
-        updates.assignedFarm,
+  updates.assignedFarm,
 
-      tracking_notes:
-        updates.trackingNotes,
+assigned_driver:
+  updates.assignedDriver,
+
+tracking_notes:
+  updates.trackingNotes,
 
       payment_type:
         updates.paymentType,

@@ -66,6 +66,27 @@ export default function AdminLayout({
 >
   Collections
 </Link>
+
+<Link
+  href="/admin/users"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Users
+</Link>
+
+<Link
+  href="/admin/zones"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Zones
+</Link>
+
+<Link
+  href="/admin/settlement"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Settlement
+</Link>
           </nav>
         </aside>
 

@@ -5,6 +5,13 @@ export type RetailerRecord = {
 
   status: OrderStatus;
 
+  zone?:
+    | "north"
+    | "south"
+    | "east"
+    | "west"
+    | "central";
+
   creditCategory?:
     | "new"
     | "trusted"
@@ -58,6 +65,13 @@ export type OrderRecord = {
 
   status: OrderStatus;
 
+  zone?:
+  | "north"
+  | "south"
+  | "east"
+  | "west"
+  | "central";
+
   paymentStatus?: PaymentStatus;
   paymentAmount?: number;
 
@@ -94,6 +108,7 @@ export type OrderRecord = {
   notes: string;
 
   assignedFarm?: string;
+  assignedDriver?: string;
   trackingNotes?: string;
 
   latitude?: number;
@@ -139,6 +154,13 @@ export type FarmPartnerRecord = {
   createdAt: string;
   status: PartnerStatus;
 
+  zone?:
+    | "north"
+    | "south"
+    | "east"
+    | "west"
+    | "central";
+
   farmName: string;
   contactPerson: string;
   mobile: string;
@@ -161,7 +183,36 @@ export type OtpRecord = {
   createdAt: string;
 };
 
-export type ChickBazaarDb = {
+export type UserRole =
+  | "admin"
+  | "operations"
+  | "delivery"
+  | "collections";
+
+export type UserRecord = {
+  id: string;
+
+  createdAt: string;
+
+  zone?:
+    | "north"
+    | "south"
+    | "east"
+    | "west"
+    | "central";
+
+  name: string;
+
+  mobile: string;
+
+  email: string;
+
+  role: UserRole;
+
+  active: boolean;
+};
+
+export type ChickBazaarDb = {users: UserRecord[];
   orders: OrderRecord[];
 
   retailers: RetailerRecord[];

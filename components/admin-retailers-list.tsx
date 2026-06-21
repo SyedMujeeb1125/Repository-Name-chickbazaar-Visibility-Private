@@ -21,32 +21,6 @@ export function AdminRetailersList({
   id: string,
   status: string
 ) {
-  async function updateCategory(
-  retailerId: string,
-  category: string
-) {
-  const formData = new FormData();
-
-  formData.set(
-    "retailerId",
-    retailerId
-  );
-
-  formData.set(
-    "category",
-    category
-  );
-
-  await fetch(
-    "/api/admin/retailer-category",
-    {
-      method: "POST",
-      body: formData
-    }
-  );
-
-  window.location.reload();
-}
   const formData = new FormData();
 
   formData.set(
@@ -71,34 +45,7 @@ export function AdminRetailersList({
 
   window.location.reload();
 }
-async function updateCategory(
-  retailerId: string,
-  category: string
-) {
-  const formData = new FormData();
-
-  formData.set(
-    "retailerId",
-    retailerId
-  );
-
-  formData.set(
-    "category",
-    category
-  );
-
-  await fetch(
-    "/api/admin/retailer-category",
-    {
-      method: "POST",
-      body: formData
-    }
-  );
-
-  window.location.reload();
-}
-
-  const filtered = retailers.filter(
+const filtered = retailers.filter(
   (retailer) => {
     const term =
       search.toLowerCase();
@@ -128,6 +75,60 @@ async function updateCategory(
     );
   }
 );
+
+async function updateCategory(
+  retailerId: string,
+  category: string
+) {
+  const formData = new FormData();
+
+  formData.set(
+    "retailerId",
+    retailerId
+  );
+
+  formData.set(
+    "category",
+    category
+  );
+
+  await fetch(
+    "/api/admin/retailer-category",
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  window.location.reload();
+}
+
+async function updateZone(
+  retailerId: string,
+  zone: string
+) {
+  const formData = new FormData();
+
+  formData.set(
+    "retailerId",
+    retailerId
+  );
+
+  formData.set(
+    "zone",
+    zone
+  );
+
+  await fetch(
+    "/api/admin/retailer-zone",
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  window.location.reload();
+}
 
   const pendingCount =
     retailers.filter(
@@ -323,6 +324,7 @@ async function updateCategory(
   >
     Premium
   </button>
+  
 
 </div>
 
