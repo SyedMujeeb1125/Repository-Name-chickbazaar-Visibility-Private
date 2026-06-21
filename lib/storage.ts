@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { supabase } from "./supabase";
+import { getBangaloreZone } from "./zones";
 import type {
   ChickBazaarDb,
   FarmPartnerRecord,
@@ -119,7 +120,12 @@ farmInventory:
   id: r.id,
   createdAt: r.created_at,
   status: r.status,
-  zone: r.zone,
+  zone:
+  r.zone ||
+  getBangaloreZone(
+    r.latitude,
+    r.longitude
+  ),
   creditCategory: r.credit_category,
 
   creditLimit: r.credit_limit,
@@ -174,7 +180,12 @@ farmPartners: (farmPartners.data || []).map((f: any) => ({
   createdAt: f.created_at,
   status: f.status,
 
-  zone: f.zone,
+  zone:
+  f.zone ||
+  getBangaloreZone(
+    f.latitude,
+    f.longitude
+  ),
 
   farmName: f.farm_name,
   contactPerson: f.contact_person,

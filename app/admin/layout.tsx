@@ -82,6 +82,13 @@ export default function AdminLayout({
 </Link>
 
 <Link
+  href="/admin/zone-demand"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Zone Demand
+</Link>
+
+<Link
   href="/admin/settlement"
   className="block rounded p-3 hover:bg-white/10"
 >
