@@ -43,6 +43,24 @@ const advancePaid =
 const outstandingAmount =
   finalAmount - advancePaid;
 
+  const { data: orderInfo } =
+  await supabase
+    .from("orders")
+    .select("mobile, order_number")
+    .eq("id", orderId)
+    .single();
+
+const { data: retailer } =
+  await supabase
+    .from("retailers")
+    .select("id")
+    .eq(
+      "mobile",
+      orderInfo?.mobile
+    )
+    .limit(1)
+    .single();
+
   const { error } = await supabase
     .from("orders")
     .update({
@@ -66,6 +84,28 @@ const outstandingAmount =
       { status: 500 }
     );
   }
+  if (retailer) {
+  await supabase
+    .from("retailer_ledger")
+    .insert({
+      retailer_id:
+        retailer.id,
+
+      order_id:
+        orderId,
+
+      debit:
+        finalAmount,
+
+      credit: 0,
+
+      remarks:
+        `Settlement - ${orderInfo?.order_number}`,
+
+      created_at:
+        new Date().toISOString()
+    });
+}
 
   return NextResponse.json({
     success: true,

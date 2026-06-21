@@ -81,6 +81,7 @@ export async function readDb(): Promise<ChickBazaarDb> {
 
   createdAt: o.created_at,
   status: o.status,
+  zone: o.zone,
 
   paymentStatus: o.payment_status,
 paymentAmount: o.payment_amount,
@@ -103,6 +104,8 @@ advanceRequired:
 
 assignedFarm: o.assigned_farm,
 assignedDriver: o.assigned_driver,
+assignedVehicle:
+  o.assigned_vehicle,
 trackingNotes: o.tracking_notes,
 
   shopName: o.shop_name,
@@ -299,7 +302,17 @@ advance_required:
   order.advanceRequired,
 
 assigned_farm: order.assignedFarm,
-tracking_notes: order.trackingNotes,
+
+zone: order.zone,
+
+assigned_driver:
+  order.assignedDriver,
+
+assigned_vehicle:
+  order.assignedVehicle,
+
+tracking_notes:
+  order.trackingNotes,
 
   shop_name: order.shopName,
   owner_name: order.ownerName,
@@ -342,6 +355,7 @@ export async function addRetailer(retailer: RetailerRecord) {
   id: retailer.id,
   created_at: retailer.createdAt,
   status: retailer.status,
+  zone: retailer.zone,
   credit_category: retailer.creditCategory,
 
   shop_name: retailer.shopName,
@@ -373,6 +387,8 @@ export async function addFarmPartner(farmPartner: FarmPartnerRecord) {
   id: farmPartner.id,
   created_at: farmPartner.createdAt,
   status: farmPartner.status,
+
+  zone: farmPartner.zone,
 
   farm_name: farmPartner.farmName,
   contact_person: farmPartner.contactPerson,
@@ -567,6 +583,35 @@ export function generateInvoiceNumber() {
     .slice(-6)}`;
 }
 
+export async function addRetailerLedgerEntry({
+  retailerId,
+  orderId,
+  debit = 0,
+  credit = 0,
+  narration = ""
+}: {
+  retailerId: string;
+  orderId?: string;
+  debit?: number;
+  credit?: number;
+  narration?: string;
+}) {
+  const { error } = await supabase
+    .from("retailer_ledger")
+    .insert({
+      retailer_id: retailerId,
+      order_id: orderId,
+      debit,
+      credit,
+      narration,
+      created_at: new Date().toISOString()
+    });
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function updateRecordStatus(
   collection: "orders" | "retailers" | "farmPartners",
   id: string,
@@ -600,6 +645,7 @@ export async function getInvoices() {
 
   return data || [];
 }
+
 export async function ledgerDebitExists(
   orderId: string
 ) {
@@ -634,6 +680,7 @@ export async function updateOrderDetails(
 
     assignedFarm?: string;
     assignedDriver?: string;
+    assignedVehicle?: string;
     trackingNotes?: string;
 
     paymentType?: string;
@@ -661,6 +708,9 @@ export async function updateOrderDetails(
 
 assigned_driver:
   updates.assignedDriver,
+
+  assigned_vehicle:
+  updates.assignedVehicle,
 
 tracking_notes:
   updates.trackingNotes,

@@ -349,6 +349,21 @@ const statusCounts = {
                 {order.averageWeight}
               </p>
               <p>
+  Zone: {order.zone || "-"}
+</p>
+
+<p>
+  Driver: {order.assignedDriver || "-"}
+</p>
+
+<p>
+  Vehicle: {order.assignedVehicle || "-"}
+</p>
+
+<p>
+  Farm: {order.assignedFarm || "-"}
+</p>
+              <p>
   Address: {order.address}
 </p>
 

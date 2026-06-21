@@ -103,6 +103,13 @@ export default function AdminLayout({
 </Link>
 
 <Link
+  href="/admin/delivery"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Delivery Ops
+</Link>
+
+<Link
   href="/admin/settlement"
   className="block rounded p-3 hover:bg-white/10"
 >

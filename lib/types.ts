@@ -88,6 +88,8 @@ export type OrderRecord = {
 
   finalAmount?: number;
 
+  outstandingAmount?: number;
+
   estimatedAmount?: number;
 
   advancePercentage?: number;
@@ -109,6 +111,7 @@ export type OrderRecord = {
 
   assignedFarm?: string;
   assignedDriver?: string;
+  assignedVehicle?: string;
   trackingNotes?: string;
 
   latitude?: number;

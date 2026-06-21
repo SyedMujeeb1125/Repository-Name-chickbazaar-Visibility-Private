@@ -92,6 +92,22 @@ const retailer = db.retailers.find(
     value(formData, "mobile")
 );
 
+const zone =
+  retailer?.zone || "central";
+
+const vehicle =
+  db.vehicles.find(
+    (v: any) =>
+      v.zone === zone
+  );
+
+const assignedDriver =
+  vehicle?.assignedDriver || "";
+
+const assignedVehicle =
+  vehicle?.vehicleNumber || "";
+
+
 const todayRate = await getTodayRate();
 
 const nearestFarm =
@@ -170,6 +186,12 @@ const advanceRequired =
   createdAt: new Date().toISOString(),
 
   status: "new",
+
+  zone,
+
+  assignedDriver,
+
+  assignedVehicle,
 
   paymentStatus: "pending",
   paymentAmount: 0,
