@@ -19,6 +19,7 @@ export async function readDb(): Promise<ChickBazaarDb> {
   const [
   orders,
   retailers,
+  vehicles,
   retailerLocations,
   farmPartners,
   farmInventory,
@@ -27,6 +28,9 @@ export async function readDb(): Promise<ChickBazaarDb> {
 ] = await Promise.all([
   supabase.from("orders").select("*"),
   supabase.from("retailers").select("*"),
+  supabase
+  .from("vehicles")
+  .select("*"),
 
   supabase
     .from("retailer_locations")
@@ -46,6 +50,30 @@ export async function readDb(): Promise<ChickBazaarDb> {
 
 
   return {
+    vehicles:
+  (vehicles.data || []).map(
+    (v: any) => ({
+      id: v.id,
+
+      vehicleNumber:
+        v.vehicle_number,
+
+      zone: v.zone,
+
+      capacityKg:
+        Number(
+          v.capacity_kg || 0
+        ),
+
+      assignedDriver:
+        v.assigned_driver,
+
+      status: v.status,
+
+      createdAt:
+        v.created_at
+    })
+  ),
     orders: (orders.data || []).map((o: any) => ({
   id: o.id,
 

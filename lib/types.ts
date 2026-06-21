@@ -213,6 +213,7 @@ export type UserRecord = {
 };
 
 export type ChickBazaarDb = {users: UserRecord[];
+  vehicles: VehicleRecord[];
   orders: OrderRecord[];
 
   retailers: RetailerRecord[];
@@ -224,4 +225,27 @@ export type ChickBazaarDb = {users: UserRecord[];
   farmInventory: FarmInventoryRecord[];
 
   otps: OtpRecord[];
+};
+export type VehicleRecord = {
+  id: string;
+
+  vehicleNumber: string;
+
+  zone?:
+    | "north"
+    | "south"
+    | "east"
+    | "west"
+    | "central";
+
+  capacityKg: number;
+
+  assignedDriver?: string;
+
+  status:
+    | "available"
+    | "on_route"
+    | "maintenance";
+
+  createdAt: string;
 };

@@ -89,6 +89,20 @@ export default function AdminLayout({
 </Link>
 
 <Link
+  href="/admin/demand-supply"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Demand vs Supply
+</Link>
+
+<Link
+  href="/admin/vehicles"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Vehicles
+</Link>
+
+<Link
   href="/admin/settlement"
   className="block rounded p-3 hover:bg-white/10"
 >
