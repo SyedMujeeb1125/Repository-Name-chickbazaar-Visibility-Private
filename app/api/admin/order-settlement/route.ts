@@ -108,6 +108,55 @@ const { data: retailer } =
         new Date().toISOString()
     });
 }
+const { data: existingInvoice } =
+  await supabase
+    .from("invoices")
+    .select("id")
+    .eq("order_id", orderId)
+    .limit(1)
+    .single();
+
+if (!existingInvoice) {
+
+  const invoiceNumber =
+    `CB-INV-${Date.now()}`;
+
+  await supabase
+    .from("invoices")
+    .insert({
+      invoice_number:
+        invoiceNumber,
+
+      order_id:
+        orderId,
+
+      retailer_id:
+        retailer?.id || null,
+
+      retailer_name:
+        retailer
+          ? orderInfo?.mobile
+          : "",
+
+      order_number:
+        orderInfo?.order_number,
+
+      amount:
+        finalAmount,
+
+      actual_weight:
+        actualWeight,
+
+      rate_per_kg:
+        ratePerKg,
+
+      status:
+        "unpaid",
+
+      remarks:
+        `Invoice generated for ${orderInfo?.order_number}`
+    });
+}
 if (retailer) {
   const { data: retailerInfo } =
     await supabase
