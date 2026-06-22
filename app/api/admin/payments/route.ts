@@ -20,6 +20,18 @@ export async function POST(
       formData.get("remarks") || ""
     );
 
+    const payment_mode = String(
+  formData.get("payment_mode") || ""
+);
+
+const reference_number = String(
+  formData.get("reference_number") || ""
+);
+
+const received_by = String(
+  formData.get("received_by") || ""
+);
+
     if (
       !retailer_id ||
       amount <= 0
@@ -36,12 +48,14 @@ export async function POST(
       );
     }
 
-    const payment =
-      await recordRetailerPayment({
-        retailer_id,
-        amount,
-        remarks,
-      });
+    await recordRetailerPayment({
+  retailer_id,
+  amount,
+  remarks,
+  payment_mode,
+  reference_number,
+  received_by,
+});
 
     return NextResponse.redirect(
       new URL(

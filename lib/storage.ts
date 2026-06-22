@@ -441,25 +441,78 @@ export async function recordRetailerPayment({
   retailer_id,
   amount,
   remarks,
+  payment_mode,
+  reference_number,
+  received_by,
 }: {
   retailer_id: string;
   amount: number;
   remarks?: string;
-}) {
+  payment_mode?: string;
+  reference_number?: string;
+  received_by?: string;
+})
+
+{
   const { data, error } = await supabase
     .from("retailer_ledger")
     .insert([
-      {
-        retailer_id,
-        credit: amount,
-        debit: 0,
-        remarks: remarks || "Payment Received",
-      },
-    ])
+  {
+    retailer_id,
+    credit: amount,
+    debit: 0,
+
+    payment_mode,
+    reference_number,
+    received_by,
+
+    remarks:
+      remarks ||
+      "Payment Received",
+  },
+])
     .select()
     .single();
 
   if (error) throw error;
+
+  const { data: retailer } =
+    await supabase
+      .from("retailers")
+      .select(
+        "available_credit, credit_limit"
+      )
+      .eq("id", retailer_id)
+      .single();
+
+  if (retailer) {
+    const currentCredit =
+      Number(
+        retailer.available_credit || 0
+      );
+
+    const creditLimit =
+      Number(
+        retailer.credit_limit || 0
+      );
+
+    const newCredit =
+      Math.min(
+        creditLimit,
+        currentCredit + amount
+      );
+
+    await supabase
+      .from("retailers")
+      .update({
+        available_credit:
+          newCredit
+      })
+      .eq(
+        "id",
+        retailer_id
+      );
+  }
 
   return data;
 }

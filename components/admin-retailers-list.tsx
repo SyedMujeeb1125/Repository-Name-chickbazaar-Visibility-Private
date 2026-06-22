@@ -267,6 +267,27 @@ async function updateZone(
   <strong>Available Credit:</strong> ₹
   {retailer.availableCredit || 0}
 </p>
+<p>
+  <strong>Used Credit:</strong> ₹
+  {Math.max(
+    0,
+    Number(retailer.creditLimit || 0) -
+      Number(retailer.availableCredit || 0)
+  )}
+</p>
+
+<p>
+  <strong>Utilization:</strong>{" "}
+  {Number(retailer.creditLimit || 0) > 0
+    ? Math.round(
+        ((Number(retailer.creditLimit || 0) -
+          Number(retailer.availableCredit || 0)) *
+          100) /
+          Number(retailer.creditLimit || 0)
+      )
+    : 0}
+  %
+</p>
 <div className="mt-2">
   {Number(retailer.creditLimit || 0) === 0 ? (
     <span className="rounded bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
@@ -288,6 +309,12 @@ async function updateZone(
   )}
 </div>
 <div className="mt-2 flex gap-2 flex-wrap">
+  <a
+  href={`/admin/statement/${retailer.id}`}
+  className="rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white"
+>
+  View Statement
+</a>
 
   <button
     onClick={() =>

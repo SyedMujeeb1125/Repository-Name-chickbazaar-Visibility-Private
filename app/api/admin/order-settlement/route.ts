@@ -53,7 +53,9 @@ const outstandingAmount =
 const { data: retailer } =
   await supabase
     .from("retailers")
-    .select("id")
+    .select(
+      "id, available_credit"
+    )
     .eq(
       "mobile",
       orderInfo?.mobile
@@ -105,6 +107,39 @@ const { data: retailer } =
       created_at:
         new Date().toISOString()
     });
+}
+if (retailer) {
+  const { data: retailerInfo } =
+    await supabase
+      .from("retailers")
+      .select(
+        "available_credit"
+      )
+      .eq(
+        "id",
+        retailer.id
+      )
+      .single();
+
+  const currentCredit =
+    Number(
+      retailerInfo?.available_credit || 0
+    );
+
+  await supabase
+    .from("retailers")
+    .update({
+      available_credit:
+  Math.max(
+    0,
+    currentCredit -
+      outstandingAmount
+  )
+    })
+    .eq(
+      "id",
+      retailer.id
+    );
 }
 
   return NextResponse.json({
