@@ -1,8 +1,8 @@
+import Link from "next/link";
 import {
   readDb,
   getRetailerLedger
 } from "@/lib/storage";
-import Link from "next/link";
 
 export default async function CollectionsPage() {
   const db = await readDb();
@@ -46,124 +46,126 @@ export default async function CollectionsPage() {
             0
           );
 
+        const outstanding =
+          debit - credit;
+
+        const lastPayment =
+          entries
+            .filter(
+              (e: any) =>
+                Number(
+                  e.credit || 0
+                ) > 0
+            )
+            .sort(
+              (
+                a: any,
+                b: any
+              ) =>
+                new Date(
+                  b.created_at
+                ).getTime() -
+                new Date(
+                  a.created_at
+                ).getTime()
+            )[0];
+
         return {
-          retailer,
-          debit,
-          credit,
-          outstanding:
-            debit - credit,
+          ...retailer,
+          outstanding,
+          totalCollected:
+            credit,
+          lastPaymentDate:
+            lastPayment
+              ?.created_at ||
+            null,
         };
       }
-    ).sort(
-      (a: any, b: any) =>
-        b.outstanding -
-        a.outstanding
-    );
-
-  const totalOutstanding =
-    retailers.reduce(
-      (
-        sum: number,
-        r: any
-      ) =>
-        sum +
-        r.outstanding,
-      0
-    );
-
-  const totalCollected =
-    retailers.reduce(
-      (
-        sum: number,
-        r: any
-      ) =>
-        sum +
-        r.credit,
-      0
     );
 
   return (
     <div>
       <h1 className="mb-6 text-3xl font-bold">
-        Collections
+        Collections Dashboard
       </h1>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="overflow-auto rounded-lg border bg-white">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b bg-slate-100">
+              <th className="p-3 text-left">
+                Retailer
+              </th>
 
-        <div className="rounded-lg bg-blue-600 p-5 text-white">
-          <p>Total Retailers</p>
+              <th className="p-3 text-left">
+                Outstanding
+              </th>
 
-          <p className="text-3xl font-bold">
-            {db.retailers.length}
-          </p>
-        </div>
+              <th className="p-3 text-left">
+                Total Collected
+              </th>
 
-        <div className="rounded-lg bg-green-600 p-5 text-white">
-          <p>Total Collected</p>
+              <th className="p-3 text-left">
+                Last Payment
+              </th>
 
-          <p className="text-3xl font-bold">
-            ₹{totalCollected}
-          </p>
-        </div>
+              <th className="p-3 text-left">
+                Action
+              </th>
+            </tr>
+          </thead>
 
-        <div className="rounded-lg bg-red-600 p-5 text-white">
-          <p>Total Outstanding</p>
+          <tbody>
+            {retailers.map(
+              (r: any) => (
+                <tr
+                  key={r.id}
+                  className="border-b"
+                >
+                  <td className="p-3">
+                    {r.shopName}
+                  </td>
 
-          <p className="text-3xl font-bold">
-            ₹{totalOutstanding}
-          </p>
-        </div>
+                  <td className="p-3 font-semibold text-red-600">
+                    ₹
+                    {r.outstanding}
+                  </td>
 
-      </div>
+                  <td className="p-3 text-green-600">
+                    ₹
+                    {r.totalCollected}
+                  </td>
 
-      <div className="space-y-4">
-        {retailers.map(
-          ({
-            retailer,
-            debit,
-            credit,
-            outstanding
-          }: any) => (
-            <div
-              key={retailer.id}
-              className="rounded-lg border bg-white p-5"
-            >
-              <h3 className="text-lg font-bold">
-                {retailer.shopName}
-              </h3>
+                  <td className="p-3">
+                    {r.lastPaymentDate
+                      ? new Date(
+                          r.lastPaymentDate
+                        ).toLocaleDateString()
+                      : "-"}
+                  </td>
 
-              <p className="text-sm text-slate-500">
-                {retailer.mobile}
-              </p>
+                  <td className="p-3">
+  <div className="flex gap-2">
+    <Link
+      href={`/admin/collections/${r.id}`}
+      className="rounded bg-green-600 px-3 py-2 text-white"
+    >
+      Receive Payment
+    </Link>
 
-              <p>
-                Debit: ₹{debit}
-              </p>
-
-              <p>
-                Collection: ₹{credit}
-              </p>
-
-              <p
-                className={`font-bold ${
-                  outstanding > 0
-                    ? "text-red-600"
-                    : "text-green-600"
-                }`}
-              >
-                Outstanding: ₹{outstanding}
-              </p>
-              {outstanding > 0 && (
-  <Link
-    href={`/admin/collections/${retailer.id}`}
-    className="mt-3 inline-block rounded bg-green-600 px-4 py-2 font-semibold text-white"
-  >
-    Receive Payment
-  </Link>
-)}
-            </div>
-          )
-        )}
+    <Link
+      href={`/admin/statement/${r.id}`}
+      className="rounded bg-blue-600 px-3 py-2 text-white"
+    >
+      Statement
+    </Link>
+  </div>
+</td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
