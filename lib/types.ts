@@ -86,6 +86,10 @@ export type OrderRecord = {
 
   actualWeight?: number;
 
+  deliveryNotes?: string;
+  
+  deliveredAt?: string;
+
   finalAmount?: number;
 
   outstandingAmount?: number;

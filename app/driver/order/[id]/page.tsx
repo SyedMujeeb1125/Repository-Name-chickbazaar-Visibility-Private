@@ -17,8 +17,15 @@ export default async function DriverOrderPage({
   console.log("Route ID:", id);
 
 console.log(
-  "First Order:",
-  db.orders[0]
+  "Orders Count:",
+  db.orders.length
+);
+
+console.log(
+  "Matching Order:",
+  db.orders.find(
+    (o: any) => o.id === id
+  )
 );
 
   if (!order) {
@@ -108,6 +115,7 @@ console.log(
         <form
   action="/api/driver/deliver"
   method="POST"
+  encType="multipart/form-data"
   className="mt-6"
 >
   <input
@@ -124,6 +132,19 @@ console.log(
     className="w-full rounded border p-3"
     required
   />
+
+<input
+  type="file"
+  name="podPhoto"
+  accept="image/*"
+  className="mt-3 w-full rounded border p-3"
+/>
+  <textarea
+  name="deliveryNotes"
+  placeholder="Delivery Notes"
+  rows={3}
+  className="mt-3 w-full rounded border p-3"
+/>
 
   <button
     type="submit"

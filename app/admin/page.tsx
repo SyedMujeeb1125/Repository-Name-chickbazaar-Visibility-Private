@@ -308,6 +308,13 @@ const totalOutstanding =
   Outstanding Dashboard
 </Link>
 
+<Link
+  href="/admin/aging"
+  className="rounded-xl border bg-white p-6 font-semibold hover:bg-slate-50"
+>
+  Aging Report
+</Link>
+
         <Link
           href="/admin/orders"
           className="rounded-xl border bg-white p-6 font-semibold hover:bg-slate-50"

@@ -18,6 +18,9 @@ export default async function SettlementDetailPage({
     return notFound();
   }
 
+  const podUrl =
+    (order as any).pod_photo_url;
+
   return (
     <div>
       <h1 className="mb-6 text-3xl font-bold">
@@ -41,6 +44,48 @@ export default async function SettlementDetailPage({
           {order.status}
         </p>
 
+        <p>
+          <strong>Delivered At:</strong>{" "}
+          {(order as any).deliveredAt
+            ? new Date(
+                (order as any).deliveredAt
+              ).toLocaleString()
+            : "-"}
+        </p>
+
+        <p>
+          <strong>Delivery Notes:</strong>{" "}
+          {(order as any).deliveryNotes ||
+            "-"}
+        </p>
+
+        {podUrl && (
+          <div className="mt-4">
+            <p className="mb-2 font-bold">
+              POD Photo
+            </p>
+
+            <img
+              src={podUrl}
+              alt="POD"
+              className="max-w-md rounded border"
+            />
+          </div>
+        )}
+
+        {podUrl && (
+          <div className="mt-3">
+            <a
+              href={podUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded bg-blue-600 px-4 py-2 text-white"
+            >
+              View Delivery Proof
+            </a>
+          </div>
+        )}
+
         <form
           action="/api/admin/order-settlement"
           method="POST"
@@ -53,7 +98,7 @@ export default async function SettlementDetailPage({
           />
 
           <div>
-            <label className="block mb-1 font-medium">
+            <label className="mb-1 block font-medium">
               Actual Weight (Kg)
             </label>
 
@@ -69,7 +114,7 @@ export default async function SettlementDetailPage({
           </div>
 
           <div>
-            <label className="block mb-1 font-medium">
+            <label className="mb-1 block font-medium">
               Rate Per Kg
             </label>
 
@@ -85,39 +130,42 @@ export default async function SettlementDetailPage({
           </div>
 
           <button
+            type="submit"
             className="rounded bg-green-600 px-5 py-3 text-white"
           >
             Save Settlement
           </button>
-          <form
-  action="/api/admin/status"
-  method="POST"
-  className="mt-4"
->
-  <input
-    type="hidden"
-    name="collection"
-    value="orders"
-  />
+        </form>
 
-  <input
-    type="hidden"
-    name="id"
-    value={order.id}
-  />
+        <form
+          action="/api/admin/status"
+          method="POST"
+          className="mt-4"
+        >
+          <input
+            type="hidden"
+            name="collection"
+            value="orders"
+          />
 
-  <input
-    type="hidden"
-    name="status"
-    value="completed"
-  />
+          <input
+            type="hidden"
+            name="id"
+            value={order.id}
+          />
 
-  <button
-    className="rounded bg-orange px-5 py-3 text-white font-bold"
-  >
-    Complete Order
-  </button>
-</form>
+          <input
+            type="hidden"
+            name="status"
+            value="completed"
+          />
+
+          <button
+            type="submit"
+            className="rounded bg-orange-600 px-5 py-3 font-bold text-white"
+          >
+            Complete Order
+          </button>
         </form>
 
       </div>

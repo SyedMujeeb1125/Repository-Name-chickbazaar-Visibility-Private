@@ -741,6 +741,8 @@ export async function updateOrderDetails(
     ratePerKg?: number;
     actualWeight?: number;
     finalAmount?: number;
+    deliveryNotes?: string;
+    deliveredAt?: string;
   }
   
 ) {
@@ -781,7 +783,13 @@ tracking_notes:
         updates.actualWeight,
 
       final_amount:
-        updates.finalAmount
+        updates.finalAmount,
+
+      delivery_notes:
+  updates.deliveryNotes,
+
+  delivered_at:
+  updates.deliveredAt
     })
     .eq("id", id);
 
