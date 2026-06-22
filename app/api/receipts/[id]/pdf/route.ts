@@ -109,7 +109,7 @@ export async function GET(
   );
 
   page.drawText(
-    `Amount Received: ₹${payment.credit}`,
+    `Amount Received: Rs. ${payment.credit}`,
     {
       x: 50,
       y: 640,
