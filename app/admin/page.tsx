@@ -57,6 +57,10 @@ const healthyRetailers =
 
   const totalFarms =
     db.farmPartners.length;
+    const activeVehicles =
+  db.vehicles.filter(
+    (v: any) => v.vehicleNumber
+  ).length;
 
   const pendingRetailers =
     db.retailers.filter(
@@ -87,6 +91,53 @@ const todaysOrders =
       o.createdAt &&
       o.createdAt.startsWith(today)
   ).length;
+
+  const deliveredOrders =
+  db.orders.filter(
+    (o: any) =>
+      o.status === "delivered" ||
+      o.status === "completed"
+  ).length;
+
+  const pendingDeliveries =
+  db.orders.filter(
+    (o: any) =>
+      o.status === "confirmed" ||
+      o.status === "procured" ||
+      o.status === "dispatched"
+  ).length;
+
+  const todaysRevenue =
+  db.orders
+    .filter(
+      (o: any) =>
+        o.created_at &&
+        o.created_at.startsWith(today)
+    )
+    .reduce(
+      (
+        sum: number,
+        o: any
+      ) =>
+        sum +
+        Number(
+          o.final_amount || 0
+        ),
+      0
+    );
+
+    const totalRevenue =
+  db.orders.reduce(
+    (
+      sum: number,
+      o: any
+    ) =>
+      sum +
+      Number(
+        o.finalAmount || 0
+      ),
+    0
+  );
 
 const totalOutstanding =
   db.orders.reduce(
@@ -138,6 +189,14 @@ const totalOutstanding =
           </p>
         </div>
 
+        <div className="rounded-xl bg-cyan-600 p-5 text-white">
+  <p>Vehicles</p>
+
+  <p className="text-3xl font-bold">
+    {activeVehicles}
+  </p>
+</div>
+
         <div className="rounded-xl bg-slate-800 p-5 text-white">
           <p>Total Birds</p>
           <p className="text-3xl font-bold">
@@ -175,17 +234,43 @@ const totalOutstanding =
     {healthyRetailers}
   </p>
 </div>
-        <div className="rounded-xl bg-red-600 p-5 text-white">
-  <p>Outstanding</p>
-
-  <p className="text-3xl font-bold">
-    ₹{totalOutstanding}
-  </p>
-</div>
+        
 <div className="rounded-xl bg-purple-600 p-5 text-white">
   <p>Today's Orders</p>
   <p className="text-3xl font-bold">
     {todaysOrders}
+  </p>
+</div>
+
+<div className="rounded-xl bg-emerald-700 p-5 text-white">
+  <p>Delivered</p>
+
+  <p className="text-3xl font-bold">
+    {deliveredOrders}
+  </p>
+</div>
+
+<div className="rounded-xl bg-yellow-600 p-5 text-white">
+  <p>Pending Delivery</p>
+
+  <p className="text-3xl font-bold">
+    {pendingDeliveries}
+  </p>
+</div>
+
+<div className="rounded-xl bg-indigo-600 p-5 text-white">
+  <p>Today's Revenue</p>
+
+  <p className="text-3xl font-bold">
+    ₹{todaysRevenue}
+  </p>
+</div>
+
+<div className="rounded-xl bg-indigo-800 p-5 text-white">
+  <p>Total Revenue</p>
+
+  <p className="text-3xl font-bold">
+    ₹{totalRevenue}
   </p>
 </div>
 
