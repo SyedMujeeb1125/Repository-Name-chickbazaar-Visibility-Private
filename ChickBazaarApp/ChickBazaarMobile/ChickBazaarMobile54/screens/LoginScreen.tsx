@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -36,21 +37,26 @@ export default function LoginScreen({
         await response.json();
 
       if (!data.success) {
-        Alert.alert(
-          "Error",
-          "Retailer not found"
-        );
-        return;
-      }
+  Alert.alert(
+    "Error",
+    "Retailer not found"
+  );
+  return;
+}
 
-      Alert.alert(
-        "Success",
-        "Login Successful"
-      );
+await AsyncStorage.setItem(
+  "retailerMobile",
+  mobile
+);
 
-      navigation.navigate(
-        "Dashboard"
-      );
+Alert.alert(
+  "Success",
+  "Login Successful"
+);
+
+navigation.navigate(
+  "Dashboard"
+);
     } catch (error: any) {
       Alert.alert(
         "Error",

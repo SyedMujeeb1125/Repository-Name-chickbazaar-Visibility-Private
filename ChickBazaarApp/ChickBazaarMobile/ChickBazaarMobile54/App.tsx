@@ -1,7 +1,17 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import {
+  NavigationContainer,
+} from "@react-navigation/native";
+
+import {
+  createNativeStackNavigator,
+} from "@react-navigation/native-stack";
 
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
@@ -9,12 +19,47 @@ import DashboardScreen from "./screens/DashboardScreen";
 import PlaceOrderScreen from "./screens/PlaceOrderScreen";
 import MyOrdersScreen from "./screens/MyOrdersScreen";
 
-const Stack = createNativeStackNavigator();
+const Stack =
+  createNativeStackNavigator();
 
 export default function App() {
+  const [
+    initialRoute,
+    setInitialRoute,
+  ] = useState("Login");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    checkLogin();
+  }, []);
+
+  async function checkLogin() {
+    const mobile =
+      await AsyncStorage.getItem(
+        "retailerMobile"
+      );
+
+    if (mobile) {
+      setInitialRoute(
+        "Dashboard"
+      );
+    }
+
+    setLoading(false);
+  }
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName={
+          initialRoute
+        }
         screenOptions={{
           headerShown: false,
         }}
@@ -31,17 +76,23 @@ export default function App() {
 
         <Stack.Screen
           name="Dashboard"
-          component={DashboardScreen}
+          component={
+            DashboardScreen
+          }
         />
 
         <Stack.Screen
           name="PlaceOrder"
-          component={PlaceOrderScreen}
+          component={
+            PlaceOrderScreen
+          }
         />
 
         <Stack.Screen
           name="MyOrders"
-          component={MyOrdersScreen}
+          component={
+            MyOrdersScreen
+          }
         />
       </Stack.Navigator>
     </NavigationContainer>
