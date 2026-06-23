@@ -4,7 +4,7 @@ import { createSignedToken, retailerCookieName, retailerCookieOptions } from "@/
 import { verifyOtp } from "@/lib/otp";
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  const formData: any = await request.formData();
   const mobile = String(formData.get("mobile") || "").trim();
   const otp = String(formData.get("otp") || "").trim();
 

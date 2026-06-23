@@ -8,8 +8,8 @@ import {
 export async function POST(
   request: Request
 ) {
-  const formData =
-    await request.formData();
+  const formData: any =
+  await request.formData();
 
   const orderId = String(
     formData.get("orderId") || ""

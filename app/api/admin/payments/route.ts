@@ -5,8 +5,8 @@ export async function POST(
   req: Request
 ) {
   try {
-    const formData =
-      await req.formData();
+    const formData: any =
+  await req.formData();
 
     const retailer_id = String(
       formData.get("retailer_id") || ""

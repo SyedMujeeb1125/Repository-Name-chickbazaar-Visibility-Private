@@ -12,8 +12,8 @@ export async function POST(
     );
   }
 
-  const formData =
-    await request.formData();
+  const formData: any =
+  await request.formData();
 
   const retailerId = String(
     formData.get("retailerId") || ""

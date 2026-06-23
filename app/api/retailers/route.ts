@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { addRetailer, createId, saveUploadedFile } from "@/lib/storage";
 import type { RetailerRecord } from "@/lib/types";
 
-function value(formData: FormData, key: string) {
+function value(formData: any, key: string) {
   return String(formData.get(key) || "").trim();
 }
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  const formData: any =
+  await request.formData();
   const certificate = formData.get("gstCertificate");
   const required = ["shopName", "ownerName", "mobile", "email", "address", "gst", "password", "confirmPassword"];
 

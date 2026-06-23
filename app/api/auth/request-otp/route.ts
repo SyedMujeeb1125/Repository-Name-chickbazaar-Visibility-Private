@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createOtpCode, storeOtp } from "@/lib/otp";
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  const formData: any = await request.formData();
   const mobile = String(formData.get("mobile") || "").trim();
 
   if (!/^[0-9]{10}$/.test(mobile)) {

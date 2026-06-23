@@ -7,7 +7,8 @@ import {
 } from "@/lib/auth";
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  const formData: any =
+  await request.formData();
 
   const email = String(formData.get("email") || "")
     .trim()

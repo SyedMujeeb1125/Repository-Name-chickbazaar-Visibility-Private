@@ -7,7 +7,7 @@ import {
 } from "@/lib/storage";
 import type { OrderRecord } from "@/lib/types";
 
-function value(formData: FormData, key: string) {
+function value(formData: any, key: string) {
   return String(formData.get(key) || "").trim();
 }
 function calculateDistance(
@@ -38,7 +38,8 @@ function calculateDistance(
   return R * c;
 }
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  const formData: any =
+  await request.formData();
   const orderBy = String(
   formData.get("orderBy") || "weight"
 );

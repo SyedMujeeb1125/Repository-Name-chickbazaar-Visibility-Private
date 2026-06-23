@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { addFarmPartner, createId } from "@/lib/storage";
 import type { FarmPartnerRecord } from "@/lib/types";
 
-function value(formData: FormData, key: string) {
+function value(formData: any, key: string) {
   return String(formData.get(key) || "").trim();
 }
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  const formData: any =
+  await request.formData();
   const required = [
     "farmName",
     "contactPerson",

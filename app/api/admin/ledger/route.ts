@@ -4,8 +4,8 @@ import { supabase } from "@/lib/supabase";
 export async function POST(
   request: Request
 ) {
-  const formData =
-    await request.formData();
+  const formData: any =
+  await request.formData();
 
   const retailerId = String(
     formData.get("retailerId")

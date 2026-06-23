@@ -12,8 +12,8 @@ export async function POST(
     );
   }
 
-  const formData =
-    await request.formData();
+  const formData: any =
+  await request.formData();
 
   const orderId = String(
     formData.get("orderId") || ""
@@ -29,137 +29,154 @@ export async function POST(
 
   const finalAmount =
     actualWeight * ratePerKg;
-    const { data: order } = await supabase
-  .from("orders")
-  .select("payment_amount")
-  .eq("id", orderId)
-  .single();
 
-const advancePaid =
-  Number(
-    order?.payment_amount || 0
-  );
+  const { data: order } =
+    await supabase
+      .from("orders")
+      .select("payment_amount")
+      .eq("id", orderId)
+      .single();
 
-const outstandingAmount =
-  finalAmount - advancePaid;
+  const advancePaid =
+    Number(
+      order?.payment_amount || 0
+    );
+
+  const outstandingAmount =
+    finalAmount - advancePaid;
 
   const { data: orderInfo } =
-  await supabase
-    .from("orders")
-    .select("mobile, order_number")
-    .eq("id", orderId)
-    .single();
+    await supabase
+      .from("orders")
+      .select(
+        "mobile, order_number"
+      )
+      .eq("id", orderId)
+      .single();
 
-const { data: retailer } =
-  await supabase
-    .from("retailers")
-    .select(
-      "id, available_credit"
-    )
-    .eq(
-      "mobile",
-      orderInfo?.mobile
-    )
-    .limit(1)
-    .single();
+  const { data: retailer } =
+    await supabase
+      .from("retailers")
+      .select(
+        "id, available_credit"
+      )
+      .eq(
+        "mobile",
+        orderInfo?.mobile
+      )
+      .limit(1)
+      .single();
 
-  const { error } = await supabase
-    .from("orders")
-    .update({
-  actual_weight:
-    actualWeight,
+  const { error } =
+    await supabase
+      .from("orders")
+      .update({
+        actual_weight:
+          actualWeight,
 
-  rate_per_kg:
-    ratePerKg,
+        rate_per_kg:
+          ratePerKg,
 
-  final_amount:
-    finalAmount,
+        final_amount:
+          finalAmount,
 
-  outstanding_amount:
-    outstandingAmount
-})
-    .eq("id", orderId);
+        outstanding_amount:
+          outstandingAmount
+      })
+      .eq("id", orderId);
 
   if (error) {
     return NextResponse.json(
-      { message: error.message },
-      { status: 500 }
+      {
+        message:
+          error.message
+      },
+      {
+        status: 500
+      }
     );
   }
+
   if (retailer) {
-  await supabase
-    .from("retailer_ledger")
-    .insert({
-      retailer_id:
-        retailer.id,
+    await supabase
+      .from(
+        "retailer_ledger"
+      )
+      .insert({
+        retailer_id:
+          retailer.id,
 
-      order_id:
-        orderId,
+        order_id:
+          orderId,
 
-      debit:
-        finalAmount,
+        debit:
+          finalAmount,
 
-      credit: 0,
+        credit: 0,
 
-      remarks:
-        `Settlement - ${orderInfo?.order_number}`,
+        remarks:
+          `Settlement - ${orderInfo?.order_number}`,
 
-      created_at:
-        new Date().toISOString()
-    });
-}
-const { data: existingInvoice } =
-  await supabase
+        created_at:
+          new Date().toISOString()
+      });
+  }
+
+  const {
+    data: existingInvoice
+  } = await supabase
     .from("invoices")
     .select("id")
     .eq("order_id", orderId)
     .limit(1)
     .single();
 
-if (!existingInvoice) {
+  if (!existingInvoice) {
+    const invoiceNumber =
+      `CB-INV-${Date.now()}`;
 
-  const invoiceNumber =
-    `CB-INV-${Date.now()}`;
-
-  await supabase
-    .from("invoices")
-    .insert({
-      invoice_number:
-        invoiceNumber,
-
-      order_id:
-        orderId,
-
-      retailer_id:
-        retailer?.id || null,
-
-      retailer_name:
-        retailer
-          ? orderInfo?.mobile
-          : "",
-
-      order_number:
-        orderInfo?.order_number,
-
-      amount:
-        finalAmount,
-
-      actual_weight:
-        actualWeight,
-
-      rate_per_kg:
-        ratePerKg,
-
-      status:
-        "unpaid",
-
-      remarks:
-        `Invoice generated for ${orderInfo?.order_number}`
-    });
-}
-if (retailer) {
-  const { data: retailerInfo } =
     await supabase
+      .from("invoices")
+      .insert({
+        invoice_number:
+          invoiceNumber,
+
+        order_id:
+          orderId,
+
+        retailer_id:
+          retailer?.id ||
+          null,
+
+        retailer_name:
+          retailer
+            ? orderInfo?.mobile
+            : "",
+
+        order_number:
+          orderInfo?.order_number,
+
+        amount:
+          finalAmount,
+
+        actual_weight:
+          actualWeight,
+
+        rate_per_kg:
+          ratePerKg,
+
+        status:
+          "unpaid",
+
+        remarks:
+          `Invoice generated for ${orderInfo?.order_number}`
+      });
+  }
+
+  if (retailer) {
+    const {
+      data: retailerInfo
+    } = await supabase
       .from("retailers")
       .select(
         "available_credit"
@@ -170,26 +187,108 @@ if (retailer) {
       )
       .single();
 
-  const currentCredit =
-    Number(
-      retailerInfo?.available_credit || 0
-    );
+    const currentCredit =
+      Number(
+        retailerInfo?.available_credit ||
+          0
+      );
 
-  await supabase
-    .from("retailers")
-    .update({
-      available_credit:
-  Math.max(
-    0,
-    currentCredit -
-      outstandingAmount
-  )
-    })
-    .eq(
-      "id",
-      retailer.id
-    );
-}
+    await supabase
+      .from("retailers")
+      .update({
+        available_credit:
+          Math.max(
+            0,
+            currentCredit -
+              outstandingAmount
+          )
+      })
+      .eq(
+        "id",
+        retailer.id
+      );
+  }
+
+  // INVENTORY DEDUCTION
+
+  const {
+    data: orderData
+  } = await supabase
+    .from("orders")
+    .select(
+      "assigned_farm,birds,average_weight"
+    )
+    .eq("id", orderId)
+    .single();
+
+  if (
+    orderData?.assigned_farm &&
+    Number(
+      orderData?.birds
+    ) > 0
+  ) {
+    const { data: farm } =
+      await supabase
+        .from(
+          "farm_partners"
+        )
+        .select("id")
+        .eq(
+          "farm_name",
+          orderData.assigned_farm
+        )
+        .single();
+
+    if (farm) {
+      const {
+        data: inventory
+      } = await supabase
+        .from(
+          "farm_inventory"
+        )
+        .select("*")
+        .eq(
+          "farm_id",
+          farm.id
+        )
+        .eq(
+          "weight_category",
+          orderData.average_weight
+        )
+        .single();
+
+      if (inventory) {
+        const currentBirds =
+          Number(
+            inventory.bird_count
+          );
+
+        const birdsUsed =
+          Number(
+            orderData.birds
+          );
+
+        if (
+          currentBirds >=
+          birdsUsed
+        ) {
+          await supabase
+            .from(
+              "farm_inventory"
+            )
+            .update({
+              bird_count:
+                currentBirds -
+                birdsUsed
+            })
+            .eq(
+              "id",
+              inventory.id
+            );
+        }
+      }
+    }
+  }
 
   return NextResponse.json({
     success: true,

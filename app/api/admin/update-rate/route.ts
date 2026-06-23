@@ -10,7 +10,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const formData = await request.formData();
+  const formData: any =
+  await request.formData();
 
   const rate = Number(
     formData.get("rate") || 0

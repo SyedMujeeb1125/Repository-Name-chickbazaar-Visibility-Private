@@ -115,6 +115,13 @@ export default function AdminLayout({
 >
   Settlement
 </Link>
+
+<Link
+  href="/admin/invoices"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Invoices
+</Link>
           </nav>
         </aside>
 

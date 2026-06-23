@@ -7,8 +7,8 @@ import {
 export async function POST(
   request: Request
 ) {
-  const formData =
-    await request.formData();
+  const formData: any =
+  await request.formData();
 
   await addRetailerLocation({
     id: createId("shop"),

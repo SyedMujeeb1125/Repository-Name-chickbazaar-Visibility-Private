@@ -34,7 +34,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
   }
 
-  const formData = await request.formData();
+  const formData: any =
+  await request.formData();
   const collection = String(formData.get("collection") || "") as (typeof collections)[number];
   const id = String(formData.get("id") || "");
   const status = String(

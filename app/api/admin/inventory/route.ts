@@ -4,44 +4,117 @@ import { supabase } from "@/lib/supabase";
 export async function POST(
   request: Request
 ) {
-  const formData =
-    await request.formData();
+  const formData: any =
+  await request.formData();
 
-  const { data, error } =
-  await supabase
+  const farmId = String(
+    formData.get("farmId")
+  );
+
+  const inventoryDate = String(
+    formData.get(
+      "inventoryDate"
+    )
+  );
+
+  const weightCategory = String(
+    formData.get(
+      "weightCategory"
+    )
+  );
+
+  const birdCount = Number(
+    formData.get("birdCount")
+  );
+
+  const procurementPrice =
+    Number(
+      formData.get(
+        "procurementPrice"
+      )
+    );
+
+  // Check if inventory already exists
+
+  const { data: existing } =
+    await supabase
+      .from("farm_inventory")
+      .select("*")
+      .eq("farm_id", farmId)
+      .eq(
+        "inventory_date",
+        inventoryDate
+      )
+      .eq(
+        "weight_category",
+        weightCategory
+      )
+      .limit(1)
+      .single();
+
+  if (existing) {
+    // Update existing stock
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("farm_inventory")
+      .update({
+        bird_count:
+          Number(
+            existing.bird_count || 0
+          ) + birdCount,
+
+        procurement_price:
+          procurementPrice
+      })
+      .eq("id", existing.id)
+      .select();
+
+    if (error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message:
+        "Inventory updated",
+      data
+    });
+  }
+
+  // Create new inventory
+
+  const {
+    data,
+    error
+  } = await supabase
     .from("farm_inventory")
     .insert({
-      farm_id: String(
-        formData.get("farmId")
-      ),
+      farm_id: farmId,
 
-      inventory_date: String(
-        formData.get(
-          "inventoryDate"
-        )
-      ),
+      inventory_date:
+        inventoryDate,
 
-      weight_category: String(
-        formData.get(
-          "weightCategory"
-        )
-      ),
+      weight_category:
+        weightCategory,
 
-      bird_count: Number(
-        formData.get("birdCount")
-      ),
+      bird_count:
+        birdCount,
 
-      procurement_price: Number(
-        formData.get(
-          "procurementPrice"
-        )
-      )
+      procurement_price:
+        procurementPrice
     })
     .select();
 
   if (error) {
-    console.error(error);
-
     return NextResponse.json(
       {
         success: false,
@@ -53,6 +126,8 @@ export async function POST(
 
   return NextResponse.json({
     success: true,
+    message:
+      "Inventory created",
     data
   });
 }
