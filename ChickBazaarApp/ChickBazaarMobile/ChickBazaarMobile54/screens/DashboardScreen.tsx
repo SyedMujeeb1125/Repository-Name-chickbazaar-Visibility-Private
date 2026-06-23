@@ -44,20 +44,28 @@ export default function DashboardScreen({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.button}
-      >
-        <Text style={styles.buttonText}>
-          Outstanding
-        </Text>
-      </TouchableOpacity>
+  style={styles.button}
+  onPress={() =>
+    navigation.navigate(
+      "Outstanding"
+    )
+  }
+>
+  <Text style={styles.buttonText}>
+    Outstanding
+  </Text>
+</TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.button}
-      >
-        <Text style={styles.buttonText}>
-          Profile
-        </Text>
-      </TouchableOpacity>
+  style={styles.button}
+  onPress={() =>
+    navigation.navigate("Profile")
+  }
+>
+  <Text style={styles.buttonText}>
+    Profile
+  </Text>
+</TouchableOpacity>
     </View>
   );
 }

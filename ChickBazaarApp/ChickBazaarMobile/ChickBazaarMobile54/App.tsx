@@ -5,6 +5,11 @@ import React, {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import ProfileScreen from "./screens/ProfileScreen";
+
+import OutstandingScreen
+from "./screens/OutstandingScreen";
+
 import {
   NavigationContainer,
 } from "@react-navigation/native";
@@ -94,6 +99,14 @@ export default function App() {
             MyOrdersScreen
           }
         />
+        <Stack.Screen
+  name="Profile"
+  component={ProfileScreen}
+/>
+<Stack.Screen
+  name="Outstanding"
+  component={OutstandingScreen}
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );

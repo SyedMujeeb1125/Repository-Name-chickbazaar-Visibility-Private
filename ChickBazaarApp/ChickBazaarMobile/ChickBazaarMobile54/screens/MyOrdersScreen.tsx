@@ -3,6 +3,8 @@ import React, {
   useState,
 } from "react";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   View,
   Text,
@@ -10,24 +12,72 @@ import {
   StyleSheet,
 } from "react-native";
 
+const statuses = [
+  "new",
+  "confirmed",
+  "procured",
+  "dispatched",
+  "delivered",
+];
+
 export default function MyOrdersScreen() {
   const [orders, setOrders] =
     useState<any[]>([]);
 
   useEffect(() => {
+  loadOrders();
+
+  const timer = setInterval(() => {
     loadOrders();
-  }, []);
+  }, 30000);
+
+  return () => clearInterval(timer);
+}, []);
 
   async function loadOrders() {
+    const mobile =
+      await AsyncStorage.getItem(
+        "retailerMobile"
+      );
+
     const response =
       await fetch(
-        "https://www.chickbazaar.com/api/mobile/my-orders?mobile=9353956243"
+        `https://www.chickbazaar.com/api/mobile/my-orders?mobile=${mobile}`
       );
 
     const data =
       await response.json();
 
     setOrders(data);
+  }
+
+  function renderStatus(
+    currentStatus: string
+  ) {
+    const currentIndex =
+      statuses.indexOf(
+        currentStatus
+      );
+
+    return statuses.map(
+      (status, index) => (
+        <Text
+          key={status}
+          style={{
+            fontSize: 13,
+            marginTop: 2,
+          }}
+        >
+          {index <= currentIndex
+            ? "✓ "
+            : "○ "}
+          {status
+            .charAt(0)
+            .toUpperCase() +
+            status.slice(1)}
+        </Text>
+      )
+    );
   }
 
   return (
@@ -43,22 +93,42 @@ export default function MyOrdersScreen() {
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text>
+            <Text
+              style={
+                styles.orderNumber
+              }
+            >
               {item.orderNumber}
             </Text>
 
             <Text>
-              Status:
-              {" "}
-              {item.status}
-            </Text>
-
-            <Text>
-              Weight:
-              {" "}
+              Weight:{" "}
               {item.requestedWeight}
               kg
             </Text>
+
+            <Text>
+              Amount: ₹
+              {item.estimatedAmount ||
+                0}
+            </Text>
+
+            <Text>
+              Date:{" "}
+              {new Date(
+                item.createdAt
+              ).toLocaleDateString()}
+            </Text>
+
+            <View
+              style={
+                styles.statusBox
+              }
+            >
+              {renderStatus(
+                item.status
+              )}
+            </View>
           </View>
         )}
       />
@@ -71,6 +141,7 @@ const styles =
     container: {
       flex: 1,
       padding: 20,
+      backgroundColor: "#fff",
     },
 
     title: {
@@ -84,6 +155,16 @@ const styles =
       borderWidth: 1,
       borderColor: "#ddd",
       borderRadius: 10,
-      marginBottom: 10,
+      marginBottom: 12,
+    },
+
+    orderNumber: {
+      fontSize: 16,
+      fontWeight: "bold",
+      marginBottom: 8,
+    },
+
+    statusBox: {
+      marginTop: 10,
     },
   });

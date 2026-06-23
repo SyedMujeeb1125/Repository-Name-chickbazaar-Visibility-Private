@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   View,
   Text,
@@ -10,27 +16,50 @@ import {
 } from "react-native";
 
 export default function PlaceOrderScreen() {
-  const [shopName, setShopName] =
+  const [retailer, setRetailer] =
+    useState<any>(null);
+
+  const [
+    requestedWeight,
+    setRequestedWeight,
+  ] = useState("");
+
+  const [notes, setNotes] =
     useState("");
 
-  const [ownerName, setOwnerName] =
-    useState("");
+  useEffect(() => {
+    loadRetailer();
+  }, []);
 
-  const [mobile, setMobile] =
-    useState("");
+  async function loadRetailer() {
+    const mobile =
+      await AsyncStorage.getItem(
+        "retailerMobile"
+      );
 
-  const [email, setEmail] =
-    useState("");
+    const response =
+      await fetch(
+        `https://www.chickbazaar.com/api/mobile/profile?mobile=${mobile}`
+      );
 
-  const [address, setAddress] =
-    useState("");
+    const data =
+      await response.json();
 
-  const [requestedWeight, setRequestedWeight] =
-    useState("");
+    setRetailer(data);
+  }
 
   const submitOrder = async () => {
     try {
-      const formData = new FormData();
+      if (!retailer) {
+        Alert.alert(
+          "Error",
+          "Retailer profile not loaded"
+        );
+        return;
+      }
+
+      const formData =
+        new FormData();
 
       formData.append(
         "orderBy",
@@ -39,27 +68,27 @@ export default function PlaceOrderScreen() {
 
       formData.append(
         "shopName",
-        shopName
+        retailer.shopName
       );
 
       formData.append(
         "ownerName",
-        ownerName
+        retailer.ownerName
       );
 
       formData.append(
         "mobile",
-        mobile
+        retailer.mobile
       );
 
       formData.append(
         "email",
-        email
+        retailer.email
       );
 
       formData.append(
         "address",
-        address
+        retailer.address
       );
 
       formData.append(
@@ -81,17 +110,21 @@ export default function PlaceOrderScreen() {
 
       formData.append(
         "latitude",
-        "12.9716"
+        String(
+          retailer.latitude || 0
+        )
       );
 
       formData.append(
         "longitude",
-        "77.5946"
+        String(
+          retailer.longitude || 0
+        )
       );
 
       formData.append(
         "notes",
-        "Mobile App Order"
+        notes
       );
 
       const response =
@@ -128,40 +161,19 @@ export default function PlaceOrderScreen() {
         Order Chicken
       </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Shop Name"
-        value={shopName}
-        onChangeText={setShopName}
-      />
+      {retailer && (
+        <>
+          <Text
+            style={styles.shop}
+          >
+            {retailer.shopName}
+          </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Owner Name"
-        value={ownerName}
-        onChangeText={setOwnerName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Mobile"
-        value={mobile}
-        onChangeText={setMobile}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
-      />
+          <Text>
+            {retailer.mobile}
+          </Text>
+        </>
+      )}
 
       <TextInput
         style={styles.input}
@@ -171,6 +183,13 @@ export default function PlaceOrderScreen() {
           setRequestedWeight
         }
         keyboardType="numeric"
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Notes"
+        value={notes}
+        onChangeText={setNotes}
       />
 
       <TouchableOpacity
@@ -187,34 +206,41 @@ export default function PlaceOrderScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
+const styles =
+  StyleSheet.create({
+    container: {
+      padding: 20,
+    },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 20,
+    },
 
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-  },
+    shop: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 10,
+    },
 
-  button: {
-    backgroundColor: "#f97316",
-    padding: 16,
-    borderRadius: 8,
-  },
+    input: {
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 12,
+    },
 
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-});
+    button: {
+      backgroundColor: "#f97316",
+      padding: 16,
+      borderRadius: 8,
+    },
+
+    buttonText: {
+      color: "#fff",
+      textAlign: "center",
+      fontWeight: "bold",
+    },
+  });
