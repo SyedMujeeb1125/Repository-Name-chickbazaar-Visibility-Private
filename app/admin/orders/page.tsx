@@ -1,8 +1,15 @@
+export const dynamic = "force-dynamic";
+
 import { readDb } from "@/lib/storage";
 import { AdminOrdersList } from "@/components/admin-orders-list";
 
 export default async function OrdersPage() {
   const db = await readDb();
+
+  console.log(
+    "ADMIN ORDERS COUNT:",
+    db.orders.length
+  );
 
   return (
     <div>
