@@ -272,63 +272,107 @@ export async function getAllocations() {
 }
 
 export async function addOrder(order: OrderRecord) {
-  await supabase.from("orders").insert({
-  id: order.id,
+  const { error } = await supabase
+    .from("orders")
+    .insert({
+      id: order.id,
 
-  order_number: order.orderNumber,
+      order_number: order.orderNumber,
 
-  created_at: order.createdAt,
+      created_at: order.createdAt,
 
-  status: order.status,
+      status: order.status,
 
-  payment_status: order.paymentStatus,
-payment_amount: order.paymentAmount,
+      payment_status: order.paymentStatus,
+      payment_amount: order.paymentAmount,
 
-razorpay_order_id: order.razorpayOrderId,
-razorpay_payment_id: order.razorpayPaymentId,
+      razorpay_order_id:
+        order.razorpayOrderId,
 
-payment_type: order.paymentType,
-requested_weight: order.requestedWeight,
-rate_per_kg: order.ratePerKg,
-actual_weight: order.actualWeight,
-final_amount: order.finalAmount,
-estimated_amount:
-  order.estimatedAmount,
+      razorpay_payment_id:
+        order.razorpayPaymentId,
 
-advance_percentage:
-  order.advancePercentage,
+      payment_type:
+        order.paymentType,
 
-advance_required:
-  order.advanceRequired,
+      requested_weight:
+        order.requestedWeight,
 
-assigned_farm: order.assignedFarm,
+      rate_per_kg:
+        order.ratePerKg,
 
-zone: order.zone,
+      actual_weight:
+        order.actualWeight,
 
-assigned_driver:
-  order.assignedDriver,
+      final_amount:
+        order.finalAmount,
 
-assigned_vehicle:
-  order.assignedVehicle,
+      estimated_amount:
+        order.estimatedAmount,
 
-tracking_notes:
-  order.trackingNotes,
+      advance_percentage:
+        order.advancePercentage,
 
-  shop_name: order.shopName,
-  owner_name: order.ownerName,
-  mobile: order.mobile,
-  email: order.email,
-  address: order.address,
+      advance_required:
+        order.advanceRequired,
 
-  birds: order.birds,
-  average_weight: order.averageWeight,
-  delivery_date: order.deliveryDate,
+      assigned_farm:
+        order.assignedFarm,
 
-  notes: order.notes,
+      zone:
+        order.zone,
 
-  latitude: order.latitude,
-  longitude: order.longitude
-});
+      assigned_driver:
+        order.assignedDriver,
+
+      assigned_vehicle:
+        order.assignedVehicle,
+
+      tracking_notes:
+        order.trackingNotes,
+
+      shop_name:
+        order.shopName,
+
+      owner_name:
+        order.ownerName,
+
+      mobile:
+        order.mobile,
+
+      email:
+        order.email,
+
+      address:
+        order.address,
+
+      birds:
+        order.birds,
+
+      average_weight:
+        order.averageWeight,
+
+      delivery_date:
+        order.deliveryDate,
+
+      notes:
+        order.notes,
+
+      latitude:
+        order.latitude,
+
+      longitude:
+        order.longitude
+    });
+
+  if (error) {
+    console.error(
+      "ORDER INSERT ERROR:",
+      error
+    );
+
+    throw error;
+  }
 }
 
 export async function addUser(user: any) {

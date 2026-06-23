@@ -60,7 +60,7 @@ export default function RegisterScreen({
         "Retailer Registered Successfully"
       );
 
-      navigation.navigate("Home");
+      navigation.navigate("Dashboard");
     } catch (error: any) {
       Alert.alert(
         "Error",
