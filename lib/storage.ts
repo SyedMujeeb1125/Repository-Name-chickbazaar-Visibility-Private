@@ -350,26 +350,51 @@ export async function addUser(user: any) {
   if (error) throw error;
 }
 
-export async function addRetailer(retailer: RetailerRecord) {
-  await supabase.from("retailers").insert({
-  id: retailer.id,
-  created_at: retailer.createdAt,
-  status: retailer.status,
-  zone: retailer.zone,
-  credit_category: retailer.creditCategory,
+export async function addRetailer(
+  retailer: RetailerRecord
+) {
+  const { error } =
+    await supabase
+      .from("retailers")
+      .insert({
+        id: retailer.id,
+        created_at: retailer.createdAt,
+        status: retailer.status,
+        zone: retailer.zone,
+        credit_category:
+          retailer.creditCategory,
 
-  shop_name: retailer.shopName,
-  owner_name: retailer.ownerName,
-  mobile: retailer.mobile,
-  email: retailer.email,
-  address: retailer.address,
+        shop_name:
+          retailer.shopName,
 
-  gst: retailer.gst,
-  gst_certificate_path: retailer.gstCertificatePath,
+        owner_name:
+          retailer.ownerName,
 
-  latitude: retailer.latitude,
-  longitude: retailer.longitude
-});
+        mobile:
+          retailer.mobile,
+
+        email:
+          retailer.email,
+
+        address:
+          retailer.address,
+
+        gst:
+          retailer.gst,
+
+        gst_certificate_path:
+          retailer.gstCertificatePath,
+
+        latitude:
+          retailer.latitude,
+
+        longitude:
+          retailer.longitude
+      });
+
+  if (error) {
+    throw error;
+  }
 }
 export async function getFulfillments() {
   const { data } = await supabase

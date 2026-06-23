@@ -43,13 +43,22 @@ export async function POST(
       body.longitude,
   };
 
+  try {
   await addRetailer(
     retailer as any
   );
 
   return NextResponse.json({
     success: true,
-    retailerId:
-      retailer.id,
+    retailerId: retailer.id,
   });
+} catch (error: any) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: String(error),
+    },
+    { status: 500 }
+  );
+}
 }
