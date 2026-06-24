@@ -55,33 +55,56 @@ export default function MyOrdersScreen({
   }
 
   function renderStatus(
-    currentStatus: string
-  ) {
-    const currentIndex =
-      statuses.indexOf(
-        currentStatus
-      );
+  currentStatus: string
+) {
+  const currentIndex =
+    statuses.indexOf(
+      currentStatus
+    );
 
-    return statuses.map(
-      (status, index) => (
+  return statuses.map(
+    (status, index) => {
+      let icon = "⚪";
+
+      if (status === "new")
+        icon = "🟡";
+
+      if (status === "confirmed")
+        icon = "🟠";
+
+      if (status === "procured")
+        icon = "🔵";
+
+      if (status === "dispatched")
+        icon = "🟣";
+
+      if (status === "delivered")
+        icon = "🟢";
+
+      return (
         <Text
           key={status}
           style={{
-            fontSize: 13,
-            marginTop: 2,
+            fontSize: 14,
+            marginTop: 3,
+            fontWeight:
+              index === currentIndex
+                ? "bold"
+                : "normal",
           }}
         >
           {index <= currentIndex
-            ? "✓ "
-            : "○ "}
+            ? icon
+            : "⚪"}{" "}
           {status
             .charAt(0)
             .toUpperCase() +
             status.slice(1)}
         </Text>
-      )
-    );
-  }
+      );
+    }
+  );
+}
 
   return (
     <View style={styles.container}>

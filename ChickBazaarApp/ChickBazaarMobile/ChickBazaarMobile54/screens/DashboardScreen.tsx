@@ -21,8 +21,16 @@ export default function DashboardScreen({
     useState<any>(null);
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+  loadDashboard();
+
+  const timer =
+    setInterval(() => {
+      loadDashboard();
+    }, 30000);
+
+  return () =>
+    clearInterval(timer);
+}, []);
 
   async function loadDashboard() {
     const mobile =
