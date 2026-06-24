@@ -1,7 +1,8 @@
 import Link from "next/link";
 import {
   readDb,
-  getRetailerLedger
+  getRetailerLedger,
+  getRetailerOutstanding,
 } from "@/lib/storage";
 
 export default async function CollectionsPage() {
@@ -10,27 +11,14 @@ export default async function CollectionsPage() {
   const ledger =
     await getRetailerLedger();
 
-  const retailers =
+  const retailers = await Promise.all(
     db.retailers.map(
-      (retailer: any) => {
+      async (retailer: any) => {
         const entries =
           ledger.filter(
             (l: any) =>
               l.retailer_id ===
               retailer.id
-          );
-
-        const debit =
-          entries.reduce(
-            (
-              sum: number,
-              row: any
-            ) =>
-              sum +
-              Number(
-                row.debit || 0
-              ),
-            0
           );
 
         const credit =
@@ -46,8 +34,10 @@ export default async function CollectionsPage() {
             0
           );
 
-        const outstanding =
-          debit - credit;
+        const outstandingData =
+          await getRetailerOutstanding(
+            retailer.id
+          );
 
         const lastPayment =
           entries
@@ -72,16 +62,21 @@ export default async function CollectionsPage() {
 
         return {
           ...retailer,
-          outstanding,
+
+          outstanding:
+            outstandingData.outstanding,
+
           totalCollected:
             credit,
+
           lastPaymentDate:
             lastPayment
               ?.created_at ||
             null,
         };
       }
-    );
+    )
+  );
 
   return (
     <div>
@@ -145,22 +140,22 @@ export default async function CollectionsPage() {
                   </td>
 
                   <td className="p-3">
-  <div className="flex gap-2">
-    <Link
-      href={`/admin/collections/${r.id}`}
-      className="rounded bg-green-600 px-3 py-2 text-white"
-    >
-      Receive Payment
-    </Link>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/collections/${r.id}`}
+                        className="rounded bg-green-600 px-3 py-2 text-white"
+                      >
+                        Receive Payment
+                      </Link>
 
-    <Link
-      href={`/admin/statement/${r.id}`}
-      className="rounded bg-blue-600 px-3 py-2 text-white"
-    >
-      Statement
-    </Link>
-  </div>
-</td>
+                      <Link
+                        href={`/admin/statement/${r.id}`}
+                        className="rounded bg-blue-600 px-3 py-2 text-white"
+                      >
+                        Statement
+                      </Link>
+                    </div>
+                  </td>
                 </tr>
               )
             )}
