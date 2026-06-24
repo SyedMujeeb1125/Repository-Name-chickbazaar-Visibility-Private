@@ -1,30 +1,108 @@
-import React from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Image,
+  ScrollView,
 } from "react-native";
 
 export default function DashboardScreen({
   navigation,
 }: any) {
+  const [dashboard, setDashboard] =
+    useState<any>(null);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  async function loadDashboard() {
+    const mobile =
+      await AsyncStorage.getItem(
+        "retailerMobile"
+      );
+
+    const response =
+      await fetch(
+        `https://www.chickbazaar.com/api/mobile/dashboard?mobile=${mobile}`
+      );
+
+    const data =
+      await response.json();
+
+    setDashboard(data);
+  }
+
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={
+        styles.container
+      }
+    >
       <Image
         source={require("../assets/logo.png")}
         style={styles.logo}
       />
 
       <Text style={styles.title}>
-        Welcome to ChickBazaar
+        Welcome
       </Text>
+
+      <Text style={styles.shopName}>
+        {dashboard?.shopName ||
+          "Retailer"}
+      </Text>
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>
+          Total Orders
+        </Text>
+
+        <Text style={styles.cardValue}>
+          {dashboard?.totalOrders ||
+            0}
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>
+          Pending Orders
+        </Text>
+
+        <Text style={styles.cardValue}>
+          {dashboard?.pendingOrders ||
+            0}
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>
+          Available Credit
+        </Text>
+
+        <Text style={styles.cardValue}>
+          ₹
+          {(
+            dashboard?.availableCredit ||
+            0
+          ).toLocaleString()}
+        </Text>
+      </View>
 
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
-          navigation.navigate("PlaceOrder")
+          navigation.navigate(
+            "PlaceOrder"
+          )
         }
       >
         <Text style={styles.buttonText}>
@@ -35,7 +113,9 @@ export default function DashboardScreen({
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
-          navigation.navigate("MyOrders")
+          navigation.navigate(
+            "MyOrders"
+          )
         }
       >
         <Text style={styles.buttonText}>
@@ -44,37 +124,37 @@ export default function DashboardScreen({
       </TouchableOpacity>
 
       <TouchableOpacity
-  style={styles.button}
-  onPress={() =>
-    navigation.navigate(
-      "Outstanding"
-    )
-  }
->
-  <Text style={styles.buttonText}>
-    Outstanding
-  </Text>
-</TouchableOpacity>
+        style={styles.button}
+        onPress={() =>
+          navigation.navigate(
+            "Outstanding"
+          )
+        }
+      >
+        <Text style={styles.buttonText}>
+          Outstanding
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
-  style={styles.button}
-  onPress={() =>
-    navigation.navigate("Profile")
-  }
->
-  <Text style={styles.buttonText}>
-    Profile
-  </Text>
-</TouchableOpacity>
-    </View>
+        style={styles.button}
+        onPress={() =>
+          navigation.navigate(
+            "Profile"
+          )
+        }
+      >
+        <Text style={styles.buttonText}>
+          Profile
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
-    justifyContent: "center",
     backgroundColor: "#fff",
   },
 
@@ -83,14 +163,38 @@ const styles = StyleSheet.create({
     height: 120,
     resizeMode: "contain",
     alignSelf: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
 
   title: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 30,
+  },
+
+  shopName: {
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+
+  card: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
+  },
+
+  cardLabel: {
+    color: "#666",
+    fontSize: 14,
+  },
+
+  cardValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginTop: 5,
   },
 
   button: {
