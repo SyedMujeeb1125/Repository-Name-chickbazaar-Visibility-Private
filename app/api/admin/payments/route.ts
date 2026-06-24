@@ -58,11 +58,12 @@ const received_by = String(
 });
 
     return NextResponse.redirect(
-      new URL(
-        "/admin/collections",
-        req.url
-      )
-    );
+  new URL(
+    "/admin/collections",
+    req.url
+  ),
+  303
+);
   } catch (error) {
     console.error(error);
 
