@@ -881,35 +881,45 @@ export async function getTodayRate() {
 export async function addRetailerLocation(
   location: RetailerLocationRecord
 ) {
-  await supabase
-    .from("retailer_locations")
-    .insert({
-      id: location.id,
+  const { error } =
+    await supabase
+      .from("retailer_locations")
+      .insert({
+        id: location.id,
 
-      retailer_mobile:
-        location.retailerMobile,
+        retailer_mobile:
+          location.retailerMobile,
 
-      shop_name:
-        location.shopName,
+        shop_name:
+          location.shopName,
 
-      contact_person:
-        location.contactPerson,
+        contact_person:
+          location.contactPerson,
 
-      mobile:
-        location.mobile,
+        mobile:
+          location.mobile,
 
-      address:
-        location.address,
+        address:
+          location.address,
 
-      latitude:
-        location.latitude,
+        latitude:
+          location.latitude,
 
-      longitude:
-        location.longitude,
+        longitude:
+          location.longitude,
 
-      created_at:
-        location.createdAt
-    });
+        created_at:
+          location.createdAt
+      });
+
+  if (error) {
+    console.error(
+      "SHOP INSERT ERROR:",
+      error
+    );
+
+    throw error;
+  }
 }
 
 export async function updateRetailerCategory(

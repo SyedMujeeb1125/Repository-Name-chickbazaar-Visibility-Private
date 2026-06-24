@@ -17,10 +17,10 @@ export async function GET(
   const db = await readDb();
 
   const shops =
-    db.retailerLocations.filter(
-      (s: any) =>
-        s.mobile === mobile
-    );
+  db.retailerLocations.filter(
+    (s: any) =>
+      s.retailerMobile === mobile
+  );
 
   return NextResponse.json(
     shops
