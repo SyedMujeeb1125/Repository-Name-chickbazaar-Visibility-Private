@@ -4,6 +4,10 @@ import React, {
 } from "react";
 
 import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
+import {
   View,
   Text,
   StyleSheet,
@@ -36,95 +40,243 @@ export default function OrderDetailsScreen({
 
   if (!order) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
+      <SafeAreaView
+        style={styles.loadingContainer}
+      >
+        <Text>
+          Loading...
+        </Text>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
+    <SafeAreaView
+      style={styles.safeArea}
     >
-      <Text style={styles.title}>
-        {order.orderNumber}
-      </Text>
+      <ScrollView
+        contentContainerStyle={
+          styles.container
+        }
+        showsVerticalScrollIndicator={
+          false
+        }
+      >
+        <View
+          style={styles.orderCard}
+        >
+          <Text
+            style={styles.orderNumber}
+          >
+            {order.orderNumber}
+          </Text>
 
-      <Text>
-        Status: {order.status}
-      </Text>
+          <View
+            style={styles.badge}
+          >
+            <Text
+              style={
+                styles.badgeText
+              }
+            >
+              {order.status}
+            </Text>
+          </View>
 
-      <Text>
-        Requested Weight:{" "}
-        {order.requestedWeight} kg
-      </Text>
+          <Text
+            style={styles.info}
+          >
+            ⚖️ Weight:
+            {" "}
+            {order.requestedWeight}
+            kg
+          </Text>
 
-      <Text>
-        Estimated Amount: ₹
-        {order.estimatedAmount}
-      </Text>
+          <Text
+            style={styles.info}
+          >
+            💰 Amount: ₹
+            {
+              order.estimatedAmount
+            }
+          </Text>
 
-      <Text>
-        Delivery Date:{" "}
-        {order.deliveryDate}
-      </Text>
+          <Text
+            style={styles.info}
+          >
+            📅 Delivery:
+            {" "}
+            {
+              order.deliveryDate
+            }
+          </Text>
+        </View>
 
-      <Text style={styles.section}>
-        Farm
-      </Text>
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.cardTitle
+            }
+          >
+            🏡 Assigned Farm
+          </Text>
 
-      <Text>
-        {order.assignedFarm ||
-          "Not Assigned"}
-      </Text>
+          <Text
+            style={
+              styles.cardValue
+            }
+          >
+            {order.assignedFarm ||
+              "Not Assigned"}
+          </Text>
+        </View>
 
-      <Text style={styles.section}>
-        Driver
-      </Text>
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.cardTitle
+            }
+          >
+            🚚 Driver
+          </Text>
 
-      <Text>
-        {order.assignedDriver ||
-          "Not Assigned"}
-      </Text>
+          <Text
+            style={
+              styles.cardValue
+            }
+          >
+            {order.assignedDriver ||
+              "Not Assigned"}
+          </Text>
+        </View>
 
-      <Text style={styles.section}>
-        Vehicle
-      </Text>
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.cardTitle
+            }
+          >
+            🚛 Vehicle
+          </Text>
 
-      <Text>
-        {order.assignedVehicle ||
-          "Not Assigned"}
-      </Text>
+          <Text
+            style={
+              styles.cardValue
+            }
+          >
+            {order.assignedVehicle ||
+              "Not Assigned"}
+          </Text>
+        </View>
 
-      <Text style={styles.section}>
-        Tracking Notes
-      </Text>
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.cardTitle
+            }
+          >
+            📍 Tracking Notes
+          </Text>
 
-      <Text>
-        {order.trackingNotes ||
-          "No updates yet"}
-      </Text>
-    </ScrollView>
+          <Text
+            style={
+              styles.cardValue
+            }
+          >
+            {order.trackingNotes ||
+              "No updates yet"}
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles =
   StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
+    loadingContainer: {
+      flex: 1,
+      justifyContent:
+        "center",
+      alignItems:
+        "center",
+    },
+
     container: {
       padding: 20,
+      paddingBottom: 40,
     },
 
-    title: {
+    orderCard: {
+      backgroundColor:
+        "#F97316",
+      borderRadius: 20,
+      padding: 20,
+      marginBottom: 18,
+    },
+
+    orderNumber: {
       fontSize: 22,
-      fontWeight: "bold",
-      marginBottom: 20,
+      fontWeight: "700",
+      color: "#FFFFFF",
+      marginBottom: 10,
     },
 
-    section: {
-      marginTop: 20,
-      fontWeight: "bold",
+    badge: {
+      alignSelf: "flex-start",
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      marginBottom: 12,
+    },
+
+    badgeText: {
+      color: "#F97316",
+      fontWeight: "700",
+      textTransform:
+        "capitalize",
+    },
+
+    info: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      marginBottom: 6,
+    },
+
+    card: {
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 18,
+      padding: 18,
+      marginBottom: 12,
+      elevation: 2,
+    },
+
+    cardTitle: {
       fontSize: 16,
+      fontWeight: "700",
+      color: "#0F172A",
+      marginBottom: 8,
+    },
+
+    cardValue: {
+      fontSize: 15,
+      color: "#475569",
     },
   });

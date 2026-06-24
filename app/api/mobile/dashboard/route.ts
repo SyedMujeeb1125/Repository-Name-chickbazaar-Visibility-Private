@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { readDb } from "@/lib/storage";
+import {
+  readDb,
+  getTodayRate
+} from "@/lib/storage";
 
 export async function GET(
   request: Request
@@ -39,15 +42,26 @@ export async function GET(
           "cancelled"
     );
 
+    const todayRate =
+  await getTodayRate();
+
   return NextResponse.json({
-    shopName:
-      retailer?.shopName || "",
-    totalOrders:
-      orders.length,
-    pendingOrders:
-      pendingOrders.length,
-    availableCredit:
-  (retailer as any)
-    ?.availableCredit || 0,
-  });
+  shopName:
+    retailer?.shopName || "",
+
+  totalOrders:
+    orders.length,
+
+  pendingOrders:
+    pendingOrders.length,
+
+  availableCredit:
+    (retailer as any)
+      ?.availableCredit || 0,
+
+  todayRate:
+    Number(
+      todayRate?.rate || 0
+    ),
+});
 }

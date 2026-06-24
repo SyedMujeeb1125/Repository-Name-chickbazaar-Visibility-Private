@@ -6,6 +6,10 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
+import {
   View,
   Text,
   TouchableOpacity,
@@ -21,16 +25,15 @@ export default function DashboardScreen({
     useState<any>(null);
 
   useEffect(() => {
-  loadDashboard();
+    loadDashboard();
 
-  const timer =
-    setInterval(() => {
+    const timer = setInterval(() => {
       loadDashboard();
     }, 30000);
 
-  return () =>
-    clearInterval(timer);
-}, []);
+    return () =>
+      clearInterval(timer);
+  }, []);
 
   async function loadDashboard() {
     const mobile =
@@ -50,171 +53,310 @@ export default function DashboardScreen({
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
+    <SafeAreaView
+      style={styles.safeArea}
     >
-      <Image
-        source={require("../assets/logo.png")}
-        style={styles.logo}
-      />
-
-      <Text style={styles.title}>
-        Welcome
-      </Text>
-
-      <Text style={styles.shopName}>
-        {dashboard?.shopName ||
-          "Retailer"}
-      </Text>
-
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>
-          Total Orders
-        </Text>
-
-        <Text style={styles.cardValue}>
-          {dashboard?.totalOrders ||
-            0}
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>
-          Pending Orders
-        </Text>
-
-        <Text style={styles.cardValue}>
-          {dashboard?.pendingOrders ||
-            0}
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>
-          Available Credit
-        </Text>
-
-        <Text style={styles.cardValue}>
-          ₹
-          {(
-            dashboard?.availableCredit ||
-            0
-          ).toLocaleString()}
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate(
-            "PlaceOrder"
-          )
+      <ScrollView
+        showsVerticalScrollIndicator={
+          false
+        }
+        contentContainerStyle={
+          styles.container
         }
       >
-        <Text style={styles.buttonText}>
-          Order Chicken
-        </Text>
-      </TouchableOpacity>
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.logo}
+        />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate(
-            "MyOrders"
-          )
-        }
-      >
-        <Text style={styles.buttonText}>
-          My Orders
+        <Text style={styles.welcome}>
+          Welcome Back
         </Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate(
-            "Outstanding"
-          )
-        }
-      >
-        <Text style={styles.buttonText}>
-          Outstanding
-        </Text>
-      </TouchableOpacity>
+        <Text style={styles.shopName}>
+  {dashboard?.shopName ||
+    "Retailer"}
+</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate(
-            "Profile"
-          )
-        }
-      >
-        <Text style={styles.buttonText}>
-          Profile
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+<View
+  style={styles.statCard}
+>
+  <Text
+    style={styles.statLabel}
+  >
+    Today's Live Rate
+  </Text>
+
+  <Text
+    style={styles.statValue}
+  >
+    ₹
+    {(
+      dashboard?.todayRate ||
+      0
+    ).toLocaleString()}
+    {" "} / KG
+  </Text>
+</View>
+
+<View
+  style={styles.creditCard}
+>
+          <Text
+            style={
+              styles.creditTitle
+            }
+          >
+            Available Credit
+          </Text>
+
+          <Text
+            style={
+              styles.creditAmount
+            }
+          >
+            ₹
+            {(
+              dashboard?.availableCredit ||
+              0
+            ).toLocaleString()}
+          </Text>
+        </View>
+
+        <View
+          style={styles.statsRow}
+        >
+          <View
+            style={
+              styles.statCard
+            }
+          >
+            <Text
+              style={
+                styles.statLabel
+              }
+            >
+              Orders
+            </Text>
+
+            <Text
+              style={
+                styles.statValue
+              }
+            >
+              {dashboard?.totalOrders ||
+                0}
+            </Text>
+          </View>
+
+          <View
+            style={
+              styles.statCard
+            }
+          >
+            <Text
+              style={
+                styles.statLabel
+              }
+            >
+              Pending
+            </Text>
+
+            <Text
+              style={
+                styles.statValue
+              }
+            >
+              {dashboard?.pendingOrders ||
+                0}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.menuCard}
+          onPress={() =>
+            navigation.navigate(
+              "PlaceOrder"
+            )
+          }
+        >
+          <Text
+            style={
+              styles.menuText
+            }
+          >
+            📦 Order Chicken
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuCard}
+          onPress={() =>
+            navigation.navigate(
+              "MyOrders"
+            )
+          }
+        >
+          <Text
+            style={
+              styles.menuText
+            }
+          >
+            📋 My Orders
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuCard}
+          onPress={() =>
+            navigation.navigate(
+              "Outstanding"
+            )
+          }
+        >
+          <Text
+            style={
+              styles.menuText
+            }
+          >
+            💳 Outstanding
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuCard}
+          onPress={() =>
+            navigation.navigate(
+              "Payments"
+            )
+          }
+        >
+          <Text
+            style={
+              styles.menuText
+            }
+          >
+            💰 Payments
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuCard}
+          onPress={() =>
+            navigation.navigate(
+              "Profile"
+            )
+          }
+        >
+          <Text
+            style={
+              styles.menuText
+            }
+          >
+            👤 Profile
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: "#fff",
-  },
+const styles =
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
 
-  logo: {
-    width: 250,
-    height: 120,
-    resizeMode: "contain",
-    alignSelf: "center",
-    marginBottom: 10,
-  },
+    container: {
+      padding: 20,
+      paddingBottom: 40,
+    },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+    logo: {
+      width: 220,
+      height: 90,
+      resizeMode: "contain",
+      alignSelf: "center",
+      marginBottom: 10,
+    },
 
-  shopName: {
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 20,
-  },
+    welcome: {
+      fontSize: 16,
+      color: "#64748B",
+      textAlign: "center",
+    },
 
-  card: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 12,
-  },
+    shopName: {
+      fontSize: 26,
+      fontWeight: "700",
+      textAlign: "center",
+      marginBottom: 20,
+      color: "#0F172A",
+    },
 
-  cardLabel: {
-    color: "#666",
-    fontSize: 14,
-  },
+    creditCard: {
+      backgroundColor:
+        "#F97316",
+      borderRadius: 20,
+      padding: 20,
+      marginBottom: 15,
+    },
 
-  cardValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 5,
-  },
+    creditTitle: {
+      color: "#FFF",
+      fontSize: 14,
+    },
 
-  button: {
-    backgroundColor: "#f97316",
-    padding: 16,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
+    creditAmount: {
+      color: "#FFF",
+      fontSize: 32,
+      fontWeight: "700",
+      marginTop: 5,
+    },
 
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-});
+    statsRow: {
+      flexDirection: "row",
+      justifyContent:
+        "space-between",
+      marginBottom: 20,
+    },
+
+    statCard: {
+      width: "48%",
+      backgroundColor:
+        "#FFF",
+      borderRadius: 16,
+      padding: 18,
+      elevation: 2,
+    },
+
+    statLabel: {
+      color: "#64748B",
+      fontSize: 14,
+    },
+
+    statValue: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: "#0F172A",
+      marginTop: 8,
+    },
+
+    menuCard: {
+      backgroundColor:
+        "#FFF",
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 12,
+      elevation: 2,
+    },
+
+    menuText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#0F172A",
+    },
+  });

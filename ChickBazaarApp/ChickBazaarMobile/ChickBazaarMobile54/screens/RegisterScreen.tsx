@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
 import {
   View,
   Text,
@@ -8,6 +13,8 @@ import {
   Alert,
   ScrollView,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
 export default function RegisterScreen({
@@ -60,7 +67,9 @@ export default function RegisterScreen({
         "Retailer Registered Successfully"
       );
 
-      navigation.navigate("Dashboard");
+      navigation.navigate(
+        "Dashboard"
+      );
     } catch (error: any) {
       Alert.alert(
         "Error",
@@ -70,105 +79,179 @@ export default function RegisterScreen({
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
+    <SafeAreaView
+      style={styles.safeArea}
     >
-      <Image
-        source={require("../assets/logo.png")}
-        style={styles.logoImage}
-      />
-
-      <Text style={styles.title}>
-        Retailer Registration
-      </Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Shop Name"
-        value={shopName}
-        onChangeText={setShopName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Owner Name"
-        value={ownerName}
-        onChangeText={setOwnerName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Mobile Number"
-        keyboardType="phone-pad"
-        value={mobile}
-        onChangeText={setMobile}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={submit}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
+        }
       >
-        <Text
-          style={styles.buttonText}
+        <ScrollView
+          contentContainerStyle={
+            styles.container
+          }
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={
+            false
+          }
         >
-          Register
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logoImage}
+          />
+
+          <View style={styles.card}>
+            <Text
+              style={styles.title}
+            >
+              Retailer Registration
+            </Text>
+
+            <Text
+              style={
+                styles.subtitle
+              }
+            >
+              Register your shop and
+              start ordering from
+              ChickBazaar
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Shop Name"
+              value={shopName}
+              onChangeText={
+                setShopName
+              }
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Owner Name"
+              value={ownerName}
+              onChangeText={
+                setOwnerName
+              }
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              keyboardType="phone-pad"
+              maxLength={10}
+              value={mobile}
+              onChangeText={
+                setMobile
+              }
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Email Address"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={
+                setEmail
+              }
+            />
+
+            <TouchableOpacity
+              style={
+                styles.button
+              }
+              onPress={submit}
+            >
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                Register
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: "#fff",
-    flexGrow: 1,
-    justifyContent: "center",
-  },
+const styles =
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
 
-  logoImage: {
-    width: 280,
-    height: 140,
-    resizeMode: "contain",
-    alignSelf: "center",
-    marginBottom: 20,
-  },
+    container: {
+      flexGrow: 1,
+      justifyContent:
+        "center",
+      padding: 24,
+    },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
+    logoImage: {
+      width: 220,
+      height: 100,
+      resizeMode: "contain",
+      alignSelf: "center",
+      marginBottom: 20,
+    },
 
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    marginBottom: 12,
-    borderRadius: 8,
-  },
+    card: {
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 24,
+      padding: 24,
+      elevation: 4,
+    },
 
-  button: {
-    backgroundColor: "#f97316",
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 10,
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      textAlign: "center",
+      color: "#0F172A",
+    },
 
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-});
+    subtitle: {
+      textAlign: "center",
+      color: "#64748B",
+      marginTop: 8,
+      marginBottom: 24,
+      fontSize: 14,
+    },
+
+    input: {
+      backgroundColor:
+        "#F8FAFC",
+      borderWidth: 1,
+      borderColor:
+        "#E2E8F0",
+      borderRadius: 14,
+      padding: 16,
+      fontSize: 16,
+      marginBottom: 14,
+    },
+
+    button: {
+      backgroundColor:
+        "#F97316",
+      padding: 16,
+      borderRadius: 14,
+      marginTop: 10,
+    },
+
+    buttonText: {
+      color: "#FFFFFF",
+      textAlign: "center",
+      fontWeight: "700",
+      fontSize: 16,
+    },
+  });

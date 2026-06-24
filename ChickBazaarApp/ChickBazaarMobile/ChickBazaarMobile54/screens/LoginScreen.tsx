@@ -1,5 +1,9 @@
 import React, { useState } from "react";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import {
   View,
   Text,
@@ -8,6 +12,9 @@ import {
   StyleSheet,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 
 export default function LoginScreen({
@@ -37,26 +44,21 @@ export default function LoginScreen({
         await response.json();
 
       if (!data.success) {
-  Alert.alert(
-    "Error",
-    "Retailer not found"
-  );
-  return;
-}
+        Alert.alert(
+          "Error",
+          "Retailer not found"
+        );
+        return;
+      }
 
-await AsyncStorage.setItem(
-  "retailerMobile",
-  mobile
-);
+      await AsyncStorage.setItem(
+        "retailerMobile",
+        mobile
+      );
 
-Alert.alert(
-  "Success",
-  "Login Successful"
-);
-
-navigation.navigate(
-  "Dashboard"
-);
+      navigation.navigate(
+        "Dashboard"
+      );
     } catch (error: any) {
       Alert.alert(
         "Error",
@@ -66,99 +68,170 @@ navigation.navigate(
   };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../assets/logo.png")}
-        style={styles.logoImage}
-      />
-
-      <Text style={styles.title}>
-        Retailer Login
-      </Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Mobile Number"
-        keyboardType="numeric"
-        value={mobile}
-        onChangeText={setMobile}
-      />
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={login}
-      >
-        <Text
-          style={styles.buttonText}
-        >
-          Login
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate(
-            "Register"
-          )
+    <SafeAreaView
+      style={styles.safeArea}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
         }
       >
-        <Text
-          style={styles.register}
+        <ScrollView
+          contentContainerStyle={
+            styles.container
+          }
+          keyboardShouldPersistTaps="handled"
         >
-          New Retailer?
-          Register Here
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logoImage}
+          />
+
+          <View style={styles.card}>
+            <Text
+              style={styles.title}
+            >
+              Retailer Login
+            </Text>
+
+            <Text
+              style={
+                styles.subtitle
+              }
+            >
+              Login with your
+              registered mobile
+              number
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              keyboardType="number-pad"
+              maxLength={10}
+              value={mobile}
+              onChangeText={
+                setMobile
+              }
+            />
+
+            <TouchableOpacity
+              style={
+                styles.button
+              }
+              onPress={login}
+            >
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                Login
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate(
+                  "Register"
+                )
+              }
+            >
+              <Text
+                style={
+                  styles.register
+                }
+              >
+                New Retailer?
+                Register Here
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles =
   StyleSheet.create({
-    container: {
+    safeArea: {
       flex: 1,
-      justifyContent: "center",
+      backgroundColor:
+        "#F8FAFC",
+    },
+
+    container: {
+      flexGrow: 1,
+      justifyContent:
+        "center",
       padding: 24,
     },
 
     logoImage: {
-      width: 250,
-      height: 120,
+      width: 220,
+      height: 100,
       resizeMode: "contain",
       alignSelf: "center",
-      marginBottom: 20,
+      marginBottom: 25,
+    },
+
+    card: {
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 24,
+      padding: 24,
+      elevation: 4,
     },
 
     title: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: 28,
+      fontWeight: "700",
       textAlign: "center",
-      marginBottom: 20,
+      color: "#0F172A",
+    },
+
+    subtitle: {
+      textAlign: "center",
+      color: "#64748B",
+      marginTop: 8,
+      marginBottom: 24,
+      fontSize: 14,
     },
 
     input: {
+      backgroundColor:
+        "#F8FAFC",
       borderWidth: 1,
-      borderColor: "#ccc",
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 12,
+      borderColor:
+        "#E2E8F0",
+      borderRadius: 14,
+      padding: 16,
+      fontSize: 16,
+      marginBottom: 18,
     },
 
     button: {
-      backgroundColor: "#f97316",
+      backgroundColor:
+        "#F97316",
       padding: 16,
-      borderRadius: 8,
+      borderRadius: 14,
     },
 
     buttonText: {
-      color: "#fff",
+      color: "#FFFFFF",
       textAlign: "center",
-      fontWeight: "bold",
+      fontSize: 16,
+      fontWeight: "700",
     },
 
     register: {
-      marginTop: 20,
       textAlign: "center",
-      color: "#f97316",
+      marginTop: 20,
+      color: "#F97316",
+      fontWeight: "600",
     },
   });

@@ -6,6 +6,10 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
+import {
   View,
   Text,
   StyleSheet,
@@ -39,9 +43,11 @@ export default function OutstandingScreen() {
 
   if (!retailer) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView
+        style={styles.loadingContainer}
+      >
         <Text>Loading...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -56,87 +62,209 @@ export default function OutstandingScreen() {
     availableCredit;
 
   return (
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
+    <SafeAreaView
+      style={styles.safeArea}
     >
-      <Text style={styles.title}>
-        Outstanding
-      </Text>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>
-          Credit Category
+      <ScrollView
+        contentContainerStyle={
+          styles.container
+        }
+        showsVerticalScrollIndicator={
+          false
+        }
+      >
+        <Text style={styles.title}>
+          Credit Summary
         </Text>
 
-        <Text style={styles.value}>
-          {retailer.creditCategory}
-        </Text>
-      </View>
+        <View
+          style={styles.topCard}
+        >
+          <Text
+            style={
+              styles.topCardTitle
+            }
+          >
+            Available Credit
+          </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>
-          Credit Limit
-        </Text>
+          <Text
+            style={
+              styles.topCardAmount
+            }
+          >
+            ₹
+            {availableCredit.toLocaleString()}
+          </Text>
 
-        <Text style={styles.value}>
-          ₹{creditLimit.toLocaleString()}
-        </Text>
-      </View>
+          <View
+            style={
+              styles.categoryBadge
+            }
+          >
+            <Text
+              style={
+                styles.categoryText
+              }
+            >
+              {(
+                retailer.creditCategory ||
+                "new"
+              ).toUpperCase()}
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>
-          Available Credit
-        </Text>
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={styles.label}
+          >
+            💳 Credit Limit
+          </Text>
 
-        <Text style={styles.value}>
-          ₹{availableCredit.toLocaleString()}
-        </Text>
-      </View>
+          <Text
+            style={styles.value}
+          >
+            ₹
+            {creditLimit.toLocaleString()}
+          </Text>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>
-          Outstanding Balance
-        </Text>
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={styles.label}
+          >
+            💰 Available Credit
+          </Text>
 
-        <Text style={styles.value}>
-          ₹{outstanding.toLocaleString()}
-        </Text>
-      </View>
-    </ScrollView>
+          <Text
+            style={[
+              styles.value,
+              {
+                color:
+                  "#16A34A",
+              },
+            ]}
+          >
+            ₹
+            {availableCredit.toLocaleString()}
+          </Text>
+        </View>
+
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={styles.label}
+          >
+            ⚠ Outstanding
+            Balance
+          </Text>
+
+          <Text
+            style={[
+              styles.value,
+              {
+                color:
+                  "#DC2626",
+              },
+            ]}
+          >
+            ₹
+            {outstanding.toLocaleString()}
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles =
   StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
+    loadingContainer: {
+      flex: 1,
+      justifyContent:
+        "center",
+      alignItems:
+        "center",
+    },
+
     container: {
-      flexGrow: 1,
       padding: 20,
+      paddingBottom: 40,
     },
 
     title: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: 30,
+      fontWeight: "700",
+      color: "#0F172A",
       marginBottom: 20,
     },
 
+    topCard: {
+      backgroundColor:
+        "#F97316",
+      borderRadius: 22,
+      padding: 22,
+      marginBottom: 18,
+    },
+
+    topCardTitle: {
+      color: "#FFF",
+      fontSize: 14,
+    },
+
+    topCardAmount: {
+      color: "#FFF",
+      fontSize: 32,
+      fontWeight: "700",
+      marginTop: 8,
+    },
+
+    categoryBadge: {
+      alignSelf:
+        "flex-start",
+      backgroundColor:
+        "#FFF",
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      marginTop: 12,
+    },
+
+    categoryText: {
+      color: "#F97316",
+      fontWeight: "700",
+    },
+
     card: {
-      borderWidth: 1,
-      borderColor: "#ddd",
-      borderRadius: 10,
-      padding: 16,
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 18,
+      padding: 18,
       marginBottom: 12,
+      elevation: 2,
     },
 
     label: {
-      fontSize: 14,
-      color: "#666",
+      fontSize: 15,
+      color: "#64748B",
     },
 
     value: {
-      fontSize: 20,
-      fontWeight: "bold",
-      marginTop: 5,
+      fontSize: 26,
+      fontWeight: "700",
+      color: "#0F172A",
+      marginTop: 8,
     },
   });

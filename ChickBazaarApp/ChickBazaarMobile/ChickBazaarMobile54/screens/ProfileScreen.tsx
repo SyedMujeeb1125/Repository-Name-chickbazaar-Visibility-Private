@@ -6,11 +6,16 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
+import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
 } from "react-native";
 
 export default function ProfileScreen({
@@ -57,77 +62,276 @@ export default function ProfileScreen({
 
   if (!retailer) {
     return (
-      <View style={styles.container}>
-        <Text>
-          Loading...
-        </Text>
-      </View>
+      <SafeAreaView
+        style={styles.loadingContainer}
+      >
+        <Text>Loading...</Text>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        Profile
-      </Text>
-
-      <Text>
-        Shop: {retailer.shopName}
-      </Text>
-
-      <Text>
-        Owner: {retailer.ownerName}
-      </Text>
-
-      <Text>
-        Mobile: {retailer.mobile}
-      </Text>
-
-      <Text>
-        Email: {retailer.email}
-      </Text>
-
-      <Text>
-        Address: {retailer.address}
-      </Text>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={logout}
+    <SafeAreaView
+      style={styles.safeArea}
+    >
+      <ScrollView
+        contentContainerStyle={
+          styles.container
+        }
+        showsVerticalScrollIndicator={
+          false
+        }
       >
-        <Text
-          style={styles.buttonText}
+        <View
+          style={styles.profileHeader}
         >
-          Logout
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <View
+            style={styles.avatar}
+          >
+            <Text
+              style={
+                styles.avatarText
+              }
+            >
+              {(
+                retailer.ownerName ||
+                "R"
+              )
+                .charAt(0)
+                .toUpperCase()}
+            </Text>
+          </View>
+
+          <Text
+            style={
+              styles.ownerName
+            }
+          >
+            {retailer.ownerName}
+          </Text>
+
+          <Text
+            style={
+              styles.ownerRole
+            }
+          >
+            Retail Partner
+          </Text>
+        </View>
+
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.label
+            }
+          >
+            🏪 Shop Name
+          </Text>
+
+          <Text
+            style={
+              styles.value
+            }
+          >
+            {retailer.shopName ||
+              "-"}
+          </Text>
+        </View>
+
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.label
+            }
+          >
+            👤 Owner Name
+          </Text>
+
+          <Text
+            style={
+              styles.value
+            }
+          >
+            {retailer.ownerName ||
+              "-"}
+          </Text>
+        </View>
+
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.label
+            }
+          >
+            📱 Mobile
+          </Text>
+
+          <Text
+            style={
+              styles.value
+            }
+          >
+            {retailer.mobile ||
+              "-"}
+          </Text>
+        </View>
+
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.label
+            }
+          >
+            ✉️ Email
+          </Text>
+
+          <Text
+            style={
+              styles.value
+            }
+          >
+            {retailer.email ||
+              "-"}
+          </Text>
+        </View>
+
+        <View
+          style={styles.card}
+        >
+          <Text
+            style={
+              styles.label
+            }
+          >
+            📍 Address
+          </Text>
+
+          <Text
+            style={
+              styles.value
+            }
+          >
+            {retailer.address ||
+              "-"}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={
+            styles.logoutButton
+          }
+          onPress={logout}
+        >
+          <Text
+            style={
+              styles.logoutText
+            }
+          >
+            Logout
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles =
   StyleSheet.create({
-    container: {
+    safeArea: {
       flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
+    loadingContainer: {
+      flex: 1,
+      justifyContent:
+        "center",
+      alignItems:
+        "center",
+    },
+
+    container: {
       padding: 20,
+      paddingBottom: 40,
     },
 
-    title: {
+    profileHeader: {
+      alignItems: "center",
+      marginBottom: 24,
+    },
+
+    avatar: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor:
+        "#F97316",
+      justifyContent:
+        "center",
+      alignItems:
+        "center",
+      marginBottom: 12,
+    },
+
+    avatarText: {
+      color: "#FFF",
+      fontSize: 36,
+      fontWeight: "700",
+    },
+
+    ownerName: {
       fontSize: 24,
-      fontWeight: "bold",
-      marginBottom: 20,
+      fontWeight: "700",
+      color: "#0F172A",
     },
 
-    button: {
-      backgroundColor: "#f97316",
+    ownerRole: {
+      color: "#64748B",
+      marginTop: 4,
+    },
+
+    card: {
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 18,
+      padding: 18,
+      marginBottom: 12,
+      elevation: 2,
+    },
+
+    label: {
+      color: "#64748B",
+      fontSize: 14,
+      marginBottom: 6,
+    },
+
+    value: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#0F172A",
+    },
+
+    logoutButton: {
+      backgroundColor:
+        "#DC2626",
+      borderRadius: 16,
       padding: 16,
-      borderRadius: 8,
-      marginTop: 30,
+      marginTop: 20,
     },
 
-    buttonText: {
-      color: "#fff",
+    logoutText: {
+      color: "#FFFFFF",
       textAlign: "center",
-      fontWeight: "bold",
+      fontWeight: "700",
+      fontSize: 16,
     },
   });

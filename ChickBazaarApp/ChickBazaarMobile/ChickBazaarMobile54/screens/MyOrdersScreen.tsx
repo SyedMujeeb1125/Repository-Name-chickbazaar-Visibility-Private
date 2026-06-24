@@ -6,6 +6,10 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
+import {
   View,
   Text,
   FlatList,
@@ -28,14 +32,16 @@ export default function MyOrdersScreen({
     useState<any[]>([]);
 
   useEffect(() => {
-  loadOrders();
-
-  const timer = setInterval(() => {
     loadOrders();
-  }, 30000);
 
-  return () => clearInterval(timer);
-}, []);
+    const timer =
+      setInterval(() => {
+        loadOrders();
+      }, 30000);
+
+    return () =>
+      clearInterval(timer);
+  }, []);
 
   async function loadOrders() {
     const mobile =
@@ -55,152 +61,262 @@ export default function MyOrdersScreen({
   }
 
   function renderStatus(
-  currentStatus: string
-) {
-  const currentIndex =
-    statuses.indexOf(
-      currentStatus
-    );
-
-  return statuses.map(
-    (status, index) => {
-      let icon = "⚪";
-
-      if (status === "new")
-        icon = "🟡";
-
-      if (status === "confirmed")
-        icon = "🟠";
-
-      if (status === "procured")
-        icon = "🔵";
-
-      if (status === "dispatched")
-        icon = "🟣";
-
-      if (status === "delivered")
-        icon = "🟢";
-
-      return (
-        <Text
-          key={status}
-          style={{
-            fontSize: 14,
-            marginTop: 3,
-            fontWeight:
-              index === currentIndex
-                ? "bold"
-                : "normal",
-          }}
-        >
-          {index <= currentIndex
-            ? icon
-            : "⚪"}{" "}
-          {status
-            .charAt(0)
-            .toUpperCase() +
-            status.slice(1)}
-        </Text>
+    currentStatus: string
+  ) {
+    const currentIndex =
+      statuses.indexOf(
+        currentStatus
       );
-    }
-  );
-}
+
+    return statuses.map(
+      (status, index) => (
+        <View
+          key={status}
+          style={
+            styles.statusRow
+          }
+        >
+          <Text
+            style={
+              styles.statusIcon
+            }
+          >
+            {index <=
+            currentIndex
+              ? "🟠"
+              : "⚪"}
+          </Text>
+
+          <Text
+            style={{
+              fontWeight:
+                index ===
+                currentIndex
+                  ? "700"
+                  : "400",
+              color:
+                "#334155",
+            }}
+          >
+            {status
+              .charAt(0)
+              .toUpperCase() +
+              status.slice(1)}
+          </Text>
+        </View>
+      )
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        My Orders
-      </Text>
-
-      <FlatList
-        data={orders}
-        keyExtractor={(item) =>
-          item.id
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-  style={styles.card}
-  onPress={() =>
-    navigation.navigate(
-      "OrderDetails",
-      {
-        orderId: item.id,
+    <SafeAreaView
+      style={
+        styles.safeArea
       }
-    )
-  }
->
-            <Text
+    >
+      <View
+        style={
+          styles.container
+        }
+      >
+        <Text
+          style={
+            styles.title
+          }
+        >
+          My Orders
+        </Text>
+
+        <FlatList
+          data={orders}
+          showsVerticalScrollIndicator={
+            false
+          }
+          keyExtractor={(
+            item
+          ) => item.id}
+          renderItem={({
+            item,
+          }) => (
+            <TouchableOpacity
               style={
-                styles.orderNumber
+                styles.card
+              }
+              onPress={() =>
+                navigation.navigate(
+                  "OrderDetails",
+                  {
+                    orderId:
+                      item.id,
+                  }
+                )
               }
             >
-              {item.orderNumber}
-            </Text>
+              <View
+                style={
+                  styles.headerRow
+                }
+              >
+                <Text
+                  style={
+                    styles.orderNumber
+                  }
+                >
+                  {
+                    item.orderNumber
+                  }
+                </Text>
 
-            <Text>
-              Weight:{" "}
-              {item.requestedWeight}
-              kg
-            </Text>
+                <View
+                  style={
+                    styles.badge
+                  }
+                >
+                  <Text
+                    style={
+                      styles.badgeText
+                    }
+                  >
+                    {item.status}
+                  </Text>
+                </View>
+              </View>
 
-            <Text>
-              Amount: ₹
-              {item.estimatedAmount ||
-                0}
-            </Text>
+              <Text
+                style={
+                  styles.detail
+                }
+              >
+                ⚖️ Weight:
+                {" "}
+                {
+                  item.requestedWeight
+                }
+                kg
+              </Text>
 
-            <Text>
-              Date:{" "}
-              {new Date(
-                item.createdAt
-              ).toLocaleDateString()}
-            </Text>
+              <Text
+                style={
+                  styles.detail
+                }
+              >
+                💰 Amount:
+                ₹
+                {item.estimatedAmount ||
+                  0}
+              </Text>
 
-            <View
-              style={
-                styles.statusBox
-              }
-            >
-              {renderStatus(
-                item.status
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+              <Text
+                style={
+                  styles.detail
+                }
+              >
+                📅 Date:
+                {" "}
+                {new Date(
+                  item.createdAt
+                ).toLocaleDateString()}
+              </Text>
+
+              <View
+                style={
+                  styles.statusContainer
+                }
+              >
+                {renderStatus(
+                  item.status
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles =
   StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
     container: {
       flex: 1,
       padding: 20,
-      backgroundColor: "#fff",
     },
 
     title: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: 30,
+      fontWeight: "700",
+      color: "#0F172A",
       marginBottom: 20,
     },
 
     card: {
-      padding: 15,
-      borderWidth: 1,
-      borderColor: "#ddd",
-      borderRadius: 10,
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      elevation: 3,
+    },
+
+    headerRow: {
+      flexDirection: "row",
+      justifyContent:
+        "space-between",
+      alignItems:
+        "center",
       marginBottom: 12,
     },
 
     orderNumber: {
-      fontSize: 16,
-      fontWeight: "bold",
-      marginBottom: 8,
+      fontSize: 18,
+      fontWeight: "700",
+      color: "#0F172A",
     },
 
-    statusBox: {
-      marginTop: 10,
+    badge: {
+      backgroundColor:
+        "#F97316",
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 20,
+    },
+
+    badgeText: {
+      color: "#FFF",
+      fontSize: 12,
+      fontWeight: "700",
+      textTransform:
+        "capitalize",
+    },
+
+    detail: {
+      fontSize: 15,
+      color: "#475569",
+      marginBottom: 6,
+    },
+
+    statusContainer: {
+      marginTop: 12,
+      borderTopWidth: 1,
+      borderTopColor:
+        "#E2E8F0",
+      paddingTop: 12,
+    },
+
+    statusRow: {
+      flexDirection: "row",
+      alignItems:
+        "center",
+      marginBottom: 4,
+    },
+
+    statusIcon: {
+      marginRight: 8,
     },
   });

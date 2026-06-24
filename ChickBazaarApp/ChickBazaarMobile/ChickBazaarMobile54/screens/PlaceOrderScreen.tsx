@@ -6,6 +6,10 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
+import {
   View,
   Text,
   TextInput,
@@ -13,6 +17,8 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
 export default function PlaceOrderScreen() {
@@ -50,6 +56,14 @@ export default function PlaceOrderScreen() {
 
   const submitOrder = async () => {
     try {
+      if (!requestedWeight) {
+        Alert.alert(
+          "Error",
+          "Please enter required weight"
+        );
+        return;
+      }
+
       if (!retailer) {
         Alert.alert(
           "Error",
@@ -140,9 +154,13 @@ export default function PlaceOrderScreen() {
         await response.json();
 
       Alert.alert(
-        "Success",
-        JSON.stringify(data)
+        "Order Placed",
+        data.orderNumber ||
+          "Order submitted successfully"
       );
+
+      setRequestedWeight("");
+      setNotes("");
     } catch (error: any) {
       Alert.alert(
         "Error",
@@ -152,95 +170,226 @@ export default function PlaceOrderScreen() {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
+    <SafeAreaView
+      style={styles.safeArea}
     >
-      <Text style={styles.title}>
-        Order Chicken
-      </Text>
-
-      {retailer && (
-        <>
-          <Text
-            style={styles.shop}
-          >
-            {retailer.shopName}
-          </Text>
-
-          <Text>
-            {retailer.mobile}
-          </Text>
-        </>
-      )}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Required Weight (Kg)"
-        value={requestedWeight}
-        onChangeText={
-          setRequestedWeight
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
         }
-        keyboardType="numeric"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Notes"
-        value={notes}
-        onChangeText={setNotes}
-      />
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={submitOrder}
       >
-        <Text
-          style={styles.buttonText}
+        <ScrollView
+          contentContainerStyle={
+            styles.container
+          }
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={
+            false
+          }
         >
-          Place Order
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text style={styles.title}>
+            Order Chicken
+          </Text>
+
+          {retailer && (
+            <View
+              style={
+                styles.retailerCard
+              }
+            >
+              <Text
+                style={
+                  styles.shopName
+                }
+              >
+                {retailer.shopName}
+              </Text>
+
+              <Text
+                style={
+                  styles.shopInfo
+                }
+              >
+                👤{" "}
+                {retailer.ownerName}
+              </Text>
+
+              <Text
+                style={
+                  styles.shopInfo
+                }
+              >
+                📱{" "}
+                {retailer.mobile}
+              </Text>
+            </View>
+          )}
+
+          <View
+            style={styles.card}
+          >
+            <Text
+              style={
+                styles.label
+              }
+            >
+              Required Weight
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Enter weight in KG"
+              value={
+                requestedWeight
+              }
+              onChangeText={
+                setRequestedWeight
+              }
+              keyboardType="numeric"
+            />
+
+            <Text
+              style={[
+                styles.label,
+                {
+                  marginTop: 10,
+                },
+              ]}
+            >
+              Notes
+            </Text>
+
+            <TextInput
+              style={
+                styles.notesInput
+              }
+              placeholder="Any delivery instructions?"
+              multiline
+              numberOfLines={4}
+              value={notes}
+              onChangeText={
+                setNotes
+              }
+            />
+          </View>
+
+          <TouchableOpacity
+            style={
+              styles.button
+            }
+            onPress={
+              submitOrder
+            }
+          >
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              Place Order
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles =
   StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
     container: {
       padding: 20,
+      paddingBottom: 40,
     },
 
     title: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: 30,
+      fontWeight: "700",
+      color: "#0F172A",
       marginBottom: 20,
     },
 
-    shop: {
-      fontSize: 18,
-      fontWeight: "bold",
-      marginBottom: 10,
+    retailerCard: {
+      backgroundColor:
+        "#F97316",
+      borderRadius: 20,
+      padding: 20,
+      marginBottom: 18,
+    },
+
+    shopName: {
+      color: "#FFF",
+      fontSize: 22,
+      fontWeight: "700",
+      marginBottom: 8,
+    },
+
+    shopInfo: {
+      color: "#FFF",
+      fontSize: 15,
+      marginBottom: 4,
+    },
+
+    card: {
+      backgroundColor:
+        "#FFF",
+      borderRadius: 18,
+      padding: 18,
+      elevation: 2,
+      marginBottom: 20,
+    },
+
+    label: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: "#334155",
+      marginBottom: 8,
     },
 
     input: {
+      backgroundColor:
+        "#F8FAFC",
       borderWidth: 1,
-      borderColor: "#ccc",
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 12,
+      borderColor:
+        "#E2E8F0",
+      borderRadius: 14,
+      padding: 16,
+      fontSize: 16,
+    },
+
+    notesInput: {
+      backgroundColor:
+        "#F8FAFC",
+      borderWidth: 1,
+      borderColor:
+        "#E2E8F0",
+      borderRadius: 14,
+      padding: 16,
+      minHeight: 100,
+      textAlignVertical:
+        "top",
     },
 
     button: {
-      backgroundColor: "#f97316",
-      padding: 16,
-      borderRadius: 8,
+      backgroundColor:
+        "#F97316",
+      borderRadius: 16,
+      padding: 18,
     },
 
     buttonText: {
-      color: "#fff",
+      color: "#FFF",
       textAlign: "center",
-      fontWeight: "bold",
+      fontWeight: "700",
+      fontSize: 16,
     },
   });

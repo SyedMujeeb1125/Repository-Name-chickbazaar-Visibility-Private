@@ -25,6 +25,7 @@ import RegisterScreen from "./screens/RegisterScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import PlaceOrderScreen from "./screens/PlaceOrderScreen";
 import MyOrdersScreen from "./screens/MyOrdersScreen";
+import PaymentsScreen from "./screens/PaymentsScreen";
 
 const Stack =
   createNativeStackNavigator();
@@ -112,6 +113,10 @@ export default function App() {
 <Stack.Screen
   name="OrderDetails"
   component={OrderDetailsScreen}
+/>
+<Stack.Screen
+  name="Payments"
+  component={PaymentsScreen}
 />
       </Stack.Navigator>
     </NavigationContainer>
