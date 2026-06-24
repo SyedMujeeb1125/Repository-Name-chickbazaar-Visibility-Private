@@ -7,6 +7,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import ProfileScreen from "./screens/ProfileScreen";
 
+import OrderDetailsScreen from "./screens/OrderDetailsScreen";
+
 import OutstandingScreen
 from "./screens/OutstandingScreen";
 
@@ -106,6 +108,10 @@ export default function App() {
 <Stack.Screen
   name="Outstanding"
   component={OutstandingScreen}
+/>
+<Stack.Screen
+  name="OrderDetails"
+  component={OrderDetailsScreen}
 />
       </Stack.Navigator>
     </NavigationContainer>

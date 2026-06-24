@@ -10,6 +10,7 @@ import {
   Text,
   FlatList,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 
 const statuses = [
@@ -20,7 +21,9 @@ const statuses = [
   "delivered",
 ];
 
-export default function MyOrdersScreen() {
+export default function MyOrdersScreen({
+  navigation,
+}: any) {
   const [orders, setOrders] =
     useState<any[]>([]);
 
@@ -92,7 +95,17 @@ export default function MyOrdersScreen() {
           item.id
         }
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+  style={styles.card}
+  onPress={() =>
+    navigation.navigate(
+      "OrderDetails",
+      {
+        orderId: item.id,
+      }
+    )
+  }
+>
             <Text
               style={
                 styles.orderNumber
@@ -129,7 +142,7 @@ export default function MyOrdersScreen() {
                 item.status
               )}
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>
