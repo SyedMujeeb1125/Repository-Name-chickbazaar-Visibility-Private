@@ -5,6 +5,8 @@ import React, {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import DateTimePicker from "@react-native-community/datetimepicker";
+
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
@@ -25,16 +27,43 @@ export default function PlaceOrderScreen() {
   const [retailer, setRetailer] =
     useState<any>(null);
 
+  const [orderType, setOrderType] =
+    useState("weight");
+
   const [
     requestedWeight,
     setRequestedWeight,
   ] = useState("");
 
+  const [birds, setBirds] =
+    useState("");
+
   const [notes, setNotes] =
     useState("");
 
+  const [todayRate, setTodayRate] =
+    useState(0);
+
+  const [deliveryDate, setDeliveryDate] =
+    useState(
+      new Date()
+        .toISOString()
+        .split("T")[0]
+    );
+
+    const [showDatePicker, setShowDatePicker] =
+  useState(false);
+
+    const weightSlabs = [
+  "1.5",
+  "2.0",
+  "2.5",
+  "3.0",
+];
+
   useEffect(() => {
     loadRetailer();
+    loadRate();
   }, []);
 
   async function loadRetailer() {
@@ -54,12 +83,67 @@ export default function PlaceOrderScreen() {
     setRetailer(data);
   }
 
-  const submitOrder = async () => {
+  async function loadRate() {
     try {
-      if (!requestedWeight) {
+      const response =
+        await fetch(
+          "https://www.chickbazaar.com/api/mobile/rate"
+        );
+
+      const data =
+        await response.json();
+
+      setTodayRate(
+        Number(data.rate || 0)
+      );
+    } catch {}
+  }
+
+  const creditCategory =
+    retailer?.creditCategory ||
+    "new";
+
+  const estimatedAmount =
+    Number(requestedWeight || 0) *
+    todayRate;
+
+  const advancePercentage =
+    creditCategory === "premium"
+      ? 0
+      : creditCategory ===
+        "trusted"
+      ? 10
+      : 20;
+
+  const advanceRequired =
+    Math.round(
+      (estimatedAmount *
+        advancePercentage) /
+        100
+    );
+
+  async function submitOrder() {
+    try {
+      if (
+        orderType ===
+          "weight" &&
+        !requestedWeight
+      ) {
         Alert.alert(
           "Error",
-          "Please enter required weight"
+          "Please enter weight"
+        );
+        return;
+      }
+
+      if (
+        orderType ===
+          "birds" &&
+        !birds
+      ) {
+        Alert.alert(
+          "Error",
+          "Please enter bird count"
         );
         return;
       }
@@ -67,7 +151,7 @@ export default function PlaceOrderScreen() {
       if (!retailer) {
         Alert.alert(
           "Error",
-          "Retailer profile not loaded"
+          "Retailer not loaded"
         );
         return;
       }
@@ -77,7 +161,7 @@ export default function PlaceOrderScreen() {
 
       formData.append(
         "orderBy",
-        "weight"
+        orderType
       );
 
       formData.append(
@@ -111,15 +195,18 @@ export default function PlaceOrderScreen() {
       );
 
       formData.append(
+        "birds",
+        birds
+      );
+
+      formData.append(
         "paymentType",
         "advance"
       );
 
       formData.append(
         "deliveryDate",
-        new Date()
-          .toISOString()
-          .split("T")[0]
+        deliveryDate
       );
 
       formData.append(
@@ -153,13 +240,22 @@ export default function PlaceOrderScreen() {
       const data =
         await response.json();
 
+      if (!response.ok) {
+        Alert.alert(
+          "Error",
+          data.message ||
+            "Unable to place order"
+        );
+        return;
+      }
+
       Alert.alert(
-        "Order Placed",
-        data.orderNumber ||
-          "Order submitted successfully"
+        "Success",
+        "Order placed successfully"
       );
 
       setRequestedWeight("");
+      setBirds("");
       setNotes("");
     } catch (error: any) {
       Alert.alert(
@@ -167,7 +263,7 @@ export default function PlaceOrderScreen() {
         String(error)
       );
     }
-  };
+  }
 
   return (
     <SafeAreaView
@@ -182,12 +278,12 @@ export default function PlaceOrderScreen() {
         }
       >
         <ScrollView
-          contentContainerStyle={
-            styles.container
-          }
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={
             false
+          }
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={
+            styles.container
           }
         >
           <Text style={styles.title}>
@@ -225,64 +321,252 @@ export default function PlaceOrderScreen() {
                 📱{" "}
                 {retailer.mobile}
               </Text>
+
+              <Text
+                style={
+                  styles.shopInfo
+                }
+              >
+                Credit Category:{" "}
+                {creditCategory}
+              </Text>
+
+              <Text
+                style={
+                  styles.shopInfo
+                }
+              >
+                Available Credit:
+                ₹
+                {(
+                  retailer?.availableCredit ||
+                  0
+                ).toLocaleString()}
+              </Text>
             </View>
           )}
 
-          <View
-            style={styles.card}
-          >
+          <View style={styles.card}>
+            <Text
+  style={styles.label}
+>
+  Today's Live Rate
+</Text>
+
             <Text
               style={
-                styles.label
+                styles.rateText
               }
             >
-              Required Weight
+              ₹{todayRate}/KG
             </Text>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Enter weight in KG"
-              value={
-                requestedWeight
-              }
-              onChangeText={
-                setRequestedWeight
-              }
-              keyboardType="numeric"
-            />
 
             <Text
               style={[
                 styles.label,
                 {
-                  marginTop: 10,
+                  marginTop: 20,
                 },
               ]}
             >
-              Notes
+              Order Type
             </Text>
+
+            <View
+              style={
+                styles.toggleRow
+              }
+            >
+              <TouchableOpacity
+  style={{
+    marginRight: 30,
+  }}
+  onPress={() =>
+    setOrderType(
+      "weight"
+    )
+  }
+>
+                <Text>
+                  {orderType ===
+                  "weight"
+                    ? "🔘 Weight"
+                    : "⚪ Weight"}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  setOrderType(
+                    "birds"
+                  )
+                }
+              >
+                <Text>
+                  {orderType ===
+                  "birds"
+                    ? "🔘 Birds"
+                    : "⚪ Birds"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {orderType ===
+            "weight" ? (
+              <>
+
+                <Text
+  style={styles.label}
+>
+  Required Weight
+</Text>
+
+<View style={styles.weightRow}>
+  {weightSlabs.map((item) => (
+    <TouchableOpacity
+      key={item}
+      style={[
+        styles.weightChip,
+        requestedWeight === item &&
+          styles.weightChipActive,
+      ]}
+      onPress={() =>
+        setRequestedWeight(item)
+      }
+    >
+      <Text
+        style={[
+          styles.weightChipText,
+          requestedWeight === item && {
+            color: "#FFF",
+          },
+        ]}
+      >
+        {item} KG
+      </Text>
+    </TouchableOpacity>
+  ))}
+</View>
+
+<TextInput
+  style={styles.input}
+  placeholder="Or enter custom weight"
+  value={requestedWeight}
+  onChangeText={
+    setRequestedWeight
+  }
+  keyboardType="numeric"
+/>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={
+                    styles.label
+                  }
+                >
+                  Number of Birds
+                </Text>
+
+                <TextInput
+                  style={
+                    styles.input
+                  }
+                  placeholder="Bird Count"
+                  value={birds}
+                  onChangeText={
+                    setBirds
+                  }
+                  keyboardType="numeric"
+                />
+              </>
+            )}
+
+            <Text
+  style={styles.label}
+>
+  Preferred Delivery Date
+</Text>
+
+<TouchableOpacity
+  style={styles.input}
+  onPress={() =>
+    setShowDatePicker(true)
+  }
+>
+  <Text>
+    {deliveryDate}
+  </Text>
+</TouchableOpacity>
+
+{showDatePicker && (
+  <DateTimePicker
+    value={
+      new Date(deliveryDate)
+    }
+    mode="date"
+    minimumDate={
+      new Date()
+    }
+    onChange={(
+      event,
+      selectedDate
+    ) => {
+      setShowDatePicker(
+        false
+      );
+
+      if (selectedDate) {
+        setDeliveryDate(
+          selectedDate
+            .toISOString()
+            .split("T")[0]
+        );
+      }
+    }}
+  />
+)}
+
+            <View
+              style={
+                styles.summaryCard
+              }
+            >
+              <Text>
+                Estimated Amount:
+                ₹
+                {estimatedAmount.toLocaleString()}
+              </Text>
+
+              <Text>
+                Advance Required:
+                ₹
+                {advanceRequired.toLocaleString()}
+              </Text>
+            </View>
+
+            <Text
+  style={styles.label}
+>
+  Notes (Optional)
+</Text>
 
             <TextInput
               style={
                 styles.notesInput
               }
-              placeholder="Any delivery instructions?"
               multiline
-              numberOfLines={4}
               value={notes}
               onChangeText={
                 setNotes
               }
+              placeholder="Delivery instructions (optional)"
             />
           </View>
 
           <TouchableOpacity
-            style={
-              styles.button
-            }
-            onPress={
-              submitOrder
-            }
+            style={styles.button}
+            onPress={submitOrder}
           >
             <Text
               style={
@@ -312,10 +596,10 @@ const styles =
     },
 
     title: {
-      fontSize: 30,
+      fontSize: 28,
       fontWeight: "700",
-      color: "#0F172A",
       marginBottom: 20,
+      color: "#0F172A",
     },
 
     retailerCard: {
@@ -323,20 +607,18 @@ const styles =
         "#F97316",
       borderRadius: 20,
       padding: 20,
-      marginBottom: 18,
+      marginBottom: 20,
     },
 
     shopName: {
       color: "#FFF",
       fontSize: 22,
       fontWeight: "700",
-      marginBottom: 8,
     },
 
     shopInfo: {
       color: "#FFF",
-      fontSize: 15,
-      marginBottom: 4,
+      marginTop: 4,
     },
 
     card: {
@@ -344,46 +626,87 @@ const styles =
         "#FFF",
       borderRadius: 18,
       padding: 18,
-      elevation: 2,
       marginBottom: 20,
     },
 
     label: {
-      fontSize: 15,
       fontWeight: "600",
-      color: "#334155",
       marginBottom: 8,
+      marginTop: 12,
     },
 
+    rateText: {
+      fontSize: 24,
+      fontWeight: "700",
+      color: "#F97316",
+    },
+
+    toggleRow: {
+  flexDirection: "row",
+  marginBottom: 20,
+},
+
+weightRow: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  marginBottom: 12,
+},
+
+weightChip: {
+  borderWidth: 1,
+  borderColor: "#F97316",
+  borderRadius: 20,
+  paddingHorizontal: 15,
+  paddingVertical: 8,
+  marginRight: 8,
+  marginBottom: 8,
+},
+
+weightChipActive: {
+  backgroundColor: "#F97316",
+},
+
+weightChipText: {
+  color: "#F97316",
+  fontWeight: "600",
+},
+
     input: {
-      backgroundColor:
-        "#F8FAFC",
       borderWidth: 1,
       borderColor:
         "#E2E8F0",
-      borderRadius: 14,
-      padding: 16,
-      fontSize: 16,
+      borderRadius: 12,
+      padding: 14,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
+    summaryCard: {
+      backgroundColor:
+        "#F8FAFC",
+      borderRadius: 12,
+      padding: 15,
+      marginTop: 15,
     },
 
     notesInput: {
-      backgroundColor:
-        "#F8FAFC",
       borderWidth: 1,
       borderColor:
         "#E2E8F0",
-      borderRadius: 14,
-      padding: 16,
+      borderRadius: 12,
+      padding: 14,
       minHeight: 100,
       textAlignVertical:
         "top",
+      backgroundColor:
+        "#F8FAFC",
     },
 
     button: {
       backgroundColor:
         "#F97316",
-      borderRadius: 16,
       padding: 18,
+      borderRadius: 16,
     },
 
     buttonText: {

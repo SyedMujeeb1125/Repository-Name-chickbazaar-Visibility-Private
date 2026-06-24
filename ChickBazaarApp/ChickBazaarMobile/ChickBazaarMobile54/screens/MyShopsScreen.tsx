@@ -1,0 +1,131 @@
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+
+export default function MyShopsScreen({
+  navigation,
+}: any) {
+  const [shops, setShops] =
+    useState<any[]>([]);
+
+  useEffect(() => {
+    loadShops();
+  }, []);
+
+  async function loadShops() {
+    const mobile =
+      await AsyncStorage.getItem(
+        "retailerMobile"
+      );
+
+    const response =
+      await fetch(
+        `https://www.chickbazaar.com/api/mobile/shops?mobile=${mobile}`
+      );
+
+    const data =
+      await response.json();
+
+    setShops(data);
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>
+        My Shops
+      </Text>
+
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() =>
+          navigation.navigate(
+            "AddShop"
+          )
+        }
+      >
+        <Text
+          style={styles.addText}
+        >
+          + Add Shop
+        </Text>
+      </TouchableOpacity>
+
+      <FlatList
+        data={shops}
+        keyExtractor={(item) =>
+          item.id
+        }
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text
+              style={
+                styles.shopName
+              }
+            >
+              {item.shopName}
+            </Text>
+
+            <Text>
+              {item.address}
+            </Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles =
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor:
+        "#fff",
+    },
+
+    title: {
+      fontSize: 24,
+      fontWeight: "700",
+      marginBottom: 20,
+    },
+
+    addButton: {
+      backgroundColor:
+        "#F97316",
+      padding: 14,
+      borderRadius: 10,
+      marginBottom: 20,
+    },
+
+    addText: {
+      color: "#fff",
+      textAlign: "center",
+      fontWeight: "700",
+    },
+
+    card: {
+      borderWidth: 1,
+      borderColor: "#ddd",
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 12,
+    },
+
+    shopName: {
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 5,
+    },
+  });

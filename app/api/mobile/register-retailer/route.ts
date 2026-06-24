@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   addRetailer,
+  addRetailerLocation,
   createId,
 } from "@/lib/storage";
 
@@ -47,6 +48,34 @@ export async function POST(
   await addRetailer(
     retailer as any
   );
+
+  await addRetailerLocation({
+  id: createId("shop"),
+
+  retailerMobile:
+    retailer.mobile,
+
+  shopName:
+    retailer.shopName,
+
+  contactPerson:
+    retailer.ownerName,
+
+  mobile:
+    retailer.mobile,
+
+  address:
+    retailer.address,
+
+  latitude:
+    retailer.latitude,
+
+  longitude:
+    retailer.longitude,
+
+  createdAt:
+    new Date().toISOString(),
+});
 
   return NextResponse.json({
     success: true,

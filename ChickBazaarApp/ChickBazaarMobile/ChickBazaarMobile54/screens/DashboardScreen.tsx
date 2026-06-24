@@ -174,6 +174,21 @@ export default function DashboardScreen({
         </View>
 
         <TouchableOpacity
+  style={styles.menuCard}
+  onPress={() =>
+    navigation.navigate(
+      "MyShops"
+    )
+  }
+>
+  <Text
+    style={styles.menuText}
+  >
+    🏪 My Shops
+  </Text>
+</TouchableOpacity>
+
+        <TouchableOpacity
           style={styles.menuCard}
           onPress={() =>
             navigation.navigate(

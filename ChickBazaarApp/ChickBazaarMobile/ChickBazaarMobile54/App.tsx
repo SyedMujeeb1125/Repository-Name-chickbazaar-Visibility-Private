@@ -9,6 +9,10 @@ import ProfileScreen from "./screens/ProfileScreen";
 
 import OrderDetailsScreen from "./screens/OrderDetailsScreen";
 
+import MyShopsScreen from "./screens/MyShopsScreen";
+
+import AddShopScreen from "./screens/AddShopScreen";
+
 import OutstandingScreen
 from "./screens/OutstandingScreen";
 
@@ -117,6 +121,15 @@ export default function App() {
 <Stack.Screen
   name="Payments"
   component={PaymentsScreen}
+/>
+<Stack.Screen
+  name="MyShops"
+  component={MyShopsScreen}
+/>
+
+<Stack.Screen
+  name="AddShop"
+  component={AddShopScreen}
 />
       </Stack.Navigator>
     </NavigationContainer>
