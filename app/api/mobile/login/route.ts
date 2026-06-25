@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { readDb } from "@/lib/storage";
+import {
+  readDb,
+  retailerPrimaryShopExists,
+  addRetailerLocation,
+  createId,
+} from "@/lib/storage";
 
 export async function POST(
   request: Request
@@ -30,6 +35,40 @@ export async function POST(
       }
     );
   }
+  const shopExists =
+  await retailerPrimaryShopExists(
+    retailer.mobile
+  );
+
+if (!shopExists) {
+  await addRetailerLocation({
+    id: createId("shop"),
+
+    retailerMobile:
+      retailer.mobile,
+
+    shopName:
+      retailer.shopName,
+
+    contactPerson:
+      retailer.ownerName,
+
+    mobile:
+      retailer.mobile,
+
+    address:
+      retailer.address,
+
+    latitude:
+      retailer.latitude,
+
+    longitude:
+      retailer.longitude,
+
+    createdAt:
+      new Date().toISOString(),
+  });
+}
 
   return NextResponse.json({
     success: true,

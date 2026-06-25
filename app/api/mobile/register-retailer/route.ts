@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   addRetailer,
   addRetailerLocation,
+  retailerPrimaryShopExists,
   createId,
 } from "@/lib/storage";
 
@@ -49,34 +50,40 @@ export async function POST(
     retailer as any
   );
 
+  const shopExists =
+  await retailerPrimaryShopExists(
+    retailer.mobile
+  );
+
+if (!shopExists) {
   await addRetailerLocation({
-  id: createId("shop"),
+    id: createId("shop"),
 
-  retailerMobile:
-    retailer.mobile,
+    retailerMobile:
+      retailer.mobile,
 
-  shopName:
-    retailer.shopName,
+    shopName:
+      retailer.shopName,
 
-  contactPerson:
-    retailer.ownerName,
+    contactPerson:
+      retailer.ownerName,
 
-  mobile:
-    retailer.mobile,
+    mobile:
+      retailer.mobile,
 
-  address:
-    retailer.address,
+    address:
+      retailer.address,
 
-  latitude:
-    retailer.latitude,
+    latitude:
+      retailer.latitude,
 
-  longitude:
-    retailer.longitude,
+    longitude:
+      retailer.longitude,
 
-  createdAt:
-    new Date().toISOString(),
-});
-
+    createdAt:
+      new Date().toISOString(),
+  });
+}
   return NextResponse.json({
     success: true,
     retailerId: retailer.id,

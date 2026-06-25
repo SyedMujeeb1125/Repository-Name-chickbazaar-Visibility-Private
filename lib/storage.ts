@@ -950,3 +950,33 @@ export async function updateRetailerCategory(
 
   return !error;
 }
+
+export async function getRetailerLocations(
+  retailerMobile: string
+) {
+  const { data, error } =
+    await supabase
+      .from("retailer_locations")
+      .select("*")
+      .eq(
+        "retailer_mobile",
+        retailerMobile
+      );
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function retailerPrimaryShopExists(
+  retailerMobile: string
+) {
+  const shops =
+    await getRetailerLocations(
+      retailerMobile
+    );
+
+  return shops.length > 0;
+}

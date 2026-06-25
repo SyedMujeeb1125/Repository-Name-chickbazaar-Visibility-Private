@@ -5,6 +5,8 @@ import React, {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { Alert } from "react-native";
+
 import {
   View,
   Text,
@@ -29,6 +31,16 @@ export default function MyShopsScreen({
         "retailerMobile"
       );
 
+      Alert.alert(
+  "Stored Mobile",
+  String(mobile)
+);
+
+      console.log(
+  "Stored retailer mobile:",
+  mobile
+);
+
     const response =
       await fetch(
         `https://www.chickbazaar.com/api/mobile/shops?mobile=${mobile}`
@@ -36,6 +48,11 @@ export default function MyShopsScreen({
 
     const data =
       await response.json();
+
+      console.log(
+  "Shops API Response:",
+  data
+);
 
     setShops(data);
   }

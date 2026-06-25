@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
@@ -62,14 +64,24 @@ export default function RegisterScreen({
         return;
       }
 
-      Alert.alert(
-        "Success",
-        "Retailer Registered Successfully"
-      );
+      await AsyncStorage.setItem(
+  "retailerMobile",
+  mobile
+);
 
-      navigation.navigate(
-        "Dashboard"
-      );
+Alert.alert(
+  "Success",
+  "Retailer Registered Successfully",
+  [
+    {
+      text: "OK",
+      onPress: () =>
+        navigation.navigate(
+          "Dashboard"
+        ),
+    },
+  ]
+);
     } catch (error: any) {
       Alert.alert(
         "Error",
