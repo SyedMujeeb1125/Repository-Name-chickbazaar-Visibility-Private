@@ -40,7 +40,20 @@ export async function POST(
     retailer.mobile
   );
 
+  console.log(
+  "LOGIN RETAILER:",
+  retailer.mobile
+);
+
+console.log(
+  "SHOP EXISTS:",
+  shopExists
+);
+
 if (!shopExists) {
+  console.log(
+  "CREATING PRIMARY SHOP..."
+);
   await addRetailerLocation({
     id: createId("shop"),
 
@@ -68,6 +81,9 @@ if (!shopExists) {
     createdAt:
       new Date().toISOString(),
   });
+  console.log(
+  "PRIMARY SHOP CREATED"
+);
 }
 
   return NextResponse.json({
