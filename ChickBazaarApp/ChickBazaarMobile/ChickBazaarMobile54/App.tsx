@@ -13,6 +13,8 @@ import MyShopsScreen from "./screens/MyShopsScreen";
 
 import AddShopScreen from "./screens/AddShopScreen";
 
+import ReviewOrderScreen from "./screens/ReviewOrderScreen";
+
 import OutstandingScreen
 from "./screens/OutstandingScreen";
 
@@ -130,6 +132,11 @@ export default function App() {
 <Stack.Screen
   name="AddShop"
   component={AddShopScreen}
+/>
+
+<Stack.Screen
+  name="ReviewOrder"
+  component={ReviewOrderScreen}
 />
       </Stack.Navigator>
     </NavigationContainer>

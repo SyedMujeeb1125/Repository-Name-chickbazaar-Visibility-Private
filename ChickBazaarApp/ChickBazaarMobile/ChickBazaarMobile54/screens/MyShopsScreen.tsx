@@ -49,14 +49,18 @@ export default function MyShopsScreen({
     const data =
       await response.json();
 
+      console.log("Shops API Response:", data);
+
       console.log(
   "Shops API Response:",
   data
 );
 
-    setShops(data);
-  }
+    console.log("Total Shops:", data.length);
 
+setShops(data);
+  }
+ console.log("Rendering Shops:", shops);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -78,27 +82,22 @@ export default function MyShopsScreen({
         </Text>
       </TouchableOpacity>
 
-      <FlatList
-        data={shops}
-        keyExtractor={(item) =>
-          item.id
-        }
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text
-              style={
-                styles.shopName
-              }
-            >
-              {item.shopName}
-            </Text>
+      {shops.map((item) => (
+  <View
+    key={item.id}
+    style={styles.card}
+  >
+    <Text
+      style={styles.shopName}
+    >
+      {item.shopName}
+    </Text>
 
-            <Text>
-              {item.address}
-            </Text>
-          </View>
-        )}
-      />
+    <Text>
+      {item.address}
+    </Text>
+  </View>
+))}
     </View>
   );
 }

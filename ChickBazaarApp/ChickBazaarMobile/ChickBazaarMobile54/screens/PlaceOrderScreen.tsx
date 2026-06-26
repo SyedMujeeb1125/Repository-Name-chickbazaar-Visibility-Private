@@ -7,6 +7,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 
+import CBButton from "../components/common/CBButton";
+
+import OrderEstimateCard
+from "../components/place-order/OrderEstimateCard";
+
+import BirdPreferenceCard from "../components/place-order/BirdPreferenceCard";
+
+import FulfilmentPreferenceCard
+from "../components/place-order/FulfilmentPreferenceCard";
+
+import DeliveryPriorityCard
+from "../components/place-order/DeliveryPriorityCard";
+
+import {
+  DEFAULT_WEIGHT_OPTIONS,
+} from "../constants/business";
+
+import {
+  estimateBirdCount,
+  estimateWeight,
+} from "../utils/orderCalculations";
+
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
@@ -23,9 +45,32 @@ import {
   Platform,
 } from "react-native";
 
-export default function PlaceOrderScreen() {
+export default function PlaceOrderScreen({
+  navigation,
+}: any) {
   const [retailer, setRetailer] =
     useState<any>(null);
+
+    const [shops, setShops] =
+  useState<any[]>([]);
+
+  const [birdPreferences, setBirdPreferences] =
+  useState<any[]>([]);
+
+  const [
+deliveryPriority,
+setDeliveryPriority,
+] = useState("standard");
+
+  const [
+  fulfilmentPreference,
+  setFulfilmentPreference,
+] = useState("closest");
+
+const [
+  selectedShop,
+  setSelectedShop,
+] = useState<any>(null);
 
   const [orderType, setOrderType] =
     useState("weight");
@@ -54,17 +99,16 @@ export default function PlaceOrderScreen() {
     const [showDatePicker, setShowDatePicker] =
   useState(false);
 
-    const weightSlabs = [
-  "1.5",
-  "2.0",
-  "2.5",
-  "3.0",
-];
+    const weightSlabs =
+  DEFAULT_WEIGHT_OPTIONS.map(
+    (item) => String(item)
+  );
 
   useEffect(() => {
-    loadRetailer();
-    loadRate();
-  }, []);
+  loadRetailer();
+  loadRate();
+  loadShops();
+}, []);
 
   async function loadRetailer() {
     const mobile =
@@ -82,6 +126,42 @@ export default function PlaceOrderScreen() {
 
     setRetailer(data);
   }
+
+  async function loadShops() {
+  const mobile =
+    await AsyncStorage.getItem(
+      "retailerMobile"
+    );
+
+  const response =
+    await fetch(
+      `https://www.chickbazaar.com/api/mobile/shops?mobile=${mobile}`
+    );
+
+  const data =
+    await response.json();
+
+  setShops(data);
+
+  if (data.length > 0) {
+    setSelectedShop(data[0]);
+  }
+}
+function chooseShop() {
+  if (shops.length <= 1) {
+    return;
+  }
+
+  Alert.alert(
+    "Select Delivery Shop",
+    "",
+    shops.map((shop) => ({
+      text: shop.shopName,
+      onPress: () =>
+        setSelectedShop(shop),
+    }))
+  );
+}
 
   async function loadRate() {
     try {
@@ -121,6 +201,103 @@ export default function PlaceOrderScreen() {
         advancePercentage) /
         100
     );
+
+    const estimatedBirds =
+  estimateBirdCount(
+    Number(requestedWeight || 0)
+  );
+
+const estimatedWeight =
+  estimateWeight(
+    Number(birds || 0)
+  );
+const selectedBirds =
+  birdPreferences
+    .filter((x) => x.selected)
+    .reduce(
+      (sum, x) => sum + x.quantity,
+      0
+    );
+
+const selectedWeight =
+  birdPreferences
+    .filter((x) => x.selected)
+    .reduce(
+      (sum, x) =>
+        sum + x.quantity * x.weight,
+      0
+    );
+    function reviewOrder() {
+
+  if (!retailer) {
+
+    Alert.alert(
+      "Retailer not loaded"
+    );
+
+    return;
+
+  }
+
+  if (!selectedShop) {
+
+    Alert.alert(
+      "Please select a shop"
+    );
+
+    return;
+
+  }
+
+  const quantity =
+    orderType === "weight"
+      ? Number(requestedWeight)
+      : Number(birds);
+
+  if (quantity <= 0) {
+
+    Alert.alert(
+      "Please enter quantity"
+    );
+
+    return;
+
+  }
+
+  navigation.navigate(
+    "ReviewOrder",
+    {
+
+      retailer,
+
+      selectedShop,
+
+      todayRate,
+
+      quantity,
+
+      estimatedAmount,
+
+      advanceRequired,
+
+      deliveryDate,
+
+      deliveryPriority,
+
+      notes,
+
+      fulfilmentPreference,
+
+      orderType,
+
+      requestedWeight,
+
+      birds,
+
+    }
+  );
+
+}
 
   async function submitOrder() {
     try {
@@ -346,6 +523,37 @@ export default function PlaceOrderScreen() {
             </View>
           )}
 
+          {selectedShop && (
+  <TouchableOpacity
+  style={styles.card}
+  onPress={chooseShop}
+>
+    <Text style={styles.label}>
+      Deliver To
+    </Text>
+
+    <Text
+      style={{
+        fontSize: 18,
+        fontWeight: "700",
+        marginTop: 8,
+      }}
+    >
+      🏪 {selectedShop.shopName}
+{shops.length > 1 ? " ▼" : ""}
+    </Text>
+
+    <Text
+      style={{
+        color: "#64748B",
+        marginTop: 6,
+      }}
+    >
+      📍 {selectedShop.address}
+    </Text>
+  </TouchableOpacity>
+)}
+
           <View style={styles.card}>
             <Text
   style={styles.label}
@@ -457,6 +665,18 @@ export default function PlaceOrderScreen() {
   }
   keyboardType="numeric"
 />
+{Number(requestedWeight) > 0 && (
+  <Text
+    style={{
+      marginTop: 10,
+      color: "#64748B",
+      fontSize: 14,
+    }}
+  >
+    Estimated Birds: ≈ {estimatedBirds} birds{"\n"}
+    (Based on average 2.0 KG live bird)
+  </Text>
+)}
               </>
             ) : (
               <>
@@ -479,9 +699,34 @@ export default function PlaceOrderScreen() {
                   }
                   keyboardType="numeric"
                 />
+                {Number(birds) > 0 && (
+  <Text
+    style={{
+      marginTop: 10,
+      color: "#64748B",
+      fontSize: 14,
+    }}
+  >
+    Estimated Weight: ≈ {estimatedWeight} KG{"\n"}
+    (Based on average 2.0 KG live bird)
+  </Text>
+)}
               </>
             )}
+<BirdPreferenceCard
+  onChange={setBirdPreferences}
+/>
+<FulfilmentPreferenceCard
 
+  onChange={
+    setFulfilmentPreference
+  }
+/>
+<DeliveryPriorityCard
+  onChange={
+    setDeliveryPriority
+  }
+/>
             <Text
   style={styles.label}
 >
@@ -526,24 +771,73 @@ export default function PlaceOrderScreen() {
     }}
   />
 )}
+{birdPreferences.some(
+  (x) => x.selected
+) && (
 
-            <View
-              style={
-                styles.summaryCard
-              }
-            >
-              <Text>
-                Estimated Amount:
-                ₹
-                {estimatedAmount.toLocaleString()}
-              </Text>
+<View
+  style={{
+    backgroundColor:"#FEF3C7",
+    padding:15,
+    borderRadius:12,
+    marginBottom:15,
+  }}
+>
 
-              <Text>
-                Advance Required:
-                ₹
-                {advanceRequired.toLocaleString()}
-              </Text>
-            </View>
+<Text
+style={{
+fontWeight:"700",
+marginBottom:6,
+}}
+>
+Bird Preference Summary
+</Text>
+
+<Text>
+Selected Birds: {selectedBirds}
+</Text>
+
+<Text>
+Estimated Weight: {selectedWeight.toFixed(1)} KG
+</Text>
+
+</View>
+
+)}
+            <OrderEstimateCard
+
+  orderType={
+    orderType as
+      "weight" | "birds"
+  }
+
+  requestedWeight={
+    Number(requestedWeight)
+  }
+
+  estimatedBirds={
+    estimatedBirds
+  }
+
+  birdCount={
+    Number(birds)
+  }
+
+  estimatedWeight={
+    estimatedWeight
+  }
+
+  rate={todayRate}
+
+  estimatedAmount={
+    estimatedAmount
+  }
+
+  advanceAmount={
+    advanceRequired
+  }
+
+/>
 
             <Text
   style={styles.label}
@@ -564,18 +858,10 @@ export default function PlaceOrderScreen() {
             />
           </View>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={submitOrder}
-          >
-            <Text
-              style={
-                styles.buttonText
-              }
-            >
-              Place Order
-            </Text>
-          </TouchableOpacity>
+          <CBButton
+  title="Review Order"
+  onPress={reviewOrder}
+/>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
