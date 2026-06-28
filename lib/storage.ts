@@ -140,6 +140,12 @@ farmInventory:
       birdCount:
         i.bird_count,
 
+      reservedBirdCount:
+        i.reserved_bird_count,
+
+      availableBirdCount:
+        i.available_bird_count,
+
       procurementPrice:
         i.procurement_price,
 
