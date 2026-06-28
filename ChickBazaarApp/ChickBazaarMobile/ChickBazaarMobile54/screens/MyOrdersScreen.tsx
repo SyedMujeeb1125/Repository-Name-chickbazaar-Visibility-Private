@@ -168,18 +168,21 @@ export default function MyOrdersScreen({
                 </Text>
 
                 <View
-                  style={
-                    styles.badge
-                  }
-                >
-                  <Text
-                    style={
-                      styles.badgeText
-                    }
-                  >
-                    {item.status}
-                  </Text>
-                </View>
+  style={[
+    styles.badge,
+    item.status === "delivered"
+      ? styles.badgeGreen
+      : item.status === "dispatched"
+      ? styles.badgeBlue
+      : styles.badgeOrange,
+  ]}
+>
+  <Text
+    style={styles.badgeText}
+  >
+    {item.status}
+  </Text>
+</View>
               </View>
 
               <Text
@@ -206,17 +209,27 @@ export default function MyOrdersScreen({
                   0}
               </Text>
 
-              <Text
-                style={
-                  styles.detail
-                }
-              >
-                📅 Date:
-                {" "}
-                {new Date(
-                  item.createdAt
-                ).toLocaleDateString()}
-              </Text>
+              <Text style={styles.detail}>
+  📅 Ordered:
+  {" "}
+  {new Date(
+    item.createdAt
+  ).toLocaleDateString()}
+</Text>
+
+<Text style={styles.detail}>
+  🚚 Delivery:
+  {" "}
+  {item.deliveryDate || "Today"}
+</Text>
+
+{!!item.shopName && (
+  <Text style={styles.detail}>
+    🏪 Shop:
+    {" "}
+    {item.shopName}
+  </Text>
+)}
 
               <View
                 style={
@@ -280,12 +293,22 @@ const styles =
     },
 
     badge: {
-      backgroundColor:
-        "#F97316",
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 20,
-    },
+  paddingHorizontal: 10,
+  paddingVertical: 5,
+  borderRadius: 20,
+},
+
+badgeOrange: {
+  backgroundColor: "#F97316",
+},
+
+badgeBlue: {
+  backgroundColor: "#2563EB",
+},
+
+badgeGreen: {
+  backgroundColor: "#16A34A",
+},
 
     badgeText: {
       color: "#FFF",

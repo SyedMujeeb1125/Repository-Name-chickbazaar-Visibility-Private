@@ -54,23 +54,6 @@ export default async function AllocationPage() {
         Number(item.birdCount) > 0
     );
 
-  const allocatedSummary =
-    allocations.reduce(
-      (acc: any, item: any) => {
-        const key =
-          `${item.farm_id}_${item.weight_category}`;
-
-        acc[key] =
-          (acc[key] || 0) +
-          Number(
-            item.allocated_birds || 0
-          );
-
-        return acc;
-      },
-      {}
-    );
-
   return (
     <div>
       <h1 className="mb-6 text-3xl font-bold">
@@ -143,14 +126,15 @@ export default async function AllocationPage() {
                 );
 
               const allocated =
-                allocatedSummary[
-                  `${inventory.farmId}_${inventory.weightCategory}`
-                ] || 0;
+  Number(
+    inventory.reservedBirdCount ?? 0
+  );
 
-              const remaining =
-                Number(
-                  inventory.birdCount
-                ) - allocated;
+const remaining =
+  Number(
+    inventory.availableBirdCount ??
+    inventory.birdCount
+  );
 
               return (
                 <div
@@ -170,27 +154,25 @@ export default async function AllocationPage() {
                   </p>
 
                   <p>
-                    Total Birds:{" "}
-                    {
-                      inventory.birdCount
-                    }
-                  </p>
+  Total Birds:{" "}
+  {inventory.birdCount}
+</p>
 
-                  <p>
-                    Allocated:{" "}
-                    {allocated}
-                  </p>
+<p className="text-orange-600">
+  Reserved:{" "}
+  {allocated}
+</p>
 
-                  <p
-                    className={
-                      remaining > 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }
-                  >
-                    Remaining:{" "}
-                    {remaining}
-                  </p>
+<p
+  className={
+    remaining > 0
+      ? "text-green-600"
+      : "text-red-600"
+  }
+>
+  Available:{" "}
+  {remaining}
+</p>
 
                   <p>
                     Cost: ₹

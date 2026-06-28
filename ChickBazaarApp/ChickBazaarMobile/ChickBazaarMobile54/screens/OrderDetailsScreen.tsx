@@ -12,6 +12,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
+  Linking,
 } from "react-native";
 
 export default function OrderDetailsScreen({
@@ -112,6 +114,74 @@ export default function OrderDetailsScreen({
           </Text>
         </View>
 
+        <View style={styles.card}>
+
+  <Text style={styles.cardTitle}>
+    📦 Order Progress
+  </Text>
+
+  <View style={styles.timelineRow}>
+    <Text style={styles.timelineIcon}>
+      {["new","confirmed","procured","dispatched","delivered"].includes(order.status)
+        ? "🟢"
+        : "⚪"}
+    </Text>
+
+    <Text style={styles.timelineText}>
+      Order Received
+    </Text>
+  </View>
+
+  <View style={styles.timelineRow}>
+    <Text style={styles.timelineIcon}>
+      {["confirmed","procured","dispatched","delivered"].includes(order.status)
+        ? "🟢"
+        : "⚪"}
+    </Text>
+
+    <Text style={styles.timelineText}>
+      Confirmed
+    </Text>
+  </View>
+
+  <View style={styles.timelineRow}>
+    <Text style={styles.timelineIcon}>
+      {["procured","dispatched","delivered"].includes(order.status)
+        ? "🟢"
+        : "⚪"}
+    </Text>
+
+    <Text style={styles.timelineText}>
+      Farm Allocated
+    </Text>
+  </View>
+
+  <View style={styles.timelineRow}>
+    <Text style={styles.timelineIcon}>
+      {["dispatched","delivered"].includes(order.status)
+        ? "🟢"
+        : "⚪"}
+    </Text>
+
+    <Text style={styles.timelineText}>
+      Out For Delivery
+    </Text>
+  </View>
+
+  <View style={styles.timelineRow}>
+    <Text style={styles.timelineIcon}>
+      {order.status==="delivered"
+        ? "🟢"
+        : "⚪"}
+    </Text>
+
+    <Text style={styles.timelineText}>
+      Delivered
+    </Text>
+  </View>
+
+</View>
+
         <View
           style={styles.card}
         >
@@ -133,26 +203,51 @@ export default function OrderDetailsScreen({
           </Text>
         </View>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.cardTitle
-            }
-          >
-            🚚 Driver
-          </Text>
+        <View style={styles.card}>
 
-          <Text
-            style={
-              styles.cardValue
-            }
-          >
-            {order.assignedDriver ||
-              "Not Assigned"}
-          </Text>
-        </View>
+  <Text style={styles.cardTitle}>
+    🚚 Driver
+  </Text>
+
+  <Text style={styles.cardValue}>
+    {order.assignedDriver || "Not Assigned"}
+  </Text>
+
+  {!!order.driverMobile && (
+
+    <View style={styles.actionRow}>
+
+      <TouchableOpacity
+        style={styles.callButton}
+        onPress={() =>
+          Linking.openURL(
+            `tel:${order.driverMobile}`
+          )
+        }
+      >
+        <Text style={styles.actionText}>
+          📞 Call
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.whatsappButton}
+        onPress={() =>
+          Linking.openURL(
+            `https://wa.me/${order.driverMobile}`
+          )
+        }
+      >
+        <Text style={styles.actionText}>
+          💬 WhatsApp
+        </Text>
+      </TouchableOpacity>
+
+    </View>
+
+  )}
+
+</View>
 
         <View
           style={styles.card}
@@ -279,4 +374,45 @@ const styles =
       fontSize: 15,
       color: "#475569",
     },
+    timelineRow:{
+  flexDirection:"row",
+  alignItems:"center",
+  marginBottom:12,
+},
+
+timelineIcon:{
+  fontSize:18,
+  marginRight:10,
+},
+
+timelineText:{
+  fontSize:15,
+  color:"#334155",
+},
+actionRow: {
+  flexDirection: "row",
+  marginTop: 16,
+},
+
+callButton: {
+  flex: 1,
+  backgroundColor: "#2563EB",
+  paddingVertical: 12,
+  borderRadius: 12,
+  alignItems: "center",
+  marginRight: 8,
+},
+
+whatsappButton: {
+  flex: 1,
+  backgroundColor: "#16A34A",
+  paddingVertical: 12,
+  borderRadius: 12,
+  alignItems: "center",
+},
+
+actionText: {
+  color: "#FFFFFF",
+  fontWeight: "700",
+},
   });

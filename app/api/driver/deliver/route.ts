@@ -108,6 +108,87 @@ console.log(
     "delivered"
   );
 
+  const { data: order } =
+  await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", orderId)
+    .single();
+
+if (!order) {
+  return NextResponse.redirect(
+    new URL("/driver", request.url)
+  );
+}
+
+const { data: existingInvoice } =
+  await supabase
+    .from("invoices")
+    .select("id")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+if (!existingInvoice) {
+  await supabase
+    .from("invoices")
+    .insert({
+      order_id: order.id,
+
+      retailer_id:
+        order.retailer_id,
+
+      retailer_name:
+        order.shop_name,
+
+      invoice_number:
+        `INV-${Date.now()}`,
+
+      invoice_date:
+        new Date()
+          .toISOString()
+          .split("T")[0],
+
+      amount:
+        order.estimated_amount,
+
+      status: "pending"
+    });
+}
+const { data: existingLedger } =
+  await supabase
+    .from("retailer_ledger")
+    .select("id")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+if (!existingLedger) {
+  await supabase
+    .from("retailer_ledger")
+    .insert({
+      retailer_id:
+        order.retailer_id,
+
+      retailer_name:
+        order.shop_name,
+
+      order_id:
+        order.id,
+
+      transaction_date:
+        new Date()
+          .toISOString()
+          .split("T")[0],
+
+      debit:
+        order.estimated_amount,
+
+      credit: 0,
+
+      remarks:
+        "Order Delivered"
+    });
+}
+
   return NextResponse.redirect(
     new URL(
       "/driver",
