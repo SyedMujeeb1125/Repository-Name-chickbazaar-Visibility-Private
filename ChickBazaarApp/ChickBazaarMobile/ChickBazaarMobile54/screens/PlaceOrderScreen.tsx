@@ -463,66 +463,60 @@ const selectedWeight =
             styles.container
           }
         >
-          <Text style={styles.title}>
-            Order Chicken
-          </Text>
+          <View style={styles.headerCard}>
+  <View>
+    <Text style={styles.greeting}>
+      Good Morning 👋
+    </Text>
+
+    <Text style={styles.title}>
+      Place Live Chicken Order
+    </Text>
+  </View>
+
+  <View style={styles.rateBadge}>
+    <Text style={styles.rateBadgeLabel}>
+      Today's Rate
+    </Text>
+
+    <Text style={styles.rateBadgeValue}>
+      ₹{todayRate}/KG
+    </Text>
+  </View>
+</View>
 
           {retailer && (
-            <View
-              style={
-                styles.retailerCard
-              }
-            >
-              <Text
-                style={
-                  styles.shopName
-                }
-              >
-                {retailer.shopName}
-              </Text>
+  <View style={styles.retailerCard}>
+    <View style={styles.retailerHeader}>
+      <Text style={styles.shopName}>
+        🏪 {retailer.shopName}
+      </Text>
+    </View>
 
-              <Text
-                style={
-                  styles.shopInfo
-                }
-              >
-                👤{" "}
-                {retailer.ownerName}
-              </Text>
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>Owner</Text>
+      <Text style={styles.infoValue}>
+        {retailer.ownerName}
+      </Text>
+    </View>
 
-              <Text
-                style={
-                  styles.shopInfo
-                }
-              >
-                📱{" "}
-                {retailer.mobile}
-              </Text>
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>Credit Category</Text>
+      <View style={styles.creditBadge}>
+        <Text style={styles.creditBadgeText}>
+          {creditCategory.toUpperCase()}
+        </Text>
+      </View>
+    </View>
 
-              <Text
-                style={
-                  styles.shopInfo
-                }
-              >
-                Credit Category:{" "}
-                {creditCategory}
-              </Text>
-
-              <Text
-                style={
-                  styles.shopInfo
-                }
-              >
-                Available Credit:
-                ₹
-                {(
-                  retailer?.availableCredit ||
-                  0
-                ).toLocaleString()}
-              </Text>
-            </View>
-          )}
-
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>Available Credit</Text>
+      <Text style={styles.creditValue}>
+        ₹{(retailer.availableCredit || 0).toLocaleString()}
+      </Text>
+    </View>
+  </View>
+)}
           {selectedShop && (
   <TouchableOpacity
   style={styles.card}
@@ -555,19 +549,6 @@ const selectedWeight =
 )}
 
           <View style={styles.card}>
-            <Text
-  style={styles.label}
->
-  Today's Live Rate
-</Text>
-
-            <Text
-              style={
-                styles.rateText
-              }
-            >
-              ₹{todayRate}/KG
-            </Text>
 
             <Text
               style={[
@@ -881,6 +862,39 @@ const styles =
       paddingBottom: 40,
     },
 
+    headerCard: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 20,
+  padding: 18,
+  marginBottom: 20,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+greeting: {
+  fontSize: 14,
+  color: "#64748B",
+},
+
+rateBadge: {
+  backgroundColor: "#F97316",
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  borderRadius: 16,
+},
+
+rateBadgeLabel: {
+  color: "#FFF",
+  fontSize: 12,
+},
+
+rateBadgeValue: {
+  color: "#FFF",
+  fontWeight: "700",
+  fontSize: 20,
+},
+
     title: {
       fontSize: 28,
       fontWeight: "700",
@@ -1001,4 +1015,46 @@ weightChipText: {
       fontWeight: "700",
       fontSize: 16,
     },
+    retailerHeader: {
+  marginBottom: 16,
+},
+
+infoRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingVertical: 10,
+  borderTopWidth: 1,
+  borderTopColor: "rgba(255,255,255,0.2)",
+},
+
+infoLabel: {
+  color: "#FFF",
+  fontSize: 14,
+},
+
+infoValue: {
+  color: "#FFF",
+  fontWeight: "600",
+  fontSize: 16,
+},
+
+creditBadge: {
+  backgroundColor: "#FFFFFF",
+  paddingHorizontal: 10,
+  paddingVertical: 5,
+  borderRadius: 20,
+},
+
+creditBadgeText: {
+  color: "#F97316",
+  fontWeight: "700",
+  fontSize: 12,
+},
+
+creditValue: {
+  color: "#FFF",
+  fontWeight: "700",
+  fontSize: 20,
+},
   });

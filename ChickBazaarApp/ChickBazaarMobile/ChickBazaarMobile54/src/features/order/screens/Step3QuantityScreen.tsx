@@ -1,5 +1,7 @@
 import React from "react";
 
+import { useNavigation } from "@react-navigation/native";
+
 import {
 View,
 Text,
@@ -32,9 +34,12 @@ order,
 updateOrder,
 }=useOrder();
 
-const estimatedBirds=
-Math.round(
-order.requestedWeight/2
+const navigation = useNavigation<any>();
+
+const averageBirdWeight = 2;
+
+const estimatedBirds = Math.round(
+  order.requestedWeight / averageBirdWeight
 );
 
 return (
@@ -57,9 +62,11 @@ return (
       order.requestedWeight * 12
     }
 
-    onBack={()=>{}}
+    onBack={() => navigation.goBack()}
 
-    onNext={()=>{}}
+    onNext={() =>
+  navigation.navigate("Step4BirdPreference")
+}
 
   >
 

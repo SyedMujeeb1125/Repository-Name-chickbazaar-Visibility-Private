@@ -1,28 +1,24 @@
 import React from "react";
 
-import {
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   ScrollView,
   StyleSheet,
   Text,
+  View,
 } from "react-native";
 
 import CBHeader from "../components/common/CBHeader";
 import CBCard from "../components/common/CBCard";
 import CBButton from "../components/common/CBButton";
-
 import CBAmount from "../components/common/CBAmount";
 
 export default function ReviewOrderScreen({
   navigation,
   route,
 }: any) {
-
   const {
-    retailer,
     selectedShop,
     todayRate,
     quantity,
@@ -30,165 +26,224 @@ export default function ReviewOrderScreen({
     advanceRequired,
     deliveryDate,
     notes,
+    orderType,
+    deliveryPriority,
+    fulfilmentPreference,
   } = route.params;
 
   return (
-
-    <SafeAreaView
-      style={styles.container}
-    >
-
+    <SafeAreaView style={styles.container}>
       <ScrollView
-        contentContainerStyle={{
-          padding:20,
-        }}
+        contentContainerStyle={styles.content}
       >
-
         <CBHeader
-
           title="Review Order"
-
-          subtitle="Please verify before placing order"
-
+          subtitle="Please verify all details before proceeding."
         />
 
         <CBCard>
-
-          <Text style={styles.label}>
+          <Text style={styles.sectionTitle}>
             Delivery Shop
           </Text>
 
           <Text style={styles.value}>
-            {selectedShop.shopName}
+            {selectedShop?.shopName}
           </Text>
 
           <Text style={styles.sub}>
-            {selectedShop.address}
+            {selectedShop?.address}
           </Text>
-
         </CBCard>
 
         <CBCard>
-
-          <Text style={styles.label}>
-            Quantity
+          <Text style={styles.sectionTitle}>
+            Order Details
           </Text>
 
-          <Text style={styles.value}>
-            {quantity} KG
-          </Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Order Type
+            </Text>
 
+            <Text style={styles.valueSmall}>
+              {orderType === "birds"
+                ? "By Birds"
+                : "By Weight"}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Quantity
+            </Text>
+
+            <Text style={styles.valueSmall}>
+              {orderType === "birds"
+                ? `${quantity} Birds`
+                : `${quantity} KG`}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Delivery Priority
+            </Text>
+
+            <Text style={styles.valueSmall}>
+              {deliveryPriority || "Standard"}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Fulfilment
+            </Text>
+
+            <Text style={styles.valueSmall}>
+              {fulfilmentPreference || "Closest Match"}
+            </Text>
+          </View>
         </CBCard>
 
         <CBCard>
-
-          <Text style={styles.label}>
-            Today's Rate
+          <Text style={styles.sectionTitle}>
+            Pricing
           </Text>
 
-          <CBAmount
-            amount={todayRate}
-            size={28}
-          />
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Today's Rate
+            </Text>
 
+            <CBAmount
+              amount={todayRate}
+              size={22}
+            />
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Estimated Amount
+            </Text>
+
+            <CBAmount
+              amount={estimatedAmount}
+            />
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Advance Required
+            </Text>
+
+            <CBAmount
+              amount={advanceRequired}
+            />
+          </View>
         </CBCard>
 
         <CBCard>
-
-          <Text style={styles.label}>
-            Estimated Amount
-          </Text>
-
-          <CBAmount
-            amount={estimatedAmount}
-          />
-
-          <Text
-            style={{
-              marginTop:15,
-            }}
-          >
-            Advance Required
-          </Text>
-
-          <CBAmount
-            amount={advanceRequired}
-          />
-
-        </CBCard>
-
-        <CBCard>
-
-          <Text style={styles.label}>
+          <Text style={styles.sectionTitle}>
             Delivery Date
           </Text>
 
           <Text style={styles.value}>
             {deliveryDate}
           </Text>
-
         </CBCard>
 
         {!!notes && (
-
           <CBCard>
-
-            <Text style={styles.label}>
+            <Text style={styles.sectionTitle}>
               Notes
             </Text>
 
-            <Text>
-              {notes}
-            </Text>
-
+            <Text>{notes}</Text>
           </CBCard>
-
         )}
 
-        <CBButton
+        <View style={styles.buttonRow}>
+          <View style={styles.backButton}>
+            <CBButton
+              title="Back"
+              onPress={() =>
+                navigation.goBack()
+              }
+            />
+          </View>
 
-          title="Proceed to Payment"
-
-          onPress={() => {
-
-            navigation.navigate(
-              "Payments",
-              route.params
-            );
-
-          }}
-
-        />
-
+          <View style={styles.nextButton}>
+            <CBButton
+              title="Continue to Payment"
+              onPress={() =>
+                navigation.navigate(
+                  "Payments",
+                  route.params
+                )
+              }
+            />
+          </View>
+        </View>
       </ScrollView>
-
     </SafeAreaView>
-
   );
-
 }
 
-const styles =
-StyleSheet.create({
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
 
-container:{
-flex:1,
-backgroundColor:"#F8FAFC",
-},
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
 
-label:{
-fontWeight:"700",
-marginBottom:8,
-},
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
 
-value:{
-fontSize:20,
-fontWeight:"700",
-},
+  label: {
+    color: "#64748B",
+    fontSize: 15,
+  },
 
-sub:{
-marginTop:5,
-color:"#64748B",
-},
+  value: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
 
+  valueSmall: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  sub: {
+    marginTop: 5,
+    color: "#64748B",
+  },
+
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  buttonRow: {
+    flexDirection: "row",
+    marginTop: 10,
+  },
+
+  backButton: {
+    flex: 1,
+    marginRight: 8,
+  },
+
+  nextButton: {
+    flex: 2,
+  },
 });
