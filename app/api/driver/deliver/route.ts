@@ -129,30 +129,36 @@ const { data: existingInvoice } =
     .maybeSingle();
 
 if (!existingInvoice) {
-  await supabase
-    .from("invoices")
-    .insert({
-      order_id: order.id,
+  const { error: invoiceError } =
+    await supabase
+      .from("invoices")
+      .insert({
+        order_id: order.id,
 
-      retailer_id:
-        order.retailer_id,
+        retailer_id:
+          order.retailer_id,
 
-      retailer_name:
-        order.shop_name,
+        retailer_name:
+          order.shop_name,
 
-      invoice_number:
-        `INV-${Date.now()}`,
+        invoice_number:
+          `INV-${Date.now()}`,
 
-      invoice_date:
-        new Date()
-          .toISOString()
-          .split("T")[0],
+        invoice_date:
+          new Date()
+            .toISOString()
+            .split("T")[0],
 
-      amount:
-        order.estimated_amount,
+        amount:
+          order.estimated_amount,
 
-      status: "pending"
-    });
+        status: "pending"
+      });
+
+  console.log(
+    "Invoice Error:",
+    invoiceError
+  );
 }
 const { data: existingLedger } =
   await supabase
@@ -162,31 +168,37 @@ const { data: existingLedger } =
     .maybeSingle();
 
 if (!existingLedger) {
-  await supabase
-    .from("retailer_ledger")
-    .insert({
-      retailer_id:
-        order.retailer_id,
+  const { error: ledgerError } =
+    await supabase
+      .from("retailer_ledger")
+      .insert({
+        retailer_id:
+          order.retailer_id,
 
-      retailer_name:
-        order.shop_name,
+        retailer_name:
+          order.shop_name,
 
-      order_id:
-        order.id,
+        order_id:
+          order.id,
 
-      transaction_date:
-        new Date()
-          .toISOString()
-          .split("T")[0],
+        transaction_date:
+          new Date()
+            .toISOString()
+            .split("T")[0],
 
-      debit:
-        order.estimated_amount,
+        debit:
+          order.estimated_amount,
 
-      credit: 0,
+        credit: 0,
 
-      remarks:
-        "Order Delivered"
-    });
+        remarks:
+          "Order Delivered"
+      });
+
+  console.log(
+    "Ledger Error:",
+    ledgerError
+  );
 }
 
   return NextResponse.redirect(
