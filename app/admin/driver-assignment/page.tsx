@@ -4,7 +4,7 @@ export default async function DriverAssignmentPage() {
   const { data: orders } = await supabase
     .from("orders")
     .select("*")
-    .in("status", ["confirmed", "allocated"]);
+    .in("status", ["new", "confirmed"]);
 
   const { data: vehicles } = await supabase
     .from("vehicles")
