@@ -122,6 +122,10 @@ export default function AdminLayout({
 >
   Invoices
 </Link>
+
+<Link href="/admin/driver-assignment">
+  Driver Assignment
+</Link>
           </nav>
         </aside>
 
