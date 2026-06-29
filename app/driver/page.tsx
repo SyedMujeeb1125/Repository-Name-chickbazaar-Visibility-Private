@@ -1,6 +1,9 @@
 import { readDb } from "@/lib/storage";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function DriverPage() {
   const db = await readDb();
 
