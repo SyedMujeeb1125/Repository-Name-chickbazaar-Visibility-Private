@@ -4,6 +4,8 @@ import Link from "next/link";
 export default async function DriverPage() {
   const db = await readDb();
 
+  console.log(db.orders);
+
   const driverName = "Ramesh";
 
   const myOrders = db.orders.filter(
@@ -13,6 +15,9 @@ export default async function DriverPage() {
     o.status !== "cancelled" &&
     o.status !== "delivered"
 );
+
+console.log("Driver:", driverName);
+console.log("Orders for driver:", myOrders);
 
   const myVehicle = db.vehicles.find(
     (v: any) =>
