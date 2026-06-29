@@ -18,13 +18,7 @@ console.log(
 
   const driverName = "Ramesh";
 
-  const myOrders = db.orders.filter(
-  (o: any) =>
-    o.assignedDriver === driverName &&
-    o.status !== "completed" &&
-    o.status !== "cancelled" &&
-    o.status !== "delivered"
-);
+  const myOrders = db.orders;
 
 console.log("Driver:", driverName);
 console.log("Orders for driver:", myOrders);
