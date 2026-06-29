@@ -5,9 +5,12 @@ import {
   updateRecordStatus
 } from "@/lib/storage";
 
+
 export async function POST(
   request: Request
 ) {
+  console.log("===== DRIVER DELIVER API STARTED =====");
+
   const formData: any =
   await request.formData();
 
