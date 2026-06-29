@@ -4,6 +4,32 @@ import Link from "next/link";
 export default async function DriverPage() {
   const db = await readDb();
 
+console.log("TOTAL ORDERS:", db.orders.length);
+
+console.log(
+  "ALL ORDERS:",
+  db.orders.map((o: any) => ({
+    order: o.orderNumber,
+    driver: o.assignedDriver,
+    status: o.status,
+  }))
+);
+
+console.log(
+  "FILTERED:",
+  db.orders.filter(
+    (o: any) =>
+      o.assignedDriver === "Ramesh" &&
+      [
+        "new",
+        "confirmed",
+        "allocated",
+        "procured",
+        "dispatched",
+      ].includes(o.status)
+  )
+);
+
   const driverName = "Ramesh";
 
   const myOrders = db.orders.filter(
