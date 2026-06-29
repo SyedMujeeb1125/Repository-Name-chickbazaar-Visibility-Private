@@ -4,6 +4,16 @@ import Link from "next/link";
 export default async function DriverPage() {
   const db = await readDb();
 
+  console.log("TOTAL ORDERS:", db.orders.length);
+
+console.log(
+  db.orders.map((o: any) => ({
+    order: o.orderNumber,
+    driver: o.assignedDriver,
+    status: o.status,
+  }))
+);
+
   console.log(db.orders);
 
   const driverName = "Ramesh";
@@ -24,7 +34,7 @@ console.log("Orders for driver:", myOrders);
       v.assignedDriver === driverName
   );
 
-  
+  console.log("MY ORDERS:", myOrders);
 
   return (
     <div className="p-6">
