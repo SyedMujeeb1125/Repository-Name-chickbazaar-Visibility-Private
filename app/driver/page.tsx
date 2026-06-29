@@ -10,7 +10,6 @@ export default async function DriverPage() {
 console.log("TOTAL ORDERS:", db.orders.length);
 
 console.log(
-  "ALL ORDERS:",
   db.orders.map((o: any) => ({
     order: o.orderNumber,
     driver: o.assignedDriver,
@@ -18,24 +17,9 @@ console.log(
   }))
 );
 
-console.log(
-  "FILTERED:",
-  db.orders.filter(
-    (o: any) =>
-      o.assignedDriver === "Ramesh" &&
-      [
-        "new",
-        "confirmed",
-        "allocated",
-        "procured",
-        "dispatched",
-      ].includes(o.status)
-  )
-);
+const driverName = "Ramesh";
 
-  const driverName = "Ramesh";
-
-  const myOrders = db.orders.filter(
+const myOrders = db.orders.filter(
   (o: any) =>
     o.assignedDriver === driverName &&
     [
@@ -46,6 +30,8 @@ console.log(
       "dispatched",
     ].includes(o.status)
 );
+
+console.log("MY ORDERS:", myOrders);
   const myVehicle = db.vehicles.find(
     (v: any) =>
       v.assignedDriver === driverName
