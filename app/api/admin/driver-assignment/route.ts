@@ -37,6 +37,7 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.redirect(
-    new URL("/admin/driver-assignment", request.url)
-  );
+  new URL("/admin/driver-assignment", request.url),
+  303
+);
 }
