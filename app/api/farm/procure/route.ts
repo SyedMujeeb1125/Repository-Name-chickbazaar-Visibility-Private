@@ -17,12 +17,11 @@ export async function POST(request: Request) {
   }
 
   const { error } = await supabase
-    .from("orders")
-    .update({
-      status: "procured",
-      procured_at: new Date().toISOString(),
-    })
-    .eq("id", orderId);
+  .from("orders")
+  .update({
+    status: "procured",
+  })
+  .eq("id", orderId);
 
   if (error) {
     return NextResponse.json(
