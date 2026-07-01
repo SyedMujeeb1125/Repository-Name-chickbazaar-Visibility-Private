@@ -10,13 +10,13 @@ export type ZoneDemand = {
 export async function calculateZoneDemand(
   deliveryDate: string
 ): Promise<ZoneDemand[]> {
+
   const { data, error } = await supabase
     .from("orders")
     .select(`
       zone,
       birds,
-      requested_weight,
-      requestedWeight
+      requested_weight
     `)
     .eq("delivery_date", deliveryDate)
     .eq("status", "new");
@@ -28,18 +28,23 @@ export async function calculateZoneDemand(
   const zones = new Map<string, ZoneDemand>();
 
   for (const order of data ?? []) {
-    const zone = order.zone || "Unknown";
+
+    const zone =
+      order.zone || "Unknown";
 
     if (!zones.has(zone)) {
+
       zones.set(zone, {
         zone,
         totalOrders: 0,
         totalBirds: 0,
         totalWeight: 0,
       });
+
     }
 
-    const current = zones.get(zone)!;
+    const current =
+      zones.get(zone)!;
 
     current.totalOrders++;
 
@@ -48,13 +53,12 @@ export async function calculateZoneDemand(
     );
 
     current.totalWeight += Number(
-      order.requested_weight ??
-      order.requestedWeight ??
-      0
+      order.requested_weight || 0
     );
   }
 
   return [...zones.values()].sort(
-    (a, b) => b.totalWeight - a.totalWeight
+    (a, b) =>
+      b.totalWeight - a.totalWeight
   );
 }
