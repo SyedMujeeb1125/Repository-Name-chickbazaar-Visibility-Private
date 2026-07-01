@@ -17,7 +17,7 @@ export async function buildProcurementPlan(
     await supabase
       .from("farm_inventory")
       .select("*")
-      .order("available_birds", {
+      .order("bird_count", {
         ascending: false,
       });
 
@@ -33,7 +33,7 @@ export async function buildProcurementPlan(
       (sum: number, farm: any) =>
         sum +
         Number(
-          farm.available_birds || 0
+          farm.bird_count || 0
         ),
       0
     );
@@ -52,12 +52,10 @@ export async function buildProcurementPlan(
           id: farm.id,
           farmId:
             farm.farm_id,
-          zone:
-            farm.zone ??
-            "Unknown",
+          zone: "All",
           availableBirds:
             Number(
-              farm.available_birds ||
+              farm.bird_count ||
                 0
             ),
           procurementPrice:
