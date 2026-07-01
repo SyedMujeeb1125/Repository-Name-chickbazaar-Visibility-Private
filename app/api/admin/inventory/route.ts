@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { isAdminAuthenticated } from "@/lib/auth";
 
 export async function POST(
   request: Request
 ) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json(
+      { message: "Unauthorized." },
+      { status: 401 }
+    );
+  }
+
   const formData: any =
   await request.formData();
 

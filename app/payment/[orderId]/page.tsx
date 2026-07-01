@@ -37,6 +37,31 @@ export default function PaymentPage() {
   async function payNow() {
     if (!order) return;
 
+    if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "bypass") {
+  const verify = await fetch("/api/payment/verify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      orderId: order.id,
+      paymentAmount: order.advanceRequired,
+    }),
+  });
+
+  const result = await verify.json();
+
+  if (result.verified) {
+    alert("Development Payment Successful");
+
+    window.location.href = `/orders/${order.id}`;
+  } else {
+    alert("Development Payment Failed");
+  }
+
+  return;
+}
+
     console.log("PAYMENT AMOUNT SENT:", 1);
 
     const response = await fetch(

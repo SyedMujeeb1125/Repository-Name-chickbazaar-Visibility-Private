@@ -10,6 +10,11 @@ export default function TestPaymentPage() {
   async function createPayment() {
   try {
 
+    if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "bypass") {
+  alert("Development Mode - Razorpay skipped");
+  return;
+}
+
     const response = await fetch(
       "/api/payment/create-order",
       {

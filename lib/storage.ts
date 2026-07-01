@@ -666,7 +666,22 @@ export async function getOrderStatusHistory(
 }
 
 export async function saveUploadedFile(file: File, prefix: string) {
-  return `${prefix}_${Date.now()}_${file.name}`;
+  const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
+  const objectPath = `${prefix}/${new Date().getUTCFullYear()}/${createId(prefix)}.${extension}`;
+  const bytes = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await supabase.storage
+    .from("gst-certificates")
+    .upload(objectPath, bytes, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false
+    });
+
+  if (error) {
+    throw new Error(`GST certificate upload failed: ${error.message}`);
+  }
+
+  return objectPath;
 }
 export async function createInvoice({
   invoiceNumber,

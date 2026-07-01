@@ -1,8 +1,7 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { readDb } from "@/lib/storage";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET(
   _request: Request,
@@ -33,17 +32,23 @@ if (!certificatePath) {
   );
 }
 
-const bytes = await readFile(
-  certificatePath
-);
+const { data, error } = await supabaseAdmin.storage
+  .from("gst-certificates")
+  .download(certificatePath);
 
-const fileName = path.basename(
-  certificatePath
-);
+if (error || !data) {
+  return NextResponse.json(
+    { message: "GST certificate could not be downloaded." },
+    { status: 404 }
+  );
+}
+
+const bytes = await data.arrayBuffer();
+const fileName = certificatePath.split("/").pop() || "gst-certificate";
 
   return new NextResponse(bytes, {
     headers: {
-      "Content-Type": "application/octet-stream",
+      "Content-Type": data.type || "application/octet-stream",
       "Content-Disposition": `attachment; filename="${fileName}"`
     }
   });

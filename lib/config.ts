@@ -3,5 +3,5 @@ export const config = {
     process.env.NODE_ENV === "development",
 
   bypassPayments:
-    process.env.NODE_ENV === "development",
+    process.env.PAYMENT_MODE === "bypass",
 };

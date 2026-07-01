@@ -21,7 +21,7 @@ export function FormShell({
   successMessage,
   buttonText,
   children,
-  endpoint
+  endpoint,
 }: FormShellProps) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +29,9 @@ export function FormShell({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     const form = event.currentTarget;
+
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -42,19 +44,30 @@ export function FormShell({
       if (endpoint) {
         const response = await fetch(endpoint, {
           method: "POST",
-          body: new FormData(form)
+          body: new FormData(form),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          const data = (await response.json().catch(() => null)) as { message?: string } | null;
-          throw new Error(data?.message || "Something went wrong. Please try again.");
+          throw new Error(
+            data?.message || "Something went wrong."
+          );
         }
+
+        // Redirect to payment page
+        window.location.href = `/payment/${data.id}`;
+        return;
       }
 
       setSubmitted(true);
       form.reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -63,25 +76,47 @@ export function FormShell({
   if (submitted) {
     return (
       <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center shadow-soft">
-        <CheckCircle2 className="mx-auto text-emerald-600" size={42} />
-        <h2 className="mt-4 text-2xl font-extrabold text-navy">{successTitle}</h2>
-        <p className="mt-2 text-slate-600">{successMessage}</p>
+        <CheckCircle2
+          className="mx-auto text-emerald-600"
+          size={42}
+        />
+
+        <h2 className="mt-4 text-2xl font-extrabold text-navy">
+          {successTitle}
+        </h2>
+
+        <p className="mt-2 text-slate-600">
+          {successMessage}
+        </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-slate-100 bg-white p-5 shadow-soft sm:p-8">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-lg border border-slate-100 bg-white p-5 shadow-soft sm:p-8"
+    >
       <div>
-        <h1 className="text-3xl font-extrabold text-navy">{title}</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+        <h1 className="text-3xl font-extrabold text-navy">
+          {title}
+        </h1>
+
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          {description}
+        </p>
       </div>
-      <div className="mt-8 grid gap-5">{children}</div>
-      {error ? (
+
+      <div className="mt-8 grid gap-5">
+        {children}
+      </div>
+
+      {error && (
         <p className="mt-6 rounded-md bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
           {error}
         </p>
-      ) : null}
+      )}
+
       <button
         type="submit"
         disabled={submitting}

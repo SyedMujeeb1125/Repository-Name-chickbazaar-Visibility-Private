@@ -13,8 +13,14 @@ function value(formData: any, key: string) {
   return String(formData.get(key) || "").trim();
 }
 export async function POST(request: Request) {
-  const formData: any =
-  await request.formData();
+  console.log("========== NEW ORDER ==========");
+
+  const formData: any = await request.formData();
+
+  console.log(
+    "Form Data:",
+    Object.fromEntries(formData.entries())
+  );
   const orderBy = String(
   formData.get("orderBy") || "weight"
 );
@@ -61,16 +67,24 @@ if (
   const latitude = Number(formData.get("latitude") || 0);
 const longitude = Number(formData.get("longitude") || 0);
 
-const { data: retailer } = await supabase
+const mobile = value(formData, "mobile");
+
+console.log("Mobile from form:", mobile);
+
+const { data: retailer, error } = await supabase
   .from("retailers")
   .select("*")
-  .eq("mobile", value(formData, "mobile"))
-  .single();
+  .eq("mobile", mobile)
+  .maybeSingle();
+
+console.log("Retailer:", retailer);
+console.log("Error:", error);
 
 if (!retailer) {
   return NextResponse.json(
     {
       message: "Retailer not found.",
+      error,
     },
     { status: 404 }
   );
@@ -170,5 +184,11 @@ advanceRequired,
 };
 
   await addOrder(order);
-  return NextResponse.json({ message: "Order saved.", id: order.id });
+  return NextResponse.json({
+  success: true,
+  id: order.id,
+  orderNumber: order.orderNumber,
+  advanceRequired: order.advanceRequired,
+  estimatedAmount: order.estimatedAmount,
+});
 }
