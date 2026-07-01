@@ -1,366 +1,442 @@
 export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
-import { getLoggedInRetailerMobile } from "@/lib/retailer";
-import { readDb, getTodayRate } from "@/lib/storage";
-const orderSteps = [
-  "new",
-  "confirmed",
-  "procured",
-  "dispatched",
-  "delivered",
-  "completed"
-];
-export default async function DashboardPage() {
-  const mobile = await getLoggedInRetailerMobile();
 
-  if (!mobile) {
+import { getDashboard } from "@/lib/dashboard";
+
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import TodayRateCard from "@/components/dashboard/TodayRateCard";
+import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
+import QuickActions from "@/components/dashboard/QuickActions";
+import NotificationsCard from "@/components/dashboard/NotificationsCard";
+import RecentOrders from "@/components/dashboard/RecentOrders";
+
+export default async function DashboardPage() {
+  const dashboard =
+    await getDashboard();
+
+  if (!dashboard) {
     redirect("/login");
   }
 
-  const db = await readDb();
-  const todayRate = await getTodayRate();
-  const retailer = db.retailers.find(
-  (r: any) => r.mobile === mobile
-  );
-  const myOrders = db.orders
-  .filter(
-    (order: any) => order.mobile === mobile
-  )
-  .sort(
-    (a: any, b: any) =>
-      new Date(b.createdAt || b.id).getTime() -
-      new Date(a.createdAt || a.id).getTime()
-  );
-
-  const totalOrders = myOrders.length;
-
-  const pendingOrders = myOrders.filter(
-    (order: any) =>
-      order.status === "new" ||
-      order.status === "confirmed" ||
-      order.status === "procured" ||
-      order.status === "dispatched"
-  ).length;
-
-  const completedOrders = myOrders.filter(
-    (order: any) =>
-      order.status === "delivered" ||
-      order.status === "completed"
-  ).length;
-
-  const totalOutstanding = myOrders.reduce(
-  (sum: number, order: any) =>
-    sum +
-    Number(
-      order.outstandingAmount || 0
-    ),
-  0
-);
+  const {
+    retailer,
+    todayRate,
+    metrics,
+    myOrders,
+  } = dashboard;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-  <h1 className="text-3xl font-extrabold text-navy">
-  My Dashboard
-</h1>
 
-  <div className="flex gap-3 flex-wrap">
-  {retailer?.status !== "new" ? (
-    <a
-      href="/order-chicken"
-      className="inline-flex items-center justify-center rounded-md bg-orange px-5 py-3 font-bold text-white"
-    >
-      Place New Order
-    </a>
-  ) : (
-    <button
-      disabled
-      className="cursor-not-allowed rounded-md bg-slate-300 px-5 py-3 font-bold text-white"
-    >
-      Awaiting Approval
-    </button>
-  )}
+      {/* Header */}
 
-  <a
-    href="/invoices"
-    className="inline-flex items-center justify-center rounded-md bg-green-600 px-5 py-3 font-bold text-white"
-  >
-    My Invoices
-  </a>
-</div>
-</div>
+      <DashboardHeader
+        retailerName={
+          retailer?.ownerName ||
+          retailer?.shopName ||
+          "Retailer"
+        }
+      />
+
+      {/* Approval Status */}
+
       {retailer?.status === "new" ? (
-  <div className="mt-4 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
-    <p className="font-bold text-yellow-800">
-      Account Under Review
-    </p>
+        <div className="mt-6 rounded-xl border border-yellow-300 bg-yellow-50 p-5">
 
-    <p className="text-sm text-yellow-700">
-      Your retailer profile is being verified by ChickBazaar.
-      Ordering will be enabled after approval.
-    </p>
-  </div>
-) : (
-  <div className="mt-4 rounded-lg border border-green-300 bg-green-50 p-4">
-    <p className="font-bold text-green-800">
-      Approved Retailer
-    </p>
+          <h2 className="font-bold text-yellow-800">
+            Account Under Review
+          </h2>
 
-    <p className="text-sm text-green-700">
-      Your account is verified and fully active.
-    </p>
-  </div>
-)}
-      <div className="mt-8 rounded-xl bg-orange p-6 text-white shadow-sm">
-  <p className="text-sm uppercase tracking-wide">
-    Today's Live Broiler Rate
-  </p>
+          <p className="mt-2 text-yellow-700">
+            Your retailer profile is currently
+            under verification.
 
-  <p className="mt-2 text-4xl font-extrabold">
-    ₹{todayRate?.rate || 0}/kg
-  </p>
-</div>
-      <div className="mt-8 grid gap-4 md:grid-cols-5">
-  <div className="rounded-lg bg-navy p-5 text-white">
-    <p>Total Orders</p>
-    <p className="text-3xl font-bold">{totalOrders}</p>
-  </div>
-
-  <div className="rounded-lg bg-orange p-5 text-white">
-    <p>Pending Orders</p>
-    <p className="text-3xl font-bold">{pendingOrders}</p>
-  </div>
-
-  <div className="rounded-lg bg-green-600 p-5 text-white">
-    <p>Completed Orders</p>
-    <p className="text-3xl font-bold">{completedOrders}</p>
-  </div>
-
-  <div className="rounded-lg bg-red-600 p-5 text-white">
-    <p>Outstanding Balance</p>
-    <p className="text-3xl font-bold">
-      ₹{totalOutstanding}
-    </p>
-  </div>
-
-  <div className="rounded-lg bg-purple-600 p-5 text-white">
-    <p>Credit Category</p>
-    <p className="text-3xl font-bold">
-      {retailer?.creditCategory || "New"}
-    </p>
-  </div>
-</div>
-
-      <div className="mt-10 rounded-lg border bg-white p-6">
-        <h2 className="text-xl font-bold">
-          My Orders
-        </h2>
-
-        <div className="mt-6 space-y-4">
-          {myOrders.length === 0 ? (
-            <p className="text-slate-500">
-              No orders found.
-            </p>
-          ) : (
-            myOrders.map((order: any, index: number) => {
-  const currentStep = orderSteps.indexOf(order.status);
-
-  return (
-  <div
-    key={order.id}
-    className="rounded-xl border bg-white p-6 shadow-sm"
-  >
-    {/* Header */}
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-lg font-bold text-orange">
-            {order.orderNumber || order.id}
+            Ordering will become available
+            immediately after approval.
           </p>
 
-          {index === 0 && (
-            <span className="rounded bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
-              LATEST ORDER
-            </span>
+        </div>
+      ) : (
+        <div className="mt-6 rounded-xl border border-green-300 bg-green-50 p-5">
+
+          <h2 className="font-bold text-green-700">
+            Approved Retailer
+          </h2>
+
+          <p className="mt-2 text-green-700">
+            Your account is active.
+
+            Welcome to ChickBazaar.
+          </p>
+
+        </div>
+      )}
+
+      {/* Today's Rate */}
+
+      <div className="mt-8">
+
+        <TodayRateCard
+          rate={Number(
+            todayRate?.rate || 0
           )}
-        </div>
+        />
 
-        <p className="text-sm text-slate-500">
-          Placed On:{" "}
-          {new Date(
-            order.createdAt || Date.now()
-          ).toLocaleString()}
-        </p>
-
-        <h3 className="mt-2 text-2xl font-bold">
-          {order.shopName}
-        </h3>
-
-        <p className="text-slate-500">
-          {order.birds} Birds
-        </p>
       </div>
 
-      <span className="rounded-lg bg-orange/10 px-4 py-2 font-bold text-orange">
-        {order.status?.toUpperCase()}
-      </span>
-    </div>
+      {/* Dashboard Metrics */}
 
-    {/* Main Content */}
-    <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-8">
 
-      {/* Left Side */}
-      <div className="rounded-lg bg-slate-50 p-5">
-        <h4 className="mb-4 text-lg font-bold">
-          Payment & Delivery Details
-        </h4>
+        <DashboardMetrics
+          metrics={[
+            {
+              title: "Orders",
 
-        <div className="space-y-3 text-sm">
-          <p>
-            <strong>Payment Type:</strong>{" "}
-            {order.paymentType || "-"}
-          </p>
+              value:
+                metrics.totalOrders,
 
-          <p>
-            <strong>Requested Weight:</strong>{" "}
-            {order.requestedWeight || "-"} Kg
-          </p>
+              color: "bg-navy",
+            },
 
-          <p>
-            <strong>Rate Per Kg:</strong>{" "}
-            {order.ratePerKg
-              ? `₹${order.ratePerKg}`
-              : "Not Updated"}
-          </p>
+            {
+              title: "Pending",
 
-          <p>
-            <strong>Actual Weight:</strong>{" "}
-            {order.actualWeight
-              ? `${order.actualWeight} Kg`
-              : "Not Updated"}
-          </p>
+              value:
+                metrics.pendingOrders,
 
-          <div className="rounded-lg bg-green-50 p-4">
-  <p className="text-xs uppercase text-green-700">
-    Final Amount
-  </p>
+              color: "bg-orange",
+            },
 
-  <p className="text-3xl font-extrabold text-green-700">
-    {order.finalAmount
-      ? `₹${order.finalAmount}`
-      : "Pending"}
-  </p>
+            {
+              title: "Completed",
 
-  <div className="mt-3 border-t pt-3 text-sm">
-    <p>
-      <strong>Advance Paid:</strong> ₹
-      {order.paymentAmount || 0}
-    </p>
+              value:
+                metrics.completedOrders,
 
-    <p className="font-semibold text-red-600">
-      <strong>Outstanding:</strong> ₹
-      {order.outstandingAmount || 0}
-    </p>
-  </div>
-</div>
+              color: "bg-green-600",
+            },
 
-          <p>
-  <strong>Procurement Status:</strong>{" "}
-  {order.status === "procured"
-    ? "Birds Procured"
-    : order.status === "dispatched"
-    ? "Vehicle Dispatched"
-    : order.status === "delivered"
-    ? "Delivered"
-    : "In Progress"}
-</p>
+            {
+              title: "Outstanding",
 
-          <p>
-  <strong>Tracking Notes:</strong>{" "}
-  {order.trackingNotes || "-"}
-</p>
+              value:
+                `₹${metrics.outstanding}`,
 
-<p>
-  <strong>Estimated Amount:</strong>{" "}
-  ₹{order.estimatedAmount || 0}
-</p>
+              color: "bg-red-600",
+            },
 
-<p>
-  <strong>Advance Required:</strong>{" "}
-  ₹{order.advanceRequired || 0}
-</p>
+            {
+              title: "Credit",
 
-<p>
-  <strong>Credit Category:</strong>{" "}
-  {retailer?.creditCategory || "new"}
-</p>
+              value:
+                metrics.creditCategory,
 
-<p>
-  <strong>Payment Status:</strong>{" "}
-  {order.paymentStatus || "pending"}
-</p>
-<p>
-  <strong>Order Date:</strong>{" "}
-  {new Date(
-    order.createdAt || Date.now()
-  ).toLocaleDateString()}
-</p>
+              color: "bg-purple-600",
+            },
+          ]}
+        />
 
-<p>
-  <strong>Delivery Date:</strong>{" "}
-  {order.deliveryDate || "-"}
-</p>
-
-{order.advanceRequired > 0 &&
-  order.paymentStatus !== "paid" && (
-    <a
-      href={`/payment/${order.id}`}
-      className="mt-3 inline-block rounded bg-green-600 px-4 py-2 font-semibold text-white"
-    >
-      Pay Advance ₹{order.advanceRequired}
-    </a>
-)}
-        </div>
       </div>
 
-      {/* Right Side */}
-      <div className="rounded-lg bg-slate-50 p-5">
-        <h4 className="mb-4 text-lg font-bold">
-          Order Progress
-        </h4>
+      {/* Quick Actions */}
 
-        <div className="space-y-3">
-          {orderSteps.map((step, stepIndex) => (
-            <div
-              key={step}
-              className={`flex items-center gap-3 ${
-                stepIndex <= currentStep
-                  ? "text-green-600 font-semibold"
-                  : "text-slate-400"
-              }`}
-            >
-              <span className="text-lg">
-                {stepIndex <= currentStep
-                  ? "✓"
-                  : "○"}
-              </span>
+      <div className="mt-10">
 
-              <span>
-                {step.charAt(0).toUpperCase() +
-                  step.slice(1)}
-              </span>
+        <QuickActions />
+
+      </div>
+
+      {/* Notifications */}
+
+      <div className="mt-10">
+
+        <NotificationsCard />
+
+      </div>
+
+      {/* Recent Orders */}
+
+      <div className="mt-10">
+
+        <RecentOrders
+          orders={myOrders}
+        />
+
+      </div>
+      {/* Tomorrow's Delivery */}
+
+      <div className="mt-10">
+
+        <div className="rounded-2xl border bg-white p-6 shadow">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <h2 className="text-2xl font-bold">
+                Tomorrow's Delivery
+              </h2>
+
+              <p className="mt-2 text-slate-500">
+                Your next scheduled delivery
+              </p>
+
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-);
-})
+
+            <span className="rounded-full bg-green-100 px-4 py-2 font-semibold text-green-700">
+              Active
+            </span>
+
+          </div>
+
+          {myOrders.length === 0 ? (
+
+            <div className="mt-8 rounded-xl bg-slate-50 p-8 text-center">
+
+              <p className="text-lg font-semibold">
+                No orders available
+              </p>
+
+              <p className="mt-2 text-slate-500">
+                Place your first order before
+                11:59 PM for tomorrow's delivery.
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
+
+              <div className="rounded-xl bg-orange p-6 text-white">
+
+                <p className="text-sm uppercase">
+                  Delivery Date
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+
+                  {myOrders[0].deliveryDate ||
+                    "-"}
+
+                </h3>
+
+              </div>
+
+              <div className="rounded-xl bg-green-600 p-6 text-white">
+
+                <p className="text-sm uppercase">
+                  Requested Weight
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+
+                  {myOrders[0]
+                    .requestedWeight || 0} KG
+
+                </h3>
+
+              </div>
+
+              <div className="rounded-xl bg-navy p-6 text-white">
+
+                <p className="text-sm uppercase">
+                  Order Status
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+
+                  {String(
+                    myOrders[0].status || ""
+                  ).toUpperCase()}
+
+                </h3>
+
+              </div>
+
+            </div>
+
           )}
+
         </div>
+
       </div>
+
+      {/* Financial Summary */}
+
+      <div className="mt-10">
+
+        <div className="grid gap-6 lg:grid-cols-2">
+
+          <div className="rounded-2xl border bg-white p-6 shadow">
+
+            <h2 className="text-xl font-bold">
+              Financial Summary
+            </h2>
+
+            <div className="mt-6 space-y-4">
+
+              <div className="flex justify-between">
+
+                <span>
+                  Outstanding
+                </span>
+
+                <strong>
+                  ₹{metrics.outstanding}
+                </strong>
+
+              </div>
+
+              <div className="flex justify-between">
+
+                <span>
+                  Credit Category
+                </span>
+
+                <strong>
+                  {metrics.creditCategory}
+                </strong>
+
+              </div>
+
+              <div className="flex justify-between">
+
+                <span>
+                  Today's Rate
+                </span>
+
+                <strong>
+
+                  ₹
+                  {todayRate?.rate || 0}
+                  /kg
+
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="rounded-2xl border bg-white p-6 shadow">
+
+            <h2 className="text-xl font-bold">
+              Retailer Information
+            </h2>
+
+            <div className="mt-6 space-y-4">
+
+              <div>
+
+                <p className="text-sm text-slate-500">
+                  Shop Name
+                </p>
+
+                <p className="font-semibold">
+                  {retailer?.shopName}
+                </p>
+
+              </div>
+
+              <div>
+
+                <p className="text-sm text-slate-500">
+                  Owner
+                </p>
+
+                <p className="font-semibold">
+                  {retailer?.ownerName}
+                </p>
+
+              </div>
+
+              <div>
+
+                <p className="text-sm text-slate-500">
+                  Mobile
+                </p>
+
+                <p className="font-semibold">
+                  {retailer?.mobile}
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>      {/* Support */}
+
+      <div className="mt-10">
+
+        <div className="rounded-2xl bg-gradient-to-r from-orange to-orange/80 p-8 text-white shadow-lg">
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+
+            <div>
+
+              <h2 className="text-3xl font-bold">
+                Need Help?
+              </h2>
+
+              <p className="mt-2 max-w-xl text-orange-50">
+                Our operations team is available to help you with
+                ordering, payments, deliveries and account support.
+              </p>
+
+            </div>
+
+            <div className="flex gap-4">
+
+              <a
+                href="tel:+919353956243"
+                className="rounded-lg bg-white px-6 py-3 font-bold text-orange shadow hover:bg-slate-100"
+              >
+                Call Support
+              </a>
+
+              <a
+                href="https://wa.me/919353956243"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white shadow hover:bg-green-700"
+              >
+                WhatsApp
+              </a>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Footer */}
+
+      <div className="mt-12 border-t pt-6">
+
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+
+          <p className="text-sm text-slate-500">
+            © 2026 ChickBazaar. All rights reserved.
+          </p>
+
+          <p className="text-sm text-slate-500">
+            Powered by FruitGlobe International Pvt. Ltd.
+          </p>
+
+        </div>
+
+      </div>
+
     </div>
   );
 }
