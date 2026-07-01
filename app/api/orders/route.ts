@@ -1,41 +1,16 @@
 import { NextResponse } from "next/server";
+import { getTodayRate } from "@/lib/rate-service";
+import type { OrderRecord } from "@/lib/types";
+import { getOrderPolicy } from "@/lib/order-policy";
+import { supabase } from "@/lib/supabase";
+import { allocateOrder } from "@/lib/allocation-service";
 import {
   addOrder,
-  createId,
-  readDb,
-  getTodayRate
+  createId
 } from "@/lib/storage";
-import type { OrderRecord } from "@/lib/types";
 
 function value(formData: any, key: string) {
   return String(formData.get(key) || "").trim();
-}
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-) {
-  const R = 6371;
-
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-
-  const c =
-    2 *
-    Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(1 - a)
-    );
-
-  return R * c;
 }
 export async function POST(request: Request) {
   const formData: any =
@@ -86,55 +61,46 @@ if (
   const latitude = Number(formData.get("latitude") || 0);
 const longitude = Number(formData.get("longitude") || 0);
 
-const db = await readDb();
-const retailer = db.retailers.find(
-  (r: any) =>
-    r.mobile ===
-    value(formData, "mobile")
-);
+const { data: retailer } = await supabase
+  .from("retailers")
+  .select("*")
+  .eq("mobile", value(formData, "mobile"))
+  .single();
+
+if (!retailer) {
+  return NextResponse.json(
+    {
+      message: "Retailer not found.",
+    },
+    { status: 404 }
+  );
+}
+const policy =
+  await getOrderPolicy(retailer);
+
+if (!policy.allowed) {
+  return NextResponse.json(
+    {
+      message: policy.message,
+    },
+    { status: 400 }
+  );
+}
 
 const zone =
   retailer?.zone || "central";
 
-const vehicle =
-  db.vehicles.find(
-    (v: any) =>
-      v.zone === zone
-  );
-
-const assignedDriver =
-  vehicle?.assignedDriver || "";
-
-const assignedVehicle =
-  vehicle?.vehicleNumber || "";
+  const allocation = await allocateOrder({
+  latitude,
+  longitude,
+  zone,
+});
 
 
-const todayRate = await getTodayRate();
-
-const nearestFarm =
-  db.farmPartners
-    .filter(
-      (farm) =>
-        farm.latitude &&
-        farm.longitude
-    )
-    .map((farm) => ({
-      farm,
-      distance: calculateDistance(
-        latitude,
-        longitude,
-        Number(farm.latitude),
-        Number(farm.longitude)
-      )
-    }))
-    .sort(
-      (a, b) =>
-        a.distance - b.distance
-    )[0];
    const requestedWeight = Number(
   formData.get("requestedWeight") || 0
 );
-
+const todayRate = await getTodayRate();
 const ratePerKg = Number(
   todayRate?.rate || 0
 );
@@ -142,41 +108,10 @@ const ratePerKg = Number(
 const estimatedAmount =
   requestedWeight * ratePerKg;
 
-const category =
-  retailer?.creditCategory ||
-  "new";
-
-const advancePercentage =
-  category === "premium"
-    ? 0
-    : category === "trusted"
-    ? 10
-    : 20;
- const availableCredit =
-  Number(
-    (retailer as any)?.availableCredit || 0
-  );
-
-if (
-  category !== "new" &&
-  estimatedAmount >
-    availableCredit
-) {
-  return NextResponse.json(
-    {
-      message:
-        `Credit limit exceeded. Available Credit: ₹${availableCredit}`
-    },
-    { status: 400 }
-  );
-}   
+const advancePercentage = 0;
 
 const advanceRequired =
-  Math.round(
-    (estimatedAmount *
-      advancePercentage) /
-      100
-  ); 
+  policy.bookingAmount;
   const order: OrderRecord = {
   id: createId("order"),
 
@@ -190,9 +125,11 @@ const advanceRequired =
 
   zone,
 
-  assignedDriver,
+  assignedDriver:
+  allocation.assignedDriver,
 
-  assignedVehicle,
+assignedVehicle:
+  allocation.assignedVehicle,
 
   paymentStatus: "pending",
   paymentAmount: 0,
@@ -212,7 +149,7 @@ advancePercentage,
 
 advanceRequired,
   assignedFarm:
-  nearestFarm?.farm.farmName || "",
+  allocation.assignedFarm,
   trackingNotes: "",
 
   latitude,

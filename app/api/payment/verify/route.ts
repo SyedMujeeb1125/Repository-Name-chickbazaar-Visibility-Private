@@ -7,6 +7,7 @@ import {
   readDb,
   invoiceExists
 } from "@/lib/storage";
+import { config } from "@/lib/config";
 
 export async function POST(request: Request) {
   try {
@@ -40,6 +41,13 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+    if (config.bypassPayments) {
+  return Response.json({
+    success: true,
+    paymentId: "DEV_PAYMENT",
+    message: "Development payment bypass",
+  });
+}
 
     const expectedSignature = crypto
       .createHmac("sha256", secret)
