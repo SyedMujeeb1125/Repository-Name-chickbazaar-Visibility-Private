@@ -114,3 +114,53 @@ export async function deleteRepeatOrder(
     throw new Error(error.message);
   }
 }
+export async function getRepeatOrderById(
+  id: string
+) {
+  const { data, error } = await supabase
+    .from("repeat_orders")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+export async function updateRepeatOrder(
+  id: string,
+  input: Partial<RepeatOrderInput>
+) {
+  const { data, error } = await supabase
+    .from("repeat_orders")
+    .update({
+      order_by: input.orderBy,
+      requested_weight: input.requestedWeight,
+      birds: input.birds,
+      average_weight: input.averageWeight,
+      frequency: input.frequency,
+      week_days: input.weekDays,
+      month_days: input.monthDays,
+      delivery_address: input.deliveryAddress,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      payment_type: input.paymentType,
+      start_date: input.startDate,
+      end_date: input.endDate,
+      skip_sundays: input.skipSundays,
+      skip_holidays: input.skipHolidays,
+      remarks: input.remarks,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}

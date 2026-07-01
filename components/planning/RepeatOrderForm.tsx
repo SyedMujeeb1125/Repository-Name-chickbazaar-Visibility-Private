@@ -1,18 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function RepeatOrderForm() {
+type RepeatOrder = {
+  id?: string;
+  order_by?: "weight" | "birds";
+  requested_weight?: number;
+  birds?: number;
+  frequency?: "daily" | "weekly" | "monthly";
+  payment_type?: "advance" | "actual_weight" | "credit";
+  start_date?: string;
+  end_date?: string | null;
+  skip_sundays?: boolean;
+  skip_holidays?: boolean;
+};
+
+type Props = {
+  mode?: "create" | "edit";
+  repeatOrder?: RepeatOrder;
+};
+
+export default function RepeatOrderForm({
+  mode = "create",
+  repeatOrder,
+}: Props) {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [message, setMessage] = useState("");
+  const [message, setMessage] =
+    useState("");
 
-  const [weight, setWeight] = useState("");
+  const [orderBy, setOrderBy] =
+    useState<"weight" | "birds">(
+      "weight"
+    );
 
-  const [frequency, setFrequency] = useState("daily");
+  const [weight, setWeight] =
+    useState("");
+
+  const [birds, setBirds] =
+    useState("");
+
+  const [frequency, setFrequency] =
+    useState("daily");
 
   const [paymentType, setPaymentType] =
     useState("advance");
@@ -26,6 +59,53 @@ export default function RepeatOrderForm() {
   const [skipSundays, setSkipSundays] =
     useState(false);
 
+  useEffect(() => {
+    if (!repeatOrder) {
+      return;
+    }
+
+    setOrderBy(
+      repeatOrder.order_by ?? "weight"
+    );
+
+    setWeight(
+      String(
+        repeatOrder.requested_weight ?? ""
+      )
+    );
+
+    setBirds(
+      String(
+        repeatOrder.birds ?? ""
+      )
+    );
+
+    setFrequency(
+      repeatOrder.frequency ?? "daily"
+    );
+
+    setPaymentType(
+      repeatOrder.payment_type ??
+        "advance"
+    );
+
+    setStartDate(
+      repeatOrder.start_date ?? ""
+    );
+
+    setEndDate(
+      repeatOrder.end_date ?? ""
+    );
+
+    setSkipSundays(
+      repeatOrder.skip_sundays ?? false
+    );
+
+  }, [repeatOrder]);
+
+  const estimatedMonthlyKg =
+    Number(weight || 0) * 30;
+
   async function handleSubmit(
     e: React.FormEvent
   ) {
@@ -35,42 +115,57 @@ export default function RepeatOrderForm() {
 
     setMessage("");
 
+    const payload = {
+      orderBy,
+      requestedWeight:
+        orderBy === "weight"
+          ? Number(weight)
+          : undefined,
+
+      birds:
+        orderBy === "birds"
+          ? Number(birds)
+          : undefined,
+
+      frequency,
+
+      paymentType,
+
+      deliveryAddress:
+        "Registered Shop",
+
+      startDate,
+
+      endDate:
+        endDate || null,
+
+      skipSundays,
+
+      skipHolidays: false,
+    };
+
     try {
-      const response = await fetch(
-        "/api/repeat-orders",
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          mode === "edit"
+            ? `/api/repeat-orders/${repeatOrder?.id}`
+            : "/api/repeat-orders",
+          {
+            method:
+              mode === "edit"
+                ? "PUT"
+                : "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          body: JSON.stringify({
-            orderBy: "weight",
-
-            requestedWeight: Number(
-              weight
+            body: JSON.stringify(
+              payload
             ),
-
-            frequency,
-
-            paymentType,
-
-            deliveryAddress:
-              "Registered Shop",
-
-            startDate,
-
-            endDate:
-              endDate || null,
-
-            skipSundays,
-
-            skipHolidays: false,
-          }),
-        }
-      );
+          }
+        );
 
       const result =
         await response.json();
@@ -82,7 +177,9 @@ export default function RepeatOrderForm() {
       }
 
       setMessage(
-        "Repeat Order Created Successfully."
+        mode === "edit"
+          ? "Repeat Order Updated Successfully."
+          : "Repeat Order Created Successfully."
       );
 
       setTimeout(() => {
@@ -93,11 +190,11 @@ export default function RepeatOrderForm() {
         router.refresh();
       }, 1000);
 
-    } catch (err) {
+    } catch (error) {
 
       setMessage(
-        err instanceof Error
-          ? err.message
+        error instanceof Error
+          ? error.message
           : "Something went wrong."
       );
 
@@ -107,43 +204,80 @@ export default function RepeatOrderForm() {
 
     }
   }
-
-  const monthlyKg =
-    Number(weight || 0) * 30;
-
-  return (
+    return (
     <form
       onSubmit={handleSubmit}
       className="rounded-2xl border bg-white p-8 shadow"
     >
       <h1 className="text-3xl font-bold">
-        New Repeat Order
+        {mode === "edit"
+          ? "Edit Repeat Order"
+          : "New Repeat Order"}
       </h1>
 
       <div className="mt-8 space-y-6">
 
         <div>
-
           <label className="font-semibold">
-            Requested Weight
+            Order By
           </label>
 
-          <input
-            type="number"
-            value={weight}
+          <select
+            value={orderBy}
             onChange={(e) =>
-              setWeight(
-                e.target.value
+              setOrderBy(
+                e.target.value as
+                  | "weight"
+                  | "birds"
               )
             }
             className="mt-2 w-full rounded-lg border p-3"
-            required
-          />
+          >
+            <option value="weight">
+              Weight
+            </option>
 
+            <option value="birds">
+              Birds
+            </option>
+          </select>
         </div>
 
-        <div>
+        {orderBy === "weight" ? (
+          <div>
+            <label className="font-semibold">
+              Requested Weight (KG)
+            </label>
 
+            <input
+              type="number"
+              required
+              value={weight}
+              onChange={(e) =>
+                setWeight(e.target.value)
+              }
+              className="mt-2 w-full rounded-lg border p-3"
+            />
+          </div>
+        ) : (
+          <div>
+            <label className="font-semibold">
+              Number of Birds
+            </label>
+
+            <input
+              type="number"
+              required
+              value={birds}
+              onChange={(e) =>
+                setBirds(e.target.value)
+              }
+              className="mt-2 w-full rounded-lg border p-3"
+            />
+          </div>
+        )}
+
+        <div>
           <label className="font-semibold">
             Frequency
           </label>
@@ -151,9 +285,7 @@ export default function RepeatOrderForm() {
           <select
             value={frequency}
             onChange={(e) =>
-              setFrequency(
-                e.target.value
-              )
+              setFrequency(e.target.value)
             }
             className="mt-2 w-full rounded-lg border p-3"
           >
@@ -168,13 +300,10 @@ export default function RepeatOrderForm() {
             <option value="monthly">
               Monthly
             </option>
-
           </select>
-
         </div>
 
         <div>
-
           <label className="font-semibold">
             Payment Type
           </label>
@@ -182,9 +311,7 @@ export default function RepeatOrderForm() {
           <select
             value={paymentType}
             onChange={(e) =>
-              setPaymentType(
-                e.target.value
-              )
+              setPaymentType(e.target.value)
             }
             className="mt-2 w-full rounded-lg border p-3"
           >
@@ -199,15 +326,12 @@ export default function RepeatOrderForm() {
             <option value="credit">
               Credit
             </option>
-
           </select>
-
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
 
           <div>
-
             <label className="font-semibold">
               Start Date
             </label>
@@ -216,18 +340,14 @@ export default function RepeatOrderForm() {
               type="date"
               value={startDate}
               onChange={(e) =>
-                setStartDate(
-                  e.target.value
-                )
+                setStartDate(e.target.value)
               }
               className="mt-2 w-full rounded-lg border p-3"
               required
             />
-
           </div>
 
           <div>
-
             <label className="font-semibold">
               End Date
             </label>
@@ -236,13 +356,10 @@ export default function RepeatOrderForm() {
               type="date"
               value={endDate}
               onChange={(e) =>
-                setEndDate(
-                  e.target.value
-                )
+                setEndDate(e.target.value)
               }
               className="mt-2 w-full rounded-lg border p-3"
             />
-
           </div>
 
         </div>
@@ -269,17 +386,17 @@ export default function RepeatOrderForm() {
             Estimated Monthly Purchase
           </p>
 
-          <h2 className="mt-3 text-4xl font-bold">
-            {monthlyKg} KG
+          <h2 className="mt-2 text-4xl font-bold">
+            {estimatedMonthlyKg} KG
           </h2>
 
-          <p className="mt-5">
-            Estimated Spend
+          <p className="mt-4">
+            Estimated Monthly Spend
           </p>
 
           <h3 className="text-2xl font-bold">
             ₹
-            {monthlyKg * 120}
+            {estimatedMonthlyKg * 120}
           </h3>
 
         </div>
@@ -296,11 +413,16 @@ export default function RepeatOrderForm() {
           className="w-full rounded-xl bg-green-600 px-6 py-4 font-bold text-white"
         >
           {loading
-            ? "Creating..."
+            ? mode === "edit"
+              ? "Updating..."
+              : "Creating..."
+            : mode === "edit"
+            ? "Update Repeat Order"
             : "Create Repeat Order"}
         </button>
 
       </div>
+
     </form>
   );
 }

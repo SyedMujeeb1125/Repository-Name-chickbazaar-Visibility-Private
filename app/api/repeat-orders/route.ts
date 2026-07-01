@@ -15,12 +15,8 @@ export async function GET() {
 
     if (!mobile) {
       return NextResponse.json(
-        {
-          message: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
+        { message: "Unauthorized" },
+        { status: 401 }
       );
     }
 
@@ -33,23 +29,15 @@ export async function GET() {
 
     if (!retailer) {
       return NextResponse.json(
-        {
-          message: "Retailer not found.",
-        },
-        {
-          status: 404,
-        }
+        { message: "Retailer not found." },
+        { status: 404 }
       );
     }
 
     const orders =
-      await getRepeatOrders(
-        retailer.id
-      );
+      await getRepeatOrders(retailer.id);
 
-    return NextResponse.json(
-      orders
-    );
+    return NextResponse.json(orders);
 
   } catch (error) {
 
@@ -64,6 +52,7 @@ export async function GET() {
         status: 500,
       }
     );
+
   }
 }
 
@@ -77,12 +66,8 @@ export async function POST(
 
     if (!mobile) {
       return NextResponse.json(
-        {
-          message: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
+        { message: "Unauthorized" },
+        { status: 401 }
       );
     }
 
@@ -95,13 +80,8 @@ export async function POST(
 
     if (!retailer) {
       return NextResponse.json(
-        {
-          message:
-            "Retailer not found.",
-        },
-        {
-          status: 404,
-        }
+        { message: "Retailer not found." },
+        { status: 404 }
       );
     }
 
@@ -110,12 +90,8 @@ export async function POST(
 
     const order =
       await createRepeatOrder({
-
         ...body,
-
-        retailerId:
-          retailer.id,
-
+        retailerId: retailer.id,
       });
 
     return NextResponse.json(
@@ -138,5 +114,6 @@ export async function POST(
         status: 500,
       }
     );
+
   }
 }

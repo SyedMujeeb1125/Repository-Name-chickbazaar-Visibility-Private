@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import {
+  getRepeatOrderById,
+  updateRepeatOrder,
   pauseRepeatOrder,
   resumeRepeatOrder,
   deleteRepeatOrder,
@@ -12,6 +14,70 @@ type Props = {
   }>;
 };
 
+export async function GET(
+  request: Request,
+  { params }: Props
+) {
+  try {
+    const { id } = await params;
+
+    const order =
+      await getRepeatOrderById(id);
+
+    return NextResponse.json(order);
+
+  } catch (error) {
+
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to load repeat order.",
+      },
+      {
+        status: 500,
+      }
+    );
+
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: Props
+) {
+  try {
+    const { id } = await params;
+
+    const body =
+      await request.json();
+
+    const updated =
+      await updateRepeatOrder(
+        id,
+        body
+      );
+
+    return NextResponse.json(updated);
+
+  } catch (error) {
+
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to update repeat order.",
+      },
+      {
+        status: 500,
+      }
+    );
+
+  }
+}
+
 export async function PATCH(
   request: Request,
   { params }: Props
@@ -19,9 +85,11 @@ export async function PATCH(
   try {
     const { id } = await params;
 
-    const body = await request.json();
+    const body =
+      await request.json();
 
     switch (body.action) {
+
       case "pause":
         await pauseRepeatOrder(id);
         break;
@@ -39,6 +107,7 @@ export async function PATCH(
             status: 400,
           }
         );
+
     }
 
     return NextResponse.json({
@@ -46,6 +115,7 @@ export async function PATCH(
     });
 
   } catch (error) {
+
     return NextResponse.json(
       {
         message:
@@ -57,6 +127,7 @@ export async function PATCH(
         status: 500,
       }
     );
+
   }
 }
 
@@ -74,6 +145,7 @@ export async function DELETE(
     });
 
   } catch (error) {
+
     return NextResponse.json(
       {
         message:
@@ -85,5 +157,6 @@ export async function DELETE(
         status: 500,
       }
     );
+
   }
 }

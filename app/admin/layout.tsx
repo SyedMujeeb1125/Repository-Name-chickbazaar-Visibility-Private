@@ -18,6 +18,13 @@ export default function AdminLayout({
               Dashboard
             </Link>
 
+            <Link
+  href="/admin/planning"
+  className="block rounded p-3 hover:bg-white/10"
+>
+  Planning
+</Link>
+
             <Link href="/admin/orders" className="block rounded p-3 hover:bg-white/10">
               Orders
             </Link>
