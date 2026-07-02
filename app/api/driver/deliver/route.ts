@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import {
-  updateOrderDetails,
-  updateRecordStatus
-} from "@/lib/storage";
 
 
 export async function POST(
@@ -84,37 +80,39 @@ console.log(
     }
   }
 
-  await updateOrderDetails(
-    orderId,
+  const { error } = await supabase
+  .from("orders")
+  .update({
+    status: "delivered",
+
+    actual_weight: actualWeight,
+
+    delivery_notes: deliveryNotes,
+
+    delivered_at: new Date().toISOString(),
+
+    pod_photo_url: podPhotoUrl,
+
+    pod_uploaded_at: new Date().toISOString(),
+  })
+  .eq("id", orderId);
+
+if (error) {
+  console.error(error);
+
+  return NextResponse.json(
     {
-      actualWeight,
-      deliveryNotes,
-      deliveredAt:
-        new Date().toISOString()
+      success: false,
+      message: error.message,
+    },
+    {
+      status: 500,
     }
   );
-
-  await supabase
-    .from("orders")
-    .update({
-      pod_photo_url:
-        podPhotoUrl,
-
-      pod_uploaded_at:
-        new Date().toISOString()
-    })
-    .eq("id", orderId);
-
-  await updateRecordStatus(
-    "orders",
-    orderId,
-    "delivered"
-  );
+}
 
   return NextResponse.redirect(
-  new URL(
-    "/driver",
-    request.url
-  )
+  new URL("/driver", request.url),
+  303
 );
 }
