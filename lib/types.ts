@@ -66,33 +66,31 @@ export type OrderRecord = {
   status: OrderStatus;
 
   zone?:
-  | "north"
-  | "south"
-  | "east"
-  | "west"
-  | "central";
+    | "north"
+    | "south"
+    | "east"
+    | "west"
+    | "central";
+
+  orderBy?: "weight" | "birds";
 
   paymentStatus?: PaymentStatus;
+
   paymentAmount?: number;
 
   razorpayOrderId?: string;
+
   razorpayPaymentId?: string;
 
   paymentType?: "advance" | "actual_weight";
 
   requestedWeight?: number;
 
+  birds?: number;
+
+  averageWeight?: number;
+
   ratePerKg?: number;
-
-  actualWeight?: number;
-
-  deliveryNotes?: string;
-  
-  deliveredAt?: string;
-
-  finalAmount?: number;
-
-  outstandingAmount?: number;
 
   estimatedAmount?: number;
 
@@ -100,25 +98,42 @@ export type OrderRecord = {
 
   advanceRequired?: number;
 
+  actualWeight?: number;
+
+  finalAmount?: number;
+
+  outstandingAmount?: number;
+
+  deliveryNotes?: string;
+
+  deliveredAt?: string;
+
   shopName: string;
+
   deliveryShopName?: string;
+
   ownerName: string;
+
   mobile: string;
+
   email: string;
+
   address: string;
 
-  birds: string;
-  averageWeight: string;
   deliveryDate: string;
 
   notes: string;
 
   assignedFarm?: string;
+
   assignedDriver?: string;
+
   assignedVehicle?: string;
+
   trackingNotes?: string;
 
   latitude?: number;
+
   longitude?: number;
 };
 export type RetailerLocationRecord = {
