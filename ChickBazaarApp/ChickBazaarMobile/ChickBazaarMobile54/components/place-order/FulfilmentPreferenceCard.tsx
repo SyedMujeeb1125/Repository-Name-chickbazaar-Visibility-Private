@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import {
-  View,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -9,33 +8,40 @@ import {
 
 import CBCard from "../common/CBCard";
 
+import {
+  Colors,
+  Typography,
+  Spacing,
+} from "../../theme";
+
 export type FulfilmentPreference =
   | "closest"
   | "strict"
   | "contact";
 
 type Props = {
+  value?: FulfilmentPreference;
+
   onChange?: (
     value: FulfilmentPreference
   ) => void;
 };
 
 export default function FulfilmentPreferenceCard({
+  value = "closest",
   onChange,
 }: Props) {
 
   const [selected, setSelected] =
-    useState<FulfilmentPreference>(
-      "closest"
-    );
+    useState(value);
 
   function choose(
-    value: FulfilmentPreference
+    option: FulfilmentPreference
   ) {
 
-    setSelected(value);
+    setSelected(option);
 
-    onChange?.(value);
+    onChange?.(option);
 
   }
 
@@ -44,15 +50,15 @@ export default function FulfilmentPreferenceCard({
     <CBCard>
 
       <Text style={styles.title}>
-        🚚 Order Fulfilment Preference
+        Fulfilment Preference
       </Text>
 
       <Option
         active={
           selected === "closest"
         }
-        title="Closest Match (Recommended)"
-        subtitle="We'll prioritise your preferred bird sizes. If an exact match isn't available, we'll supply the closest available sizes while maintaining quality and freshness."
+        title="Closest Match"
+        subtitle="We'll deliver the nearest available bird size while maintaining freshness."
         onPress={() =>
           choose("closest")
         }
@@ -63,7 +69,7 @@ export default function FulfilmentPreferenceCard({
           selected === "strict"
         }
         title="Strict Size Match"
-        subtitle="Deliver only if the selected bird sizes are available."
+        subtitle="Deliver only if the requested bird size is available."
         onPress={() =>
           choose("strict")
         }
@@ -73,8 +79,8 @@ export default function FulfilmentPreferenceCard({
         active={
           selected === "contact"
         }
-        title="Contact Before Substitution"
-        subtitle="If the requested bird sizes aren't available, please call me before making any changes."
+        title="Call Before Change"
+        subtitle="Contact me before substituting bird size."
         onPress={() =>
           choose("contact")
         }
@@ -96,19 +102,19 @@ function Option({
   return (
 
     <TouchableOpacity
-      style={styles.option}
       onPress={onPress}
+      style={[
+        styles.option,
+        active &&
+          styles.active,
+      ]}
     >
 
-      <Text
-        style={styles.heading}
-      >
-        {active ? "🔘" : "⚪"} {title}
+      <Text style={styles.heading}>
+        {active ? "🟠" : "⚪"} {title}
       </Text>
 
-      <Text
-        style={styles.subtitle}
-      >
+      <Text style={styles.subtitle}>
         {subtitle}
       </Text>
 
@@ -122,23 +128,35 @@ const styles =
 StyleSheet.create({
 
 title:{
-fontSize:18,
-fontWeight:"700",
-marginBottom:15,
+fontSize:Typography.h3,
+fontWeight:Typography.bold,
+color:Colors.text,
+marginBottom:Spacing.md,
 },
 
 option:{
-marginBottom:20,
+borderWidth:1,
+borderColor:Colors.border,
+borderRadius:12,
+padding:16,
+marginBottom:12,
+},
+
+active:{
+backgroundColor:Colors.primaryLight,
+borderColor:Colors.primary,
 },
 
 heading:{
-fontWeight:"700",
-fontSize:16,
-marginBottom:5,
+fontSize:Typography.body,
+fontWeight:Typography.bold,
+color:Colors.text,
 },
 
 subtitle:{
-color:"#64748B",
+marginTop:6,
+fontSize:Typography.small,
+color:Colors.subtitle,
 lineHeight:20,
 },
 

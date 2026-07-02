@@ -89,11 +89,9 @@ export default function DashboardScreen({
         }
       >
         <AppHeader
-          shopName={
-            dashboard?.shopName ||
-            "Retailer"
-          }
-        />
+  title={dashboard?.shopName || "Retailer"}
+  subtitle="Welcome back"
+/>
 
         <HeroOrderCard
           onPress={() =>

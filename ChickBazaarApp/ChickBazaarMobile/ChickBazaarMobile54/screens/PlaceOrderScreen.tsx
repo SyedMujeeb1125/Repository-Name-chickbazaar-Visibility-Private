@@ -3,22 +3,23 @@ import React, {
   useState,
 } from "react";
 
+import OrderTypeSelector
+from "../components/place-order/OrderTypeSelector";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import CBButton from "../components/common/CBButton";
 
-import OrderEstimateCard
-from "../components/place-order/OrderEstimateCard";
+import OrderEstimateCard from "../components/place-order/OrderEstimateCard";
 
 import BirdPreferenceCard from "../components/place-order/BirdPreferenceCard";
 
 import FulfilmentPreferenceCard
 from "../components/place-order/FulfilmentPreferenceCard";
 
-import DeliveryPriorityCard
-from "../components/place-order/DeliveryPriorityCard";
+import DeliveryPriorityCard from "../components/place-order/DeliveryPriorityCard";
 
 import {
   DEFAULT_WEIGHT_OPTIONS,
@@ -32,6 +33,19 @@ import {
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
+
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Typography,
+} from "../theme";
+
+import CBCard from "../components/common/CBCard";
+
+import CBHeader from "../components/common/CBHeader";
+
+import CBInput from "../components/common/CBInput";
 
 import {
   View,
@@ -463,30 +477,39 @@ const selectedWeight =
             styles.container
           }
         >
-          <View style={styles.headerCard}>
-  <View>
-    <Text style={styles.greeting}>
-      Good Morning 👋
-    </Text>
+          <CBHeader
+  title="Place Order"
+  subtitle="Fresh live birds delivered to your shop"
+/>
 
-    <Text style={styles.title}>
-      Place Live Chicken Order
-    </Text>
-  </View>
+<CBCard
+  style={styles.rateCard}
+>
+  <Text
+    style={styles.rateLabel}
+  >
+    TODAY'S LIVE RATE
+  </Text>
 
-  <View style={styles.rateBadge}>
-    <Text style={styles.rateBadgeLabel}>
-      Today's Rate
-    </Text>
+  <Text
+    style={styles.rateValue}
+  >
+    ₹
+    {todayRate.toLocaleString()}
+    / KG
+  </Text>
 
-    <Text style={styles.rateBadgeValue}>
-      ₹{todayRate}/KG
-    </Text>
-  </View>
-</View>
+  <Text
+    style={styles.rateSubtitle}
+  >
+    Updated Today
+  </Text>
+</CBCard>
 
           {retailer && (
-  <View style={styles.retailerCard}>
+  <CBCard
+  style={styles.retailerCard}
+>
     <View style={styles.retailerHeader}>
       <Text style={styles.shopName}>
         🏪 {retailer.shopName}
@@ -515,11 +538,11 @@ const selectedWeight =
         ₹{(retailer.availableCredit || 0).toLocaleString()}
       </Text>
     </View>
-  </View>
+  </CBCard>
 )}
           {selectedShop && (
-  <TouchableOpacity
-  style={styles.card}
+  <CBCard>
+<TouchableOpacity
   onPress={chooseShop}
 >
     <Text style={styles.label}>
@@ -546,68 +569,25 @@ const selectedWeight =
       📍 {selectedShop.address}
     </Text>
   </TouchableOpacity>
+</CBCard>
 )}
 
           <View style={styles.card}>
 
-            <Text
-              style={[
-                styles.label,
-                {
-                  marginTop: 20,
-                },
-              ]}
-            >
-              Order Type
-            </Text>
-
-            <View
-              style={
-                styles.toggleRow
-              }
-            >
-              <TouchableOpacity
-  style={{
-    marginRight: 30,
-  }}
-  onPress={() =>
-    setOrderType(
-      "weight"
-    )
+            <OrderTypeSelector
+  value={
+    orderType as
+      "weight" | "birds"
   }
->
-                <Text>
-                  {orderType ===
-                  "weight"
-                    ? "🔘 Weight"
-                    : "⚪ Weight"}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() =>
-                  setOrderType(
-                    "birds"
-                  )
-                }
-              >
-                <Text>
-                  {orderType ===
-                  "birds"
-                    ? "🔘 Birds"
-                    : "⚪ Birds"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+  onChange={setOrderType}
+/>
 
             {orderType ===
             "weight" ? (
               <>
 
-                <Text
-  style={styles.label}
->
-  Required Weight
+                <Text style={styles.sectionHeading}>
+  Enter Weight
 </Text>
 
 <View style={styles.weightRow}>
@@ -627,37 +607,39 @@ const selectedWeight =
         style={[
           styles.weightChipText,
           requestedWeight === item && {
-            color: "#FFF",
+            color: "#FFFFFF",
           },
         ]}
       >
-        {item} KG
+        {item} kg
       </Text>
     </TouchableOpacity>
   ))}
 </View>
 
-<TextInput
-  style={styles.input}
-  placeholder="Or enter custom weight"
+<CBInput
+  placeholder="Enter Custom Weight"
   value={requestedWeight}
-  onChangeText={
-    setRequestedWeight
-  }
+  onChangeText={setRequestedWeight}
   keyboardType="numeric"
 />
+
 {Number(requestedWeight) > 0 && (
-  <Text
-    style={{
-      marginTop: 10,
-      color: "#64748B",
-      fontSize: 14,
-    }}
-  >
-    Estimated Birds: ≈ {estimatedBirds} birds{"\n"}
-    (Based on average 2.0 KG live bird)
-  </Text>
+  <View style={styles.infoBox}>
+    <Text style={styles.infoTitle}>
+      Estimated Birds
+    </Text>
+
+    <Text style={styles.infoValue}>
+      ≈ {estimatedBirds} Birds
+    </Text>
+
+    <Text style={styles.infoSubtitle}>
+      Based on average 2.0 KG live bird
+    </Text>
+  </View>
 )}
+
               </>
             ) : (
               <>
@@ -697,16 +679,19 @@ const selectedWeight =
 <BirdPreferenceCard
   onChange={setBirdPreferences}
 />
-<FulfilmentPreferenceCard
 
+<FulfilmentPreferenceCard
+  value={
+    fulfilmentPreference as
+      any
+  }
   onChange={
     setFulfilmentPreference
   }
 />
+
 <DeliveryPriorityCard
-  onChange={
-    setDeliveryPriority
-  }
+  onChange={setDeliveryPriority}
 />
             <Text
   style={styles.label}
@@ -872,6 +857,66 @@ const styles =
   alignItems: "center",
 },
 
+rateCard: {
+  backgroundColor: "#F97316",
+  borderRadius: 20,
+  padding: 20,
+  marginBottom: 20,
+},
+
+rateLabel: {
+  color: "#FFFFFF",
+  fontSize: 13,
+  fontWeight: "600",
+},
+
+rateValue: {
+  color: "#FFFFFF",
+  fontSize: 34,
+  fontWeight: "700",
+  marginTop: 8,
+},
+
+rateSubtitle: {
+  color: "#FFEDD5",
+  marginTop: 6,
+  fontSize: 13,
+},
+
+sectionHeading: {
+  fontSize: 18,
+  fontWeight: "700",
+  color: "#0F172A",
+  marginBottom: 12,
+  marginTop: 12,
+},
+
+weightRow: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  marginBottom: 14,
+},
+
+infoBox: {
+  backgroundColor: "#FFF7ED",
+  borderRadius: 12,
+  padding: 16,
+  marginTop: 14,
+  marginBottom: 18,
+},
+
+infoTitle: {
+  fontSize: 15,
+  fontWeight: "700",
+  color: "#0F172A",
+},
+
+infoSubtitle: {
+  marginTop: 6,
+  fontSize: 13,
+  color: "#64748B",
+},
+
 greeting: {
   fontSize: 14,
   color: "#64748B",
@@ -946,29 +991,29 @@ rateBadgeValue: {
   marginBottom: 20,
 },
 
-weightRow: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  marginBottom: 12,
-},
-
 weightChip: {
+  height: 42,
+  minWidth: 78,
+  paddingHorizontal: 18,
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: 12,
   borderWidth: 1,
-  borderColor: "#F97316",
-  borderRadius: 20,
-  paddingHorizontal: 15,
-  paddingVertical: 8,
-  marginRight: 8,
-  marginBottom: 8,
+  borderColor: Colors.border,
+  backgroundColor: Colors.white,
+  marginRight: 10,
+  marginBottom: 10,
 },
 
 weightChipActive: {
-  backgroundColor: "#F97316",
+  backgroundColor: Colors.primary,
+  borderColor: Colors.primary,
 },
 
 weightChipText: {
-  color: "#F97316",
-  fontWeight: "600",
+  fontSize: 14,
+  fontWeight: Typography.bold,
+  color: Colors.text,
 },
 
     input: {

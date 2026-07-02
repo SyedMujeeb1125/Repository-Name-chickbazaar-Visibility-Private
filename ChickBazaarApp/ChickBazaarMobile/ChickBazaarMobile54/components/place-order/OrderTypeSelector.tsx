@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   View,
   Text,
@@ -6,7 +7,13 @@ import {
   StyleSheet,
 } from "react-native";
 
-import Card from "../ui/Card";
+import CBCard from "../common/CBCard";
+
+import {
+  Colors,
+  Typography,
+  Spacing,
+} from "../../theme";
 
 type Props = {
   value: "weight" | "birds";
@@ -20,88 +27,110 @@ export default function OrderTypeSelector({
   onChange,
 }: Props) {
   return (
-    <Card>
+    <CBCard>
       <Text style={styles.heading}>
-        How would you like to order?
+        Order By
       </Text>
 
       <View style={styles.row}>
         <TouchableOpacity
-          style={[
-            styles.option,
-            value ===
-              "weight" &&
-              styles.active,
-          ]}
           onPress={() =>
             onChange("weight")
           }
+          style={[
+            styles.option,
+            value === "weight" &&
+              styles.active,
+          ]}
         >
+          <Text style={styles.icon}>
+            ⚖️
+          </Text>
+
+          <Text style={styles.title}>
+            Weight
+          </Text>
+
           <Text
-            style={
-              styles.text
-            }
+            style={styles.subtitle}
           >
-            ⚖️ By Weight
+            Order by KG
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.option,
-            value ===
-              "birds" &&
-              styles.active,
-          ]}
           onPress={() =>
             onChange("birds")
           }
+          style={[
+            styles.option,
+            value === "birds" &&
+              styles.active,
+          ]}
         >
+          <Text style={styles.icon}>
+            🐔
+          </Text>
+
+          <Text style={styles.title}>
+            Birds
+          </Text>
+
           <Text
-            style={
-              styles.text
-            }
+            style={styles.subtitle}
           >
-            🐔 By Birds
+            Order by Count
           </Text>
         </TouchableOpacity>
       </View>
-    </Card>
+    </CBCard>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    heading: {
-      fontSize: 20,
-      fontWeight: "700",
-      marginBottom: 15,
-    },
+const styles = StyleSheet.create({
+  heading: {
+    fontSize: Typography.h3,
+    fontWeight: Typography.bold,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
 
-    row: {
-      flexDirection: "row",
-      justifyContent:
-        "space-between",
-    },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
 
-    option: {
-      width: "48%",
-      padding: 18,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: "#CBD5E1",
-      alignItems: "center",
-    },
+  option: {
+    width: "48%",
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 14,
+    padding: 18,
+    alignItems: "center",
+  },
 
-    active: {
-      backgroundColor:
-        "#FFF7ED",
-      borderColor:
-        "#F97316",
-    },
+  active: {
+    backgroundColor:
+      Colors.primaryLight,
+    borderColor:
+      Colors.primary,
+  },
 
-    text: {
-      fontWeight: "700",
-      color: "#0F172A",
-    },
-  });
+  icon: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+
+  title: {
+    fontSize: Typography.body,
+    fontWeight: Typography.bold,
+    color: Colors.text,
+  },
+
+  subtitle: {
+    marginTop: 4,
+    color: Colors.subtitle,
+    fontSize: Typography.small,
+    textAlign: "center",
+  },
+});

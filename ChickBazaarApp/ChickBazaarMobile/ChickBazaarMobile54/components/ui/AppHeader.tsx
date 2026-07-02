@@ -1,57 +1,153 @@
 import React from "react";
+
 import {
   View,
   Text,
-  Image,
+  TouchableOpacity,
   StyleSheet,
 } from "react-native";
 
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Typography,
+} from "../../theme";
+
 type Props = {
-  shopName: string;
+  title: string;
+
+  subtitle?: string;
+
+  onBack?: () => void;
+
+  rightComponent?: React.ReactNode;
 };
 
 export default function AppHeader({
-  shopName,
+  title,
+  subtitle,
+  onBack,
+  rightComponent,
 }: Props) {
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../../assets/logo.png")}
-        style={styles.logo}
-      />
+      <View style={styles.left}>
+        {onBack && (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+          >
+            <Text style={styles.backIcon}>
+              ←
+            </Text>
+          </TouchableOpacity>
+        )}
 
-      <Text style={styles.welcome}>
-        Welcome Back
-      </Text>
+        <View>
+          <Text style={styles.title}>
+            {title}
+          </Text>
 
-      <Text style={styles.shop}>
-        {shopName}
-      </Text>
+          {subtitle ? (
+            <Text
+              style={
+                styles.subtitle
+              }
+            >
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+
+      {rightComponent ? (
+        <View>
+          {rightComponent}
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor:
+      Colors.surface,
+
+    paddingHorizontal:
+      Spacing.md,
+
+    paddingVertical:
+      Spacing.md,
+
+    flexDirection: "row",
+
+    justifyContent:
+      "space-between",
+
     alignItems: "center",
-    marginBottom: 20,
+
+    borderBottomWidth: 1,
+
+    borderBottomColor:
+      Colors.border,
   },
 
-  logo: {
-    width: 220,
-    height: 90,
-    resizeMode: "contain",
+  left: {
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    flex: 1,
   },
 
-  welcome: {
-    fontSize: 16,
-    color: "#64748B",
+  backButton: {
+    width: 42,
+
+    height: 42,
+
+    borderRadius:
+      Radius.round,
+
+    backgroundColor:
+      Colors.light,
+
+    justifyContent:
+      "center",
+
+    alignItems: "center",
+
+    marginRight:
+      Spacing.md,
   },
 
-  shop: {
-    marginTop: 6,
-    fontSize: 30,
-    fontWeight: "700",
-    color: "#0F172A",
+  backIcon: {
+    fontSize: 22,
+
+    color: Colors.text,
+
+    fontWeight:
+      Typography.bold,
+  },
+
+  title: {
+    fontSize:
+      Typography.h3,
+
+    fontWeight:
+      Typography.bold,
+
+    color: Colors.text,
+  },
+
+  subtitle: {
+    marginTop: 2,
+
+    fontSize:
+      Typography.small,
+
+    color:
+      Colors.subtitle,
   },
 });

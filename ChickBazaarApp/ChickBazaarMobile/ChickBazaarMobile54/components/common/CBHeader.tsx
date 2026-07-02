@@ -6,7 +6,11 @@ import {
   StyleSheet,
 } from "react-native";
 
-import { Colors } from "../../theme/colors";
+import {
+  Colors,
+  Typography,
+  Spacing,
+} from "../../theme";
 
 type Props = {
   title: string;
@@ -18,12 +22,16 @@ export default function CBHeader({
   subtitle,
 }: Props) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View
+      style={styles.container}
+    >
+      <Text
+        style={styles.title}
+      >
         {title}
       </Text>
 
-      {!!subtitle && (
+      {subtitle ? (
         <Text
           style={
             styles.subtitle
@@ -31,7 +39,7 @@ export default function CBHeader({
         >
           {subtitle}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -39,18 +47,29 @@ export default function CBHeader({
 const styles =
   StyleSheet.create({
     container: {
-      marginBottom: 20,
+      marginBottom:
+        Spacing.lg,
     },
 
     title: {
-      fontSize: 28,
-      fontWeight: "700",
-      color: Colors.text,
+      fontSize:
+        Typography.h1,
+
+      fontWeight:
+        Typography.bold,
+
+      color:
+        Colors.text,
     },
 
     subtitle: {
-      marginTop: 6,
-      color: Colors.subtitle,
-      fontSize: 15,
+      marginTop:
+        Spacing.xs,
+
+      color:
+        Colors.subtitle,
+
+      fontSize:
+        Typography.body,
     },
   });

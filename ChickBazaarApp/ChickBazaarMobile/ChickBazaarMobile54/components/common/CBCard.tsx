@@ -1,12 +1,16 @@
 import React, { ReactNode } from "react";
+
 import {
   View,
   StyleSheet,
   ViewStyle,
 } from "react-native";
 
-import { Colors } from "../../theme/colors";
-import { Radius } from "../../theme/radius";
+import {
+  Colors,
+  Radius,
+  Spacing,
+} from "../../theme";
 
 type Props = {
   children: ReactNode;
@@ -18,23 +22,49 @@ export default function CBCard({
   style,
 }: Props) {
   return (
-    <View style={[styles.card, style]}>
+    <View
+      style={[
+        styles.card,
+        style,
+      ]}
+    >
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: 18,
-    marginBottom: 20,
+const styles =
+  StyleSheet.create({
+    card: {
+      backgroundColor:
+        Colors.surface,
 
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+      borderRadius:
+        Radius.lg,
 
-    elevation: 3,
-  },
-});
+      padding:
+        Spacing.md,
+
+      marginBottom:
+        Spacing.md,
+
+      borderWidth: 1,
+
+      borderColor:
+        Colors.border,
+
+      shadowColor:
+        Colors.shadow,
+
+      shadowOpacity: 0.08,
+
+      shadowRadius: 8,
+
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+
+      elevation: 3,
+    },
+  });

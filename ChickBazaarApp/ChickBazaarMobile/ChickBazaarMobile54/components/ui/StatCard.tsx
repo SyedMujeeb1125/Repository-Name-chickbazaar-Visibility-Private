@@ -1,50 +1,157 @@
 import React from "react";
+
 import {
   View,
   Text,
   StyleSheet,
 } from "react-native";
 
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Typography,
+} from "../../theme";
+
 type Props = {
-  label: string;
+  title: string;
   value: string | number;
+  subtitle?: string;
+  icon?: string;
+  color?: string;
 };
 
 export default function StatCard({
-  label,
+  title,
   value,
+  subtitle,
+  icon,
+  color = Colors.primary,
 }: Props) {
   return (
     <View style={styles.card}>
-      <Text style={styles.label}>
-        {label}
+      {icon ? (
+        <View
+          style={[
+            styles.iconContainer,
+            {
+              backgroundColor:
+                Colors.primaryLight,
+            },
+          ]}
+        >
+          <Text style={styles.icon}>
+            {icon}
+          </Text>
+        </View>
+      ) : null}
+
+      <Text style={styles.title}>
+        {title}
       </Text>
 
-      <Text style={styles.value}>
+      <Text
+        style={[
+          styles.value,
+          {
+            color,
+          },
+        ]}
+      >
         {value}
       </Text>
+
+      {subtitle ? (
+        <Text style={styles.subtitle}>
+          {subtitle}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    width: "48%",
-    backgroundColor: "#FFF",
-    borderRadius: 18,
-    padding: 18,
-    elevation: 2,
+    flex: 1,
+
+    backgroundColor:
+      Colors.surface,
+
+    borderRadius:
+      Radius.lg,
+
+    padding:
+      Spacing.md,
+
+    borderWidth: 1,
+
+    borderColor:
+      Colors.border,
+
+    shadowColor:
+      Colors.shadow,
+
+    shadowOpacity: 0.08,
+
+    shadowRadius: 8,
+
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    elevation: 3,
   },
 
-  label: {
-    color: "#64748B",
-    fontSize: 14,
+  iconContainer: {
+    width: 42,
+
+    height: 42,
+
+    borderRadius:
+      Radius.round,
+
+    justifyContent:
+      "center",
+
+    alignItems:
+      "center",
+
+    marginBottom:
+      Spacing.sm,
+  },
+
+  icon: {
+    fontSize: 18,
+  },
+
+  title: {
+    fontSize:
+      Typography.small,
+
+    color:
+      Colors.subtitle,
   },
 
   value: {
-    fontSize: 30,
-    fontWeight: "700",
-    marginTop: 10,
-    color: "#0F172A",
+    marginTop:
+      Spacing.xs,
+
+    fontSize:
+      Typography.h2,
+
+    fontWeight:
+      Typography.bold,
+  },
+
+  subtitle: {
+    marginTop:
+      Spacing.sm,
+
+    fontSize:
+      Typography.caption,
+
+    color:
+      Colors.subtitle,
   },
 });

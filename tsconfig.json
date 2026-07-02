@@ -22,6 +22,7 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
@@ -36,7 +37,7 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-  "node_modules",
-  "ChickBazaarApp"
-]
+    "node_modules",
+    "ChickBazaarApp"
+  ]
 }
