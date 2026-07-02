@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { readDb } from "@/lib/storage";
 
@@ -73,28 +74,52 @@ export default async function OrderStatusPage({
             </div>
 
             <div className="flex justify-between">
-              <span>Estimated Amount</span>
+  <span>Actual Weight</span>
 
-              <strong>
-                ₹{order.estimatedAmount}
-              </strong>
-            </div>
+  <strong>
+    {order.actualWeight ?? 0} KG
+  </strong>
+</div>
 
-            <div className="flex justify-between">
-              <span>Advance Paid</span>
+<div className="flex justify-between">
+  <span>Rate Per KG</span>
 
-              <strong>
-                ₹{order.paymentAmount}
-              </strong>
-            </div>
+  <strong>
+    ₹{order.ratePerKg ?? 0}
+  </strong>
+</div>
 
-            <div className="flex justify-between">
-              <span>Delivery Date</span>
+<div className="flex justify-between">
+  <span>Final Amount</span>
 
-              <strong>
-                {order.deliveryDate}
-              </strong>
-            </div>
+  <strong>
+    ₹{order.finalAmount ?? order.estimatedAmount ?? 0}
+  </strong>
+</div>
+
+<div className="flex justify-between">
+  <span>Advance Paid</span>
+
+  <strong>
+    ₹{order.paymentAmount ?? 0}
+  </strong>
+</div>
+
+<div className="flex justify-between">
+  <span>Outstanding Amount</span>
+
+  <strong className="text-red-600">
+    ₹{order.outstandingAmount ?? 0}
+  </strong>
+</div>
+
+<div className="flex justify-between">
+  <span>Delivery Date</span>
+
+  <strong>
+    {order.deliveryDate}
+  </strong>
+</div>
 
           </div>
 

@@ -92,9 +92,12 @@ paymentType: o.payment_type,
 requestedWeight: o.requested_weight,
 ratePerKg: o.rate_per_kg,
 actualWeight: o.actual_weight,
+
 finalAmount: o.final_amount,
-estimatedAmount:
-  o.estimated_amount,
+
+outstandingAmount: o.outstanding_amount,
+
+estimatedAmount: o.estimated_amount,
 
 advancePercentage:
   o.advance_percentage,
