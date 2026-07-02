@@ -1,15 +1,25 @@
 import { API_BASE } from "../constants/api";
 
-export async function getRetailerProfile(
-  mobile: string
+async function request(
+  endpoint: string,
+  options?: RequestInit
 ) {
   const response = await fetch(
-    `${API_BASE}/profile?mobile=${mobile}`
+    `${API_BASE}${endpoint}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options?.headers || {}),
+      },
+      ...options,
+    }
   );
 
   if (!response.ok) {
+    const message = await response.text();
+
     throw new Error(
-      "Unable to load retailer profile."
+      message || "Request failed."
     );
   }
 
@@ -19,21 +29,12 @@ export async function getRetailerProfile(
 export async function loginRetailer(
   mobile: string
 ) {
-  const response = await fetch(
-    `${API_BASE}/login`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-      body: JSON.stringify({
-        mobile,
-      }),
-    }
-  );
-
-  return response.json();
+  return request("/login", {
+    method: "POST",
+    body: JSON.stringify({
+      mobile,
+    }),
+  });
 }
 
 export async function registerRetailer(
@@ -44,17 +45,56 @@ export async function registerRetailer(
     email: string;
   }
 ) {
-  const response = await fetch(
-    `${API_BASE}/register-retailer`,
+  return request(
+    "/register-retailer",
     {
       method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
+}
 
-  return response.json();
+export async function getRetailerProfile(
+  mobile: string
+) {
+  return request(
+    `/profile?mobile=${mobile}`
+  );
+}
+
+export async function getRetailerDashboard(
+  mobile: string
+) {
+  return request(
+    `/retailer/dashboard?mobile=${mobile}`
+  );
+}
+
+export async function getRetailerCredit(
+  retailerId: string
+) {
+  return request(
+    `/retailer/credit/${retailerId}`
+  );
+}
+
+export async function getRetailerShops(
+  mobile: string
+) {
+  return request(
+    `/shops?mobile=${mobile}`
+  );
+}
+
+export async function updateRetailerProfile(
+  retailerId: string,
+  payload: any
+) {
+  return request(
+    `/retailer/${retailerId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  );
 }
