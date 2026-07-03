@@ -36,8 +36,8 @@ export default function OutstandingScreen() {
 
     const response =
       await fetch(
-        `https://www.chickbazaar.com/api/mobile/profile?mobile=${mobile}`
-      );
+  `https://www.chickbazaar.com/api/mobile/outstanding?mobile=${mobile}`
+)
 
     const data =
       await response.json();
@@ -56,14 +56,13 @@ export default function OutstandingScreen() {
   }
 
   const creditLimit =
-    retailer.creditLimit || 0;
+  Number(retailer.creditLimit || 0);
 
-  const availableCredit =
-    retailer.availableCredit || 0;
+const availableCredit =
+  Number(retailer.availableCredit || 0);
 
-  const outstanding =
-    creditLimit -
-    availableCredit;
+const outstanding =
+  Number(retailer.outstanding || 0);
 
   return (
     <SafeAreaView
@@ -111,26 +110,33 @@ export default function OutstandingScreen() {
   Recent Transactions
 </Text>
 
-<TransactionCard
-  title="Invoice CB-2026-0145"
-  amount={15400}
-  date="02 Jul 2026"
-  type="debit"
-/>
+{retailer.transactions?.length > 0 ? (
 
-<TransactionCard
-  title="Payment Received"
-  amount={20000}
-  date="01 Jul 2026"
-  type="credit"
-/>
+  retailer.transactions.map(
+    (transaction: any) => (
 
-<TransactionCard
-  title="Invoice CB-2026-0139"
-  amount={12150}
-  date="30 Jun 2026"
-  type="debit"
-/>
+      <TransactionCard
+        key={transaction.id}
+        title={transaction.title}
+        amount={transaction.amount}
+        date={transaction.date}
+        type={transaction.type}
+      />
+
+    )
+  )
+
+) : (
+
+  <View style={styles.card}>
+
+    <Text style={styles.label}>
+      No transactions available
+    </Text>
+
+  </View>
+
+)}
 
                 
       </ScrollView>
