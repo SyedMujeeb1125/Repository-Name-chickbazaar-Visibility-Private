@@ -3,9 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
-
-import PrimaryButton from "../ui/PrimaryButton";
 
 type Props = {
   onPress: () => void;
@@ -16,24 +15,31 @@ export default function HeroOrderCard({
 }: Props) {
   return (
     <View style={styles.card}>
+      <View style={styles.left}>
 
-      <Text style={styles.title}>
-        🐔 Fresh Live Chicken
-      </Text>
+        <Text style={styles.small}>
+          Today's Rate
+        </Text>
 
-      <Text style={styles.subtitle}>
-        Farm Fresh • Quality Checked
-      </Text>
+        <Text style={styles.rate}>
+          ₹150
+          <Text style={styles.kg}> / Kg</Text>
+        </Text>
 
-      <Text style={styles.delivery}>
-        Order before 12 PM for Same-Day Delivery
-      </Text>
+        <Text style={styles.time}>
+          Valid till 6:00 PM
+        </Text>
 
-      <PrimaryButton
-        title="PLACE ORDER"
+      </View>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={onPress}
-      />
-
+      >
+        <Text style={styles.buttonText}>
+          →
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -41,30 +47,54 @@ export default function HeroOrderCard({
 const styles = StyleSheet.create({
 
 card:{
-backgroundColor:"#FFFFFF",
+backgroundColor:"#F97316",
+borderRadius:22,
 padding:22,
-borderRadius:20,
+flexDirection:"row",
+justifyContent:"space-between",
+alignItems:"center",
 marginBottom:20,
-elevation:3
 },
 
-title:{
-fontSize:24,
+left:{
+flex:1,
+},
+
+small:{
+color:"#FFE7D4",
+fontSize:13,
+},
+
+rate:{
+color:"#FFFFFF",
+fontSize:34,
 fontWeight:"700",
-color:"#0F172A"
-},
-
-subtitle:{
 marginTop:6,
-fontSize:15,
-color:"#16A34A"
 },
 
-delivery:{
-marginTop:12,
-marginBottom:20,
-color:"#64748B",
-lineHeight:22
+kg:{
+fontSize:18,
+},
+
+time:{
+color:"#FFF7ED",
+marginTop:8,
+fontSize:13,
+},
+
+button:{
+width:52,
+height:52,
+borderRadius:26,
+backgroundColor:"rgba(255,255,255,.2)",
+justifyContent:"center",
+alignItems:"center",
+},
+
+buttonText:{
+fontSize:30,
+color:"#FFF",
+fontWeight:"700",
 }
 
 });

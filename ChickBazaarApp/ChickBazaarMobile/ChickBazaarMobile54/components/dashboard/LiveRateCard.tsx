@@ -1,66 +1,110 @@
 import React from "react";
 
 import {
-View,
-Text,
-StyleSheet,
+  View,
+  Text,
+  StyleSheet,
 } from "react-native";
 
-type Props={
-rate:number;
+type Props = {
+  rate: number;
 };
 
 export default function LiveRateCard({
-rate,
-}:Props){
+  rate,
+}: Props) {
+  return (
+    <View style={styles.card}>
 
-return(
+      <View style={styles.left}>
 
-<View style={styles.card}>
+        <Text style={styles.title}>
+          Today's Rate
+        </Text>
 
-<Text style={styles.heading}>
-📈 LIVE MARKET RATE
-</Text>
+        <View style={styles.rateRow}>
+          <Text style={styles.rate}>
+            ₹{rate}
+          </Text>
 
-<Text style={styles.rate}>
-₹{rate.toLocaleString()}/KG
-</Text>
+          <Text style={styles.unit}>
+            /kg
+          </Text>
+        </View>
 
-<Text style={styles.time}>
-Updated Today
-</Text>
+        <Text style={styles.validity}>
+          Valid till 6:00 AM tomorrow
+        </Text>
 
-</View>
+      </View>
 
-);
+      <View style={styles.graphContainer}>
+        <Text style={styles.graph}>
+          📈
+        </Text>
+      </View>
 
+    </View>
+  );
 }
 
-const styles=StyleSheet.create({
+const styles = StyleSheet.create({
 
-card:{
-backgroundColor:"#F97316",
-padding:22,
-borderRadius:20,
-marginBottom:20
-},
+  card: {
+    backgroundColor: "#FF6B00",
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 4,
+  },
 
-heading:{
-color:"#FFF",
-fontSize:15,
-fontWeight:"600"
-},
+  left: {
+    flex: 1,
+  },
 
-rate:{
-color:"#FFF",
-fontSize:36,
-fontWeight:"700",
-marginTop:10
-},
+  title: {
+    color: "#FFF",
+    fontSize: 17,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
 
-time:{
-marginTop:10,
-color:"#FFEDD5"
-}
+  rateRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+
+  rate: {
+    color: "#FFF",
+    fontSize: 48,
+    fontWeight: "800",
+  },
+
+  unit: {
+    color: "#FFF",
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+
+  validity: {
+    marginTop: 14,
+    color: "#FFE8D6",
+    fontSize: 15,
+  },
+
+  graphContainer: {
+    width: 90,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  graph: {
+    fontSize: 48,
+  },
 
 });

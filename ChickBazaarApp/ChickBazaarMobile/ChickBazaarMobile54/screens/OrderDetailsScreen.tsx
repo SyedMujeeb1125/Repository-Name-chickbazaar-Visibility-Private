@@ -16,6 +16,10 @@ import {
   Linking,
 } from "react-native";
 
+import OrderHeaderCard from "../components/order-details/OrderHeaderCard";
+import OrderSummaryCard from "../components/order-details/OrderSummaryCard";
+import OrderProgress from "../components/orders/OrderProgress";
+
 export default function OrderDetailsScreen({
   route,
 }: any) {
@@ -64,211 +68,153 @@ export default function OrderDetailsScreen({
           false
         }
       >
-        <View
-          style={styles.orderCard}
-        >
-          <Text
-            style={styles.orderNumber}
-          >
-            {order.orderNumber}
-          </Text>
+        <OrderHeaderCard
+  orderNumber={order.orderNumber}
+  status={order.status}
+  orderDate={order.createdAt}
+/>
 
-          <View
-            style={styles.badge}
-          >
-            <Text
-              style={
-                styles.badgeText
-              }
-            >
-              {order.status}
-            </Text>
-          </View>
-
-          <Text
-            style={styles.info}
-          >
-            ⚖️ Weight:
-            {" "}
-            {order.requestedWeight}
-            kg
-          </Text>
-
-          <Text
-            style={styles.info}
-          >
-            💰 Amount: ₹
-            {
-              order.estimatedAmount
-            }
-          </Text>
-
-          <Text
-            style={styles.info}
-          >
-            📅 Delivery:
-            {" "}
-            {
-              order.deliveryDate
-            }
-          </Text>
-        </View>
-
+<OrderSummaryCard
+  quantity={
+    order.orderBy === "birds"
+      ? order.birds
+      : order.requestedWeight
+  }
+  orderType={
+    order.orderBy === "birds"
+      ? "birds"
+      : "weight"
+  }
+  amount={Number(order.estimatedAmount || 0)}
+/>
+        
         <View style={styles.card}>
 
   <Text style={styles.cardTitle}>
-    📦 Order Progress
+    🚚 Delivery Progress
   </Text>
 
-  <View style={styles.timelineRow}>
-    <Text style={styles.timelineIcon}>
-      {["new","confirmed","procured","dispatched","delivered"].includes(order.status)
-        ? "🟢"
-        : "⚪"}
-    </Text>
+  <OrderProgress
+    status={order.status}
+  />
 
-    <Text style={styles.timelineText}>
-      Order Received
-    </Text>
-  </View>
-
-  <View style={styles.timelineRow}>
-    <Text style={styles.timelineIcon}>
-      {["confirmed","procured","dispatched","delivered"].includes(order.status)
-        ? "🟢"
-        : "⚪"}
-    </Text>
-
-    <Text style={styles.timelineText}>
-      Confirmed
-    </Text>
-  </View>
-
-  <View style={styles.timelineRow}>
-    <Text style={styles.timelineIcon}>
-      {["procured","dispatched","delivered"].includes(order.status)
-        ? "🟢"
-        : "⚪"}
-    </Text>
-
-    <Text style={styles.timelineText}>
-      Farm Allocated
-    </Text>
-  </View>
-
-  <View style={styles.timelineRow}>
-    <Text style={styles.timelineIcon}>
-      {["dispatched","delivered"].includes(order.status)
-        ? "🟢"
-        : "⚪"}
-    </Text>
-
-    <Text style={styles.timelineText}>
-      Out For Delivery
-    </Text>
-  </View>
-
-  <View style={styles.timelineRow}>
-    <Text style={styles.timelineIcon}>
-      {order.status==="delivered"
-        ? "🟢"
-        : "⚪"}
-    </Text>
-
-    <Text style={styles.timelineText}>
-      Delivered
-    </Text>
-  </View>
+  <Text
+    style={{
+      marginTop: 18,
+      color: "#64748B",
+      textAlign: "center",
+      lineHeight: 22,
+    }}
+  >
+    {order.status === "delivered"
+      ? "Order Delivered Successfully"
+      : order.status === "dispatched"
+      ? "Your order is out for delivery."
+      : order.status === "procured"
+      ? "Birds have been allocated from the farm."
+      : order.status === "confirmed"
+      ? "Your order has been confirmed."
+      : "Waiting for confirmation."}
+  </Text>
 
 </View>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.cardTitle
-            }
-          >
-            🏡 Assigned Farm
-          </Text>
+        <View style={styles.card}>
 
-          <Text
-            style={
-              styles.cardValue
-            }
-          >
-            {order.assignedFarm ||
-              "Not Assigned"}
-          </Text>
-        </View>
+  <Text style={styles.cardTitle}>
+    📦 Order Preparation
+  </Text>
+
+  <Text style={styles.cardValue}>
+    {order.status === "new"
+      ? "Order received successfully."
+      : order.status === "confirmed"
+      ? "Your order has been confirmed."
+      : order.status === "procured"
+      ? "Birds have been allocated and quality checked."
+      : order.status === "dispatched"
+      ? "Your order has left our dispatch center."
+      : "Your order has been delivered successfully."}
+  </Text>
+
+</View>
 
         <View style={styles.card}>
 
   <Text style={styles.cardTitle}>
-    🚚 Driver
+    👨‍✈️ Captain
   </Text>
 
-  <Text style={styles.cardValue}>
-    {order.assignedDriver || "Not Assigned"}
-  </Text>
+  {order.status === "dispatched" ||
+  order.status === "delivered" ? (
 
-  {!!order.driverMobile && (
+    <>
 
-    <View style={styles.actionRow}>
+      <Text style={styles.cardValue}>
+        {order.assignedCaptain}
+      </Text>
 
-      <TouchableOpacity
-        style={styles.callButton}
-        onPress={() =>
-          Linking.openURL(
-            `tel:${order.driverMobile}`
-          )
-        }
-      >
-        <Text style={styles.actionText}>
-          📞 Call
-        </Text>
-      </TouchableOpacity>
+      {!!order.captainMobile && (
 
-      <TouchableOpacity
-        style={styles.whatsappButton}
-        onPress={() =>
-          Linking.openURL(
-            `https://wa.me/${order.driverMobile}`
-          )
-        }
-      >
-        <Text style={styles.actionText}>
-          💬 WhatsApp
-        </Text>
-      </TouchableOpacity>
+        <View style={styles.actionRow}>
 
-    </View>
+          <TouchableOpacity
+            style={styles.callButton}
+            onPress={() =>
+              Linking.openURL(
+                `tel:${order.captainMobile}`
+              )
+            }
+          >
+            <Text style={styles.actionText}>
+              📞 Call Captain
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.whatsappButton}
+            onPress={() =>
+              Linking.openURL(
+                `https://wa.me/${order.captainMobile}`
+              )
+            }
+          >
+            <Text style={styles.actionText}>
+              💬 WhatsApp Captain
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+
+      )}
+
+    </>
+
+  ) : (
+
+    <Text style={styles.cardValue}>
+      A Captain will be assigned before dispatch.
+    </Text>
 
   )}
 
 </View>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.cardTitle
-            }
-          >
-            🚛 Vehicle
-          </Text>
+        <View style={styles.card}>
 
-          <Text
-            style={
-              styles.cardValue
-            }
-          >
-            {order.assignedVehicle ||
-              "Not Assigned"}
-          </Text>
-        </View>
+  <Text style={styles.cardTitle}>
+    🚚 Dispatch Status
+  </Text>
+
+  <Text style={styles.cardValue}>
+    {order.status === "dispatched"
+      ? "Captain is on the way to your shop."
+      : order.status === "delivered"
+      ? "Order delivered successfully."
+      : "Waiting for dispatch."}
+  </Text>
+
+</View>
 
         <View
           style={styles.card}
@@ -278,7 +224,7 @@ export default function OrderDetailsScreen({
               styles.cardTitle
             }
           >
-            📍 Tracking Notes
+            📢 Delivery Updates
           </Text>
 
           <Text
@@ -287,7 +233,7 @@ export default function OrderDetailsScreen({
             }
           >
             {order.trackingNotes ||
-              "No updates yet"}
+              "Our operations team will keep you updated."}
           </Text>
         </View>
       </ScrollView>

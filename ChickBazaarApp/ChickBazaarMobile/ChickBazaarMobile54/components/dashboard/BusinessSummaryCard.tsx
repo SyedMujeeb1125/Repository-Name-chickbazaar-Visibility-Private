@@ -1,111 +1,127 @@
 import React from "react";
 
 import {
-View,
-Text,
-StyleSheet,
+  View,
+  Text,
+  StyleSheet,
 } from "react-native";
 
-import Card from "../ui/Card";
-
-type Props={
-
-activeOrders:number;
-
-pendingBills:number;
-
-availableCredit:number;
-
+type Props = {
+  activeOrders: number;
+  pendingBills: number;
+  availableCredit: number;
 };
 
 export default function BusinessSummaryCard({
+  activeOrders,
+  pendingBills,
+  availableCredit,
+}: Props) {
 
-activeOrders,
+  return (
 
-pendingBills,
+    <View style={styles.container}>
 
-availableCredit,
+      <Text style={styles.heading}>
+        Business Summary
+      </Text>
 
-}:Props){
+      <View style={styles.grid}>
 
-return(
+        <SummaryCard
+          value={String(activeOrders)}
+          title="Total Orders"
+          color="#F97316"
+        />
 
-<Card>
+        <SummaryCard
+          value={`₹${pendingBills.toLocaleString()}`}
+          title="Outstanding"
+          color="#DC2626"
+        />
 
-<Text style={styles.heading}>
-📊 Today's Business
-</Text>
+        <SummaryCard
+          value={`₹${availableCredit.toLocaleString()}`}
+          title="Available Credit"
+          color="#16A34A"
+        />
 
-<Row
-title="Active Orders"
-value={String(activeOrders)}
-/>
+      </View>
 
-<Row
-title="Pending Bills"
-value={`₹${pendingBills.toLocaleString()}`}
-/>
+    </View>
 
-<Row
-title="Available Credit"
-value={`₹${availableCredit.toLocaleString()}`}
-/>
-
-</Card>
-
-);
-
-}
-
-function Row({
-
-title,
-
-value,
-
-}:any){
-
-return(
-
-<View style={styles.row}>
-
-<Text style={styles.title}>
-{title}
-</Text>
-
-<Text style={styles.value}>
-{value}
-</Text>
-
-</View>
-
-);
+  );
 
 }
 
-const styles=StyleSheet.create({
+function SummaryCard({
+  value,
+  title,
+  color,
+}: any) {
 
-heading:{
-fontSize:20,
-fontWeight:"700",
-marginBottom:18
-},
+  return (
 
-row:{
-flexDirection:"row",
-justifyContent:"space-between",
-paddingVertical:8
-},
+    <View style={styles.card}>
 
-title:{
-color:"#64748B",
-fontSize:15
-},
+      <Text
+        style={[
+          styles.value,
+          { color },
+        ]}
+      >
+        {value}
+      </Text>
 
-value:{
-fontSize:16,
-fontWeight:"700",
-color:"#0F172A"
+      <Text style={styles.title}>
+        {title}
+      </Text>
+
+    </View>
+
+  );
+
 }
+
+const styles = StyleSheet.create({
+
+  container:{
+    marginBottom:22,
+  },
+
+  heading:{
+    fontSize:22,
+    fontWeight:"800",
+    color:"#0F172A",
+    marginBottom:18,
+  },
+
+  grid:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+  },
+
+  card:{
+    width:"31%",
+    backgroundColor:"#FFFFFF",
+    borderRadius:20,
+    paddingVertical:24,
+    paddingHorizontal:10,
+    alignItems:"center",
+    elevation:3,
+  },
+
+  value:{
+    fontSize:22,
+    fontWeight:"800",
+  },
+
+  title:{
+    marginTop:10,
+    textAlign:"center",
+    color:"#64748B",
+    fontSize:13,
+    lineHeight:18,
+  },
 
 });

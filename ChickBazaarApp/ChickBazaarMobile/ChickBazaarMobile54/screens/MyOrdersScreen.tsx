@@ -5,6 +5,8 @@ import React, {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import OrderProgress from "../components/orders/OrderProgress";
+
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
@@ -16,14 +18,6 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-
-const statuses = [
-  "new",
-  "confirmed",
-  "procured",
-  "dispatched",
-  "delivered",
-];
 
 export default function MyOrdersScreen({
   navigation,
@@ -58,54 +52,6 @@ export default function MyOrdersScreen({
       await response.json();
 
     setOrders(data);
-  }
-
-  function renderStatus(
-    currentStatus: string
-  ) {
-    const currentIndex =
-      statuses.indexOf(
-        currentStatus
-      );
-
-    return statuses.map(
-      (status, index) => (
-        <View
-          key={status}
-          style={
-            styles.statusRow
-          }
-        >
-          <Text
-            style={
-              styles.statusIcon
-            }
-          >
-            {index <=
-            currentIndex
-              ? "🟠"
-              : "⚪"}
-          </Text>
-
-          <Text
-            style={{
-              fontWeight:
-                index ===
-                currentIndex
-                  ? "700"
-                  : "400",
-              color:
-                "#334155",
-            }}
-          >
-            {status
-              .charAt(0)
-              .toUpperCase() +
-              status.slice(1)}
-          </Text>
-        </View>
-      )
-    );
   }
 
   return (
@@ -157,15 +103,23 @@ export default function MyOrdersScreen({
                   styles.headerRow
                 }
               >
-                <Text
-                  style={
-                    styles.orderNumber
-                  }
-                >
-                  {
-                    item.orderNumber
-                  }
-                </Text>
+                <View>
+
+  <Text
+    style={styles.orderNumber}
+  >
+    {item.orderNumber}
+  </Text>
+
+  <Text
+    style={styles.orderDate}
+  >
+    {new Date(
+      item.createdAt
+    ).toLocaleDateString()}
+  </Text>
+
+</View>
 
                 <View
   style={[
@@ -185,61 +139,64 @@ export default function MyOrdersScreen({
 </View>
               </View>
 
-              <Text
-                style={
-                  styles.detail
-                }
-              >
-                ⚖️ Weight:
-                {" "}
-                {
-                  item.requestedWeight
-                }
-                kg
-              </Text>
-
-              <Text
-                style={
-                  styles.detail
-                }
-              >
-                💰 Amount:
-                ₹
-                {item.estimatedAmount ||
-                  0}
-              </Text>
-
               <Text style={styles.detail}>
-  📅 Ordered:
-  {" "}
-  {new Date(
-    item.createdAt
-  ).toLocaleDateString()}
+
+{item.orderBy === "birds"
+  ? `🐔 ${item.birds} Birds`
+  : `⚖ ${item.requestedWeight} KG`}
+
 </Text>
 
-<Text style={styles.detail}>
-  🚚 Delivery:
-  {" "}
-  {item.deliveryDate || "Today"}
+              <View style={styles.amountRow}>
+
+<Text style={styles.amountLabel}>
+Estimated Bill
+</Text>
+
+<Text style={styles.amountValue}>
+
+₹
+{Number(
+item.estimatedAmount || 0
+).toLocaleString()}
+
+</Text>
+
+</View>
+
+              <Text style={styles.deliveryText}>
+
+🚚 Delivery
+
+{" "}
+
+{item.deliveryDate || "Today"}
+
 </Text>
 
 {!!item.shopName && (
-  <Text style={styles.detail}>
-    🏪 Shop:
-    {" "}
-    {item.shopName}
-  </Text>
+
+<View style={styles.shopRow}>
+
+<Text style={styles.shopLabel}>
+Shop
+</Text>
+
+<Text style={styles.shopValue}>
+{item.shopName}
+</Text>
+
+</View>
+
 )}
 
-              <View
-                style={
-                  styles.statusContainer
-                }
-              >
-                {renderStatus(
-                  item.status
-                )}
-              </View>
+              <View style={styles.statusContainer}>
+
+  <OrderProgress
+    status={item.status}
+  />
+
+</View>
             </TouchableOpacity>
           )}
         />
@@ -332,14 +289,48 @@ badgeGreen: {
       paddingTop: 12,
     },
 
-    statusRow: {
-      flexDirection: "row",
-      alignItems:
-        "center",
-      marginBottom: 4,
-    },
+    orderDate: {
+  marginTop: 4,
+  fontSize: 13,
+  color: "#94A3B8",
+},
 
-    statusIcon: {
-      marginRight: 8,
-    },
+deliveryText: {
+  marginTop: 10,
+  fontWeight: "600",
+  color: "#2563EB",
+},
+
+amountRow: {
+  marginTop: 10,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+amountLabel: {
+  color: "#64748B",
+  fontSize: 14,
+},
+
+amountValue: {
+  fontSize: 24,
+  fontWeight: "700",
+  color: "#F97316",
+},
+
+shopRow: {
+  marginTop: 8,
+  flexDirection: "row",
+  justifyContent: "space-between",
+},
+
+shopLabel: {
+  color: "#64748B",
+},
+
+shopValue: {
+  fontWeight: "700",
+  color: "#0F172A",
+},
   });

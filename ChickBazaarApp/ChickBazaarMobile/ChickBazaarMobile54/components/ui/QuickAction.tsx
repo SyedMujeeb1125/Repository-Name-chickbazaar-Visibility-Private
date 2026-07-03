@@ -2,38 +2,32 @@ import React from "react";
 
 import {
   TouchableOpacity,
-  View,
   Text,
   StyleSheet,
+  View,
 } from "react-native";
-
-import {
-  Colors,
-  Radius,
-  Spacing,
-  Typography,
-} from "../../theme";
 
 type Props = {
   icon: string;
   title: string;
-  subtitle?: string;
   onPress: () => void;
 };
 
 export default function QuickAction({
   icon,
   title,
-  subtitle,
   onPress,
 }: Props) {
+
   return (
+
     <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
       style={styles.card}
+      activeOpacity={0.8}
+      onPress={onPress}
     >
-      <View style={styles.iconBox}>
+
+      <View style={styles.iconContainer}>
         <Text style={styles.icon}>
           {icon}
         </Text>
@@ -43,99 +37,42 @@ export default function QuickAction({
         {title}
       </Text>
 
-      {subtitle ? (
-        <Text style={styles.subtitle}>
-          {subtitle}
-        </Text>
-      ) : null}
     </TouchableOpacity>
+
   );
+
 }
 
 const styles = StyleSheet.create({
-  card: {
-    width: "48%",
 
-    backgroundColor:
-      Colors.surface,
-
-    borderRadius:
-      Radius.lg,
-
-    padding:
-      Spacing.md,
-
-    marginBottom:
-      Spacing.md,
-
-    borderWidth: 1,
-
-    borderColor:
-      Colors.border,
-
-    alignItems: "center",
-
-    shadowColor:
-      Colors.shadow,
-
-    shadowOpacity: 0.08,
-
-    shadowRadius: 8,
-
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
-    elevation: 3,
+  card:{
+    width:"48%",
+    backgroundColor:"#FFFFFF",
+    borderRadius:22,
+    paddingVertical:24,
+    alignItems:"center",
+    marginBottom:16,
+    elevation:3,
   },
 
-  iconBox: {
-    width: 56,
-
-    height: 56,
-
-    borderRadius:
-      Radius.round,
-
-    backgroundColor:
-      Colors.primaryLight,
-
-    justifyContent: "center",
-
-    alignItems: "center",
-
-    marginBottom:
-      Spacing.sm,
+  iconContainer:{
+    width:62,
+    height:62,
+    borderRadius:31,
+    backgroundColor:"#FFF4EC",
+    justifyContent:"center",
+    alignItems:"center",
   },
 
-  icon: {
-    fontSize: 26,
+  icon:{
+    fontSize:30,
   },
 
-  title: {
-    fontSize:
-      Typography.body,
-
-    fontWeight:
-      Typography.bold,
-
-    color:
-      Colors.text,
-
-    textAlign: "center",
+  title:{
+    marginTop:16,
+    fontSize:16,
+    fontWeight:"700",
+    color:"#0F172A",
   },
 
-  subtitle: {
-    marginTop:
-      Spacing.xs,
-
-    fontSize:
-      Typography.caption,
-
-    color:
-      Colors.subtitle,
-
-    textAlign: "center",
-  },
 });

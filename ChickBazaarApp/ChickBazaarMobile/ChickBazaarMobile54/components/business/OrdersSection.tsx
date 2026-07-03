@@ -1,12 +1,11 @@
 import React from "react";
+
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-
-import Card from "../ui/Card";
 
 type Props = {
   orders: any[];
@@ -17,103 +16,219 @@ export default function OrdersSection({
   orders,
   onOrderPress,
 }: Props) {
+
   return (
-    <Card>
+
+    <View style={styles.container}>
+
       <Text style={styles.heading}>
-        📦 Recent Orders
+        Recent Orders
       </Text>
 
       {orders.length === 0 ? (
-        <Text style={styles.empty}>
-          No recent orders.
-        </Text>
+
+        <View style={styles.emptyCard}>
+
+          <Text style={styles.emptyText}>
+            No recent orders found.
+          </Text>
+
+        </View>
+
       ) : (
-        orders.map((order: any) => (
+
+        orders.slice(0, 5).map((order) => (
+
           <TouchableOpacity
             key={order.id}
-            style={styles.item}
+            style={styles.card}
+            activeOpacity={0.8}
             onPress={() =>
               onOrderPress(order.id)
             }
           >
-            <View>
-              <Text style={styles.number}>
-                {order.order_number ??
-                  order.orderNumber}
-              </Text>
 
-              <Text style={styles.status}>
-                {String(order.status)
-                  .replace("_", " ")
-                  .toUpperCase()}
-              </Text>
+            <View style={styles.topRow}>
+
+              <View>
+
+                <Text style={styles.orderNo}>
+                  {order.order_number ??
+                    order.orderNumber}
+                </Text>
+
+                <Text style={styles.date}>
+                  {new Date(
+                    order.created_at ??
+                    order.createdAt
+                  ).toLocaleDateString()}
+                </Text>
+
+              </View>
+
+              <View style={styles.statusBadge}>
+
+                <Text style={styles.statusText}>
+                  {String(order.status)
+                    .replace("_"," ")
+                    .toUpperCase()}
+                </Text>
+
+              </View>
+
             </View>
 
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.amount}>
-                ₹
-                {Number(
-                  order.final_amount ??
+            <View style={styles.divider} />
+
+            <View style={styles.bottomRow}>
+
+              <View>
+
+                <Text style={styles.label}>
+                  Quantity
+                </Text>
+
+                <Text style={styles.value}>
+                  {order.requestedWeight ??
+                    0} kg
+                </Text>
+
+              </View>
+
+              <View>
+
+                <Text style={styles.label}>
+                  Amount
+                </Text>
+
+                <Text style={styles.amount}>
+                  ₹
+                  {Number(
+                    order.final_amount ??
                     order.finalAmount ??
                     order.estimated_amount ??
                     order.estimatedAmount ??
                     0
-                ).toLocaleString()}
-              </Text>
+                  ).toLocaleString()}
+                </Text>
 
-              <Text style={styles.view}>
-                View →
-              </Text>
+              </View>
+
             </View>
+
+            <Text style={styles.view}>
+              View Details →
+            </Text>
+
           </TouchableOpacity>
+
         ))
+
       )}
-    </Card>
+
+    </View>
+
   );
+
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 16,
-  },
 
-  item: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-  },
+container:{
+marginBottom:20,
+},
 
-  number: {
-    fontWeight: "700",
-    fontSize: 16,
-    color: "#0F172A",
-  },
+heading:{
+fontSize:22,
+fontWeight:"800",
+marginBottom:18,
+color:"#0F172A",
+},
 
-  status: {
-    marginTop: 5,
-    color: "#16A34A",
-    fontSize: 14,
-  },
+card:{
+backgroundColor:"#FFFFFF",
+borderRadius:22,
+padding:20,
+marginBottom:16,
+elevation:3,
+},
 
-  amount: {
-    fontWeight: "700",
-    color: "#0F172A",
-  },
+topRow:{
+flexDirection:"row",
+justifyContent:"space-between",
+alignItems:"center",
+},
 
-  view: {
-    marginTop: 4,
-    color: "#2563EB",
-    fontSize: 13,
-  },
+orderNo:{
+fontSize:18,
+fontWeight:"800",
+color:"#0F172A",
+},
 
-  empty: {
-    color: "#94A3B8",
-    textAlign: "center",
-    paddingVertical: 20,
-  },
+date:{
+marginTop:5,
+fontSize:13,
+color:"#64748B",
+},
+
+statusBadge:{
+backgroundColor:"#FFF4EC",
+paddingHorizontal:12,
+paddingVertical:6,
+borderRadius:20,
+},
+
+statusText:{
+color:"#F97316",
+fontWeight:"700",
+fontSize:12,
+},
+
+divider:{
+height:1,
+backgroundColor:"#EEF2F7",
+marginVertical:16,
+},
+
+bottomRow:{
+flexDirection:"row",
+justifyContent:"space-between",
+},
+
+label:{
+fontSize:13,
+color:"#64748B",
+},
+
+value:{
+marginTop:4,
+fontWeight:"700",
+fontSize:16,
+},
+
+amount:{
+marginTop:4,
+fontWeight:"800",
+fontSize:18,
+color:"#16A34A",
+},
+
+view:{
+marginTop:18,
+color:"#2563EB",
+fontWeight:"700",
+},
+
+emptyCard:{
+backgroundColor:"#FFFFFF",
+padding:30,
+borderRadius:22,
+alignItems:"center",
+},
+
+emptyText:{
+color:"#94A3B8",
+fontSize:15,
+},
+
 });

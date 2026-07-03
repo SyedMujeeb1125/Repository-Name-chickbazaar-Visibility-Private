@@ -1,6 +1,8 @@
 import React from "react";
+
 import {
   View,
+  Text,
   StyleSheet,
 } from "react-native";
 
@@ -14,45 +16,73 @@ type Props = {
 };
 
 export default function QuickActionsSection({
+
   onShops,
   onOrders,
   onBills,
   onProfile,
+
 }: Props) {
+
   return (
-    <View style={styles.grid}>
-      <QuickAction
-        icon="🏪"
-        title="My Shops"
-        onPress={onShops}
-      />
 
-      <QuickAction
-        icon="📋"
-        title="Orders"
-        onPress={onOrders}
-      />
+    <View style={styles.container}>
 
-      <QuickAction
-        icon="💳"
-        title="Bills"
-        onPress={onBills}
-      />
+      <Text style={styles.heading}>
+        Quick Actions
+      </Text>
 
-      <QuickAction
-        icon="👤"
-        title="Profile"
-        onPress={onProfile}
-      />
+      <View style={styles.grid}>
+
+        <QuickAction
+          icon="🏪"
+          title="My Shops"
+          onPress={onShops}
+        />
+
+        <QuickAction
+          icon="📦"
+          title="Orders"
+          onPress={onOrders}
+        />
+
+        <QuickAction
+          icon="💳"
+          title="Payments"
+          onPress={onBills}
+        />
+
+        <QuickAction
+          icon="👤"
+          title="Profile"
+          onPress={onProfile}
+        />
+
+      </View>
+
     </View>
+
   );
+
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 20,
+
+  container:{
+    marginBottom:22,
   },
+
+  heading:{
+    fontSize:22,
+    fontWeight:"800",
+    color:"#0F172A",
+    marginBottom:18,
+  },
+
+  grid:{
+    flexDirection:"row",
+    flexWrap:"wrap",
+    justifyContent:"space-between",
+  },
+
 });

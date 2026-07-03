@@ -2,205 +2,162 @@ import React from "react";
 
 import {
   View,
-  TouchableOpacity,
   Text,
+  TouchableOpacity,
   StyleSheet,
 } from "react-native";
 
-import {
-  Colors,
-  Radius,
-  Spacing,
-  Typography,
-} from "../../theme";
-
-type Tab = {
-  key: string;
-  label: string;
-  icon: string;
-};
-
 type Props = {
-  active: string;
-  onPress: (key: string) => void;
+  current: string;
+  navigation: any;
 };
-
-const tabs: Tab[] = [
-  {
-    key: "dashboard",
-    label: "Home",
-    icon: "🏠",
-  },
-  {
-    key: "orders",
-    label: "Orders",
-    icon: "📋",
-  },
-  {
-    key: "placeOrder",
-    label: "Order",
-    icon: "➕",
-  },
-  {
-    key: "payments",
-    label: "Bills",
-    icon: "💳",
-  },
-  {
-    key: "profile",
-    label: "Profile",
-    icon: "👤",
-  },
-];
 
 export default function BottomNav({
-  active,
-  onPress,
+  current,
+  navigation,
 }: Props) {
+
   return (
+
     <View style={styles.container}>
-      {tabs.map((tab) => {
-        const selected =
-          active === tab.key;
 
-        const isCenter =
-          tab.key === "placeOrder";
+      <NavItem
+        icon="🏠"
+        title="Home"
+        active={current==="Dashboard"}
+        onPress={() =>
+          navigation.navigate("Dashboard")
+        }
+      />
 
-        return (
-          <TouchableOpacity
-            key={tab.key}
-            onPress={() =>
-              onPress(tab.key)
-            }
-            style={[
-              styles.item,
-              isCenter &&
-                styles.centerItem,
-            ]}
-          >
-            <View
-              style={[
-                styles.iconCircle,
-                selected &&
-                  styles.activeCircle,
-                isCenter &&
-                  styles.centerCircle,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.icon,
-                  selected &&
-                    styles.activeIcon,
-                ]}
-              >
-                {tab.icon}
-              </Text>
-            </View>
+      <NavItem
+        icon="📦"
+        title="Orders"
+        active={current==="MyOrders"}
+        onPress={() =>
+          navigation.navigate("MyOrders")
+        }
+      />
 
-            <Text
-              style={[
-                styles.label,
-                selected &&
-                  styles.activeLabel,
-              ]}
-            >
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      <TouchableOpacity
+        style={styles.centerButton}
+        onPress={() =>
+          navigation.navigate("PlaceOrder")
+        }
+      >
+
+        <Text style={styles.centerIcon}>
+          🐔
+        </Text>
+
+      </TouchableOpacity>
+
+      <NavItem
+        icon="💳"
+        title="Bills"
+        active={current==="Outstanding"}
+        onPress={() =>
+          navigation.navigate("Outstanding")
+        }
+      />
+
+      <NavItem
+        icon="👤"
+        title="Profile"
+        active={current==="Profile"}
+        onPress={() =>
+          navigation.navigate("Profile")
+        }
+      />
+
     </View>
+
   );
+
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
+function NavItem({
+  icon,
+  title,
+  active,
+  onPress,
+}:any){
 
-    justifyContent:
-      "space-around",
+  return(
 
-    alignItems: "center",
+    <TouchableOpacity
+      style={styles.item}
+      onPress={onPress}
+    >
 
-    backgroundColor:
-      Colors.surface,
+      <Text
+        style={[
+          styles.icon,
+          active && styles.active,
+        ]}
+      >
+        {icon}
+      </Text>
 
-    borderTopWidth: 1,
+      <Text
+        style={[
+          styles.text,
+          active && styles.active,
+        ]}
+      >
+        {title}
+      </Text>
 
-    borderTopColor:
-      Colors.border,
+    </TouchableOpacity>
 
-    paddingVertical:
-      Spacing.sm,
+  );
 
-    elevation: 10,
-  },
+}
 
-  item: {
-    alignItems: "center",
+const styles=StyleSheet.create({
 
-    flex: 1,
-  },
+container:{
+height:78,
+backgroundColor:"#FFFFFF",
+flexDirection:"row",
+justifyContent:"space-around",
+alignItems:"center",
+borderTopWidth:1,
+borderTopColor:"#E5E7EB",
+},
 
-  centerItem: {
-    marginTop: -22,
-  },
+item:{
+alignItems:"center",
+flex:1,
+},
 
-  iconCircle: {
-    width: 42,
+icon:{
+fontSize:24,
+},
 
-    height: 42,
+text:{
+fontSize:12,
+marginTop:4,
+color:"#64748B",
+},
 
-    borderRadius:
-      Radius.round,
+active:{
+color:"#F97316",
+},
 
-    justifyContent:
-      "center",
+centerButton:{
+width:72,
+height:72,
+borderRadius:36,
+backgroundColor:"#F97316",
+justifyContent:"center",
+alignItems:"center",
+marginTop:-34,
+elevation:8,
+},
 
-    alignItems:
-      "center",
-  },
+centerIcon:{
+fontSize:34,
+},
 
-  centerCircle: {
-    width: 60,
-
-    height: 60,
-
-    backgroundColor:
-      Colors.primary,
-
-    elevation: 6,
-  },
-
-  activeCircle: {
-    backgroundColor:
-      Colors.primaryLight,
-  },
-
-  icon: {
-    fontSize: 22,
-  },
-
-  activeIcon: {
-    color: Colors.primary,
-  },
-
-  label: {
-    marginTop: 5,
-
-    fontSize:
-      Typography.caption,
-
-    color:
-      Colors.subtitle,
-  },
-
-  activeLabel: {
-    color:
-      Colors.primary,
-
-    fontWeight:
-      Typography.bold,
-  },
 });

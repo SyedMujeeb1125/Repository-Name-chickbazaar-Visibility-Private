@@ -43,8 +43,8 @@ export default function ReviewOrderScreen({
 
         <CBCard>
           <Text style={styles.sectionTitle}>
-            Delivery Shop
-          </Text>
+🏪 Delivery Shop
+</Text>
 
           <Text style={styles.value}>
             {selectedShop?.shopName}
@@ -57,8 +57,8 @@ export default function ReviewOrderScreen({
 
         <CBCard>
           <Text style={styles.sectionTitle}>
-            Order Details
-          </Text>
+📦 Order Summary
+</Text>
 
           <View style={styles.row}>
             <Text style={styles.label}>
@@ -107,8 +107,8 @@ export default function ReviewOrderScreen({
 
         <CBCard>
           <Text style={styles.sectionTitle}>
-            Pricing
-          </Text>
+💰 Payment Summary
+</Text>
 
           <View style={styles.row}>
             <Text style={styles.label}>
@@ -140,17 +140,78 @@ export default function ReviewOrderScreen({
               amount={advanceRequired}
             />
           </View>
+          <View
+style={{
+height:1,
+backgroundColor:"#E2E8F0",
+marginVertical:18,
+}}
+/>
+
+<View
+style={styles.row}
+>
+
+<Text
+style={{
+fontSize:18,
+fontWeight:"700",
+}}
+>
+Estimated Total
+</Text>
+
+<CBAmount
+amount={estimatedAmount}
+size={30}
+/>
+
+</View>
         </CBCard>
 
         <CBCard>
-          <Text style={styles.sectionTitle}>
-            Delivery Date
-          </Text>
 
-          <Text style={styles.value}>
-            {deliveryDate}
-          </Text>
-        </CBCard>
+<Text style={styles.sectionTitle}>
+🚚 Delivery Details
+</Text>
+
+<View style={styles.row}>
+
+<Text style={styles.label}>
+Delivery Date
+</Text>
+
+<Text style={styles.valueSmall}>
+{deliveryDate}
+</Text>
+
+</View>
+
+<View style={styles.row}>
+
+<Text style={styles.label}>
+Priority
+</Text>
+
+<Text style={styles.valueSmall}>
+{deliveryPriority}
+</Text>
+
+</View>
+
+<View style={styles.row}>
+
+<Text style={styles.label}>
+Fulfilment
+</Text>
+
+<Text style={styles.valueSmall}>
+{fulfilmentPreference}
+</Text>
+
+</View>
+
+</CBCard>
 
         {!!notes && (
           <CBCard>

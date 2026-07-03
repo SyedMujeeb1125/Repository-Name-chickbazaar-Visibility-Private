@@ -71,173 +71,140 @@ export default function ProfileScreen({
   }
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
+  <SafeAreaView
+    style={styles.safeArea}
+  >
+    <ScrollView
+      contentContainerStyle={
+        styles.container
+      }
+      showsVerticalScrollIndicator={
+        false
+      }
     >
-      <ScrollView
-        contentContainerStyle={
-          styles.container
-        }
-        showsVerticalScrollIndicator={
-          false
-        }
+      <View
+        style={styles.profileHeader}
       >
         <View
-          style={styles.profileHeader}
+          style={styles.avatar}
         >
-          <View
-            style={styles.avatar}
-          >
-            <Text
-              style={
-                styles.avatarText
-              }
-            >
-              {(
-                retailer.ownerName ||
-                "R"
-              )
-                .charAt(0)
-                .toUpperCase()}
-            </Text>
-          </View>
-
           <Text
             style={
-              styles.ownerName
+              styles.avatarText
             }
           >
-            {retailer.ownerName}
-          </Text>
-
-          <Text
-            style={
-              styles.ownerRole
-            }
-          >
-            Retail Partner
+            {(
+              retailer.ownerName ||
+              "R"
+            )
+              .charAt(0)
+              .toUpperCase()}
           </Text>
         </View>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.label
-            }
-          >
-            🏪 Shop Name
-          </Text>
+        <Text style={styles.welcome}>
+          Welcome Back 👋
+        </Text>
 
-          <Text
-            style={
-              styles.value
-            }
-          >
-            {retailer.shopName ||
-              "-"}
-          </Text>
-        </View>
+        <Text style={styles.ownerName}>
+          {retailer.shopName}
+        </Text>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.label
-            }
-          >
-            👤 Owner Name
-          </Text>
+        <Text style={styles.ownerRole}>
+          Retail Partner
+        </Text>
 
-          <Text
-            style={
-              styles.value
-            }
-          >
-            {retailer.ownerName ||
-              "-"}
-          </Text>
-        </View>
+        <Text style={styles.memberSince}>
+          Delivering with ChickBazaar
+        </Text>
+      </View>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.label
-            }
-          >
-            📱 Mobile
-          </Text>
+      <View style={styles.card}>
 
-          <Text
-            style={
-              styles.value
-            }
-          >
-            {retailer.mobile ||
-              "-"}
-          </Text>
-        </View>
+        <Text style={styles.sectionTitle}>
+          🏪 Shop Information
+        </Text>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.label
-            }
-          >
-            ✉️ Email
-          </Text>
+        <Text style={styles.label}>
+          Shop Name
+        </Text>
 
-          <Text
-            style={
-              styles.value
-            }
-          >
-            {retailer.email ||
-              "-"}
-          </Text>
-        </View>
+        <Text style={styles.value}>
+          {retailer.shopName || "-"}
+        </Text>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={
-              styles.label
-            }
-          >
-            📍 Address
-          </Text>
+        <Text style={styles.label}>
+          Owner
+        </Text>
 
-          <Text
-            style={
-              styles.value
-            }
-          >
-            {retailer.address ||
-              "-"}
-          </Text>
-        </View>
+        <Text style={styles.value}>
+          {retailer.ownerName || "-"}
+        </Text>
 
-        <TouchableOpacity
-          style={
-            styles.logoutButton
-          }
-          onPress={logout}
-        >
-          <Text
-            style={
-              styles.logoutText
-            }
-          >
-            Logout
-          </Text>
-        </TouchableOpacity>
+      </View>
+
+      <View style={styles.card}>
+
+        <Text style={styles.sectionTitle}>
+          📞 Contact Information
+        </Text>
+
+        <Text style={styles.label}>
+          Mobile
+        </Text>
+
+        <Text style={styles.value}>
+          {retailer.mobile || "-"}
+        </Text>
+
+        <Text style={styles.label}>
+          Email
+        </Text>
+
+        <Text style={styles.value}>
+          {retailer.email || "-"}
+        </Text>
+
+        <Text style={styles.label}>
+          Address
+        </Text>
+
+        <Text style={styles.value}>
+          {retailer.address || "-"}
+        </Text>
+
+      </View>
+
+      <View style={styles.card}>
+
+        <Text style={styles.sectionTitle}>
+          📄 Business Information
+        </Text>
+
+        <Text style={styles.label}>
+          Credit Category
+        </Text>
+
+        <Text style={styles.value}>
+          {(
+            retailer.creditCategory ||
+            "NEW"
+          ).toUpperCase()}
+        </Text>
+
+        <Text style={styles.label}>
+          Credit Limit
+        </Text>
+
+        <Text style={styles.value}>
+          ₹
+          {Number(
+            retailer.creditLimit ||
+            0
+          ).toLocaleString()}
+        </Text>
+
+      </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -334,4 +301,23 @@ const styles =
       fontWeight: "700",
       fontSize: 16,
     },
+
+    welcome: {
+  color: "#64748B",
+  fontSize: 16,
+  marginBottom: 6,
+},
+
+memberSince: {
+  color: "#94A3B8",
+  marginTop: 6,
+  fontSize: 14,
+},
+
+sectionTitle: {
+  fontSize: 18,
+  fontWeight: "700",
+  color: "#0F172A",
+  marginBottom: 18,
+},
   });

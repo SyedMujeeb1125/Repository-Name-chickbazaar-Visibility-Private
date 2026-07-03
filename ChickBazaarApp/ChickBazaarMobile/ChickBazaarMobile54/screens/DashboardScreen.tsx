@@ -14,11 +14,13 @@ import {
   StyleSheet,
 } from "react-native";
 
-import AppHeader from "../components/ui/AppHeader";
+import DashboardHeader from "../components/dashboard/DashboardHeader";
 
-import HeroOrderCard from "../components/dashboard/HeroOrderCard";
+import DashboardHero from "../components/dashboard/DashboardHero";
 import LiveRateCard from "../components/dashboard/LiveRateCard";
 import BusinessSummaryCard from "../components/dashboard/BusinessSummaryCard";
+
+import TomorrowOrderCard from "../components/dashboard/TomorrowOrderCard";
 
 import OperationsSection from "../components/business/OperationsSection";
 
@@ -88,95 +90,88 @@ export default function DashboardScreen({
           styles.container
         }
       >
-        <AppHeader
-  title={dashboard?.shopName || "Retailer"}
-  subtitle="Welcome back"
+        <DashboardHeader
+  shopName={dashboard?.shopName || "Retailer"}
+  address={dashboard?.address}
 />
 
-        <HeroOrderCard
-          onPress={() =>
-            navigation.navigate(
-              "PlaceOrder"
-            )
-          }
-        />
+<LiveRateCard
+  rate={Number(
+    dashboard?.todayRate || 0
+  )}
+/>
 
-        <LiveRateCard
-          rate={Number(
-            dashboard?.todayRate ||
-              0
-          )}
-        />
+<DashboardHero
+  hasOrderToday={false}
+  deliveryStatus={
+    dashboard?.currentDelivery?.status
+  }
+  driverName={
+    dashboard?.currentDelivery?.captain
+  }
+  eta={
+    dashboard?.currentDelivery?.eta
+  }
+  onPlaceOrder={() =>
+    navigation.navigate("PlaceOrder")
+  }
+  onTrackOrder={() =>
+    navigation.navigate("MyOrders")
+  }
+/>
 
-        <BusinessSummaryCard
-          activeOrders={
-            dashboard?.pendingOrders ||
-            0
-          }
-          pendingBills={
-            dashboard?.outstanding ||
-            0
-          }
-          availableCredit={
-            dashboard?.availableCredit ||
-            0
-          }
-        />
+<QuickActionsSection
+  onShops={() =>
+    navigation.navigate("MyShops")
+  }
+  onOrders={() =>
+    navigation.navigate("MyOrders")
+  }
+  onBills={() =>
+    navigation.navigate("Outstanding")
+  }
+  onProfile={() =>
+    navigation.navigate("Profile")
+  }
+/>
 
-        <OperationsSection
-          activeOrders={
-            dashboard?.pendingOrders ||
-            0
-          }
-          captain={
-            dashboard?.currentDelivery
-              ?.captain
-          }
-          eta={
-            dashboard?.currentDelivery
-              ?.eta
-          }
-        />
+<OperationsSection
+  activeOrders={
+    dashboard?.pendingOrders || 0
+  }
+  captain={
+    dashboard?.currentDelivery?.captain
+  }
+  eta={
+    dashboard?.currentDelivery?.eta
+  }
+/>
 
-        <QuickActionsSection
-          onShops={() =>
-            navigation.navigate(
-              "MyShops"
-            )
-          }
-          onOrders={() =>
-            navigation.navigate(
-              "MyOrders"
-            )
-          }
-          onBills={() =>
-            navigation.navigate(
-              "Outstanding"
-            )
-          }
-          onProfile={() =>
-            navigation.navigate(
-              "Profile"
-            )
-          }
-        />
+<BusinessSummaryCard
+  activeOrders={
+    dashboard?.pendingOrders || 0
+  }
+  pendingBills={
+    dashboard?.outstanding || 0
+  }
+  availableCredit={
+    dashboard?.availableCredit || 0
+  }
+/>
 
-        <OrdersSection
-          orders={
-            dashboard?.recentOrders ||
-            []
-          }
-          onOrderPress={(
-            orderId
-          ) =>
-            navigation.navigate(
-              "OrderDetails",
-              {
-                orderId,
-              }
-            )
-          }
-        />
+<OrdersSection
+  orders={
+    dashboard?.recentOrders || []
+  }
+  onOrderPress={(orderId) =>
+    navigation.navigate(
+      "OrderDetails",
+      {
+        orderId,
+      }
+    )
+  }
+/>
       </ScrollView>
     </SafeAreaView>
   );

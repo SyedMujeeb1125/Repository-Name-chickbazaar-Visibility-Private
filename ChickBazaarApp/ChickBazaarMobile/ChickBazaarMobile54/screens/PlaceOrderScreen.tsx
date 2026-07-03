@@ -8,13 +8,28 @@ from "../components/place-order/OrderTypeSelector";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import SelectedShopCard from "../components/place-order/SelectedShopCard";
+
+import LiveEstimateCard from "../components/place-order/LiveEstimateCard";
+
+import BottomSheet from "../components/ui/BottomSheet";
+
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import CBButton from "../components/common/CBButton";
 
-import OrderEstimateCard from "../components/place-order/OrderEstimateCard";
-
 import BirdPreferenceCard from "../components/place-order/BirdPreferenceCard";
+import AppHeader from "../components/ui/AppHeader";
+
+import LiveRateBanner from "../components/place-order/LiveRateBanner";
+
+import QuantitySelector from "../components/place-order/QuantitySelector";
+
+import DeliveryDateCard from "../components/place-order/DeliveryDateCard";
+
+import NotesCard from "../components/place-order/NotesCard";
+
+import StickyFooter from "../components/place-order/StickyFooter";
 
 import FulfilmentPreferenceCard
 from "../components/place-order/FulfilmentPreferenceCard";
@@ -79,7 +94,7 @@ setDeliveryPriority,
   const [
   fulfilmentPreference,
   setFulfilmentPreference,
-] = useState("closest");
+] = useState<any>("closest");
 
 const [
   selectedShop,
@@ -87,7 +102,7 @@ const [
 ] = useState<any>(null);
 
   const [orderType, setOrderType] =
-    useState("weight");
+  useState<"weight" | "birds">("weight");
 
   const [
     requestedWeight,
@@ -111,6 +126,12 @@ const [
     );
 
     const [showDatePicker, setShowDatePicker] =
+  useState(false);
+
+  const [showAdvanced, setShowAdvanced] =
+  useState(false);
+
+  const [showShopSheet, setShowShopSheet] =
   useState(false);
 
     const weightSlabs =
@@ -457,381 +478,205 @@ const selectedWeight =
   }
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
+  <SafeAreaView style={styles.safeArea}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : undefined
+      }
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.container}
       >
-        <ScrollView
-          showsVerticalScrollIndicator={
-            false
-          }
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={
-            styles.container
-          }
-        >
-          <CBHeader
-  title="Place Order"
-  subtitle="Fresh live birds delivered to your shop"
+
+        <AppHeader
+          title="Place Order"
+          subtitle="Fresh live chicken delivered daily"
+        />
+
+        <LiveRateBanner
+          rate={todayRate}
+        />
+
+        <SelectedShopCard
+  shop={selectedShop}
+  canChange={shops.length > 1}
+  onChange={() =>
+    setShowShopSheet(true)
+  }
 />
 
-<CBCard
-  style={styles.rateCard}
->
-  <Text
-    style={styles.rateLabel}
-  >
-    TODAY'S LIVE RATE
-  </Text>
-
-  <Text
-    style={styles.rateValue}
-  >
-    ₹
-    {todayRate.toLocaleString()}
-    / KG
-  </Text>
-
-  <Text
-    style={styles.rateSubtitle}
-  >
-    Updated Today
-  </Text>
-</CBCard>
-
-          {retailer && (
-  <CBCard
-  style={styles.retailerCard}
->
-    <View style={styles.retailerHeader}>
-      <Text style={styles.shopName}>
-        🏪 {retailer.shopName}
-      </Text>
-    </View>
-
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>Owner</Text>
-      <Text style={styles.infoValue}>
-        {retailer.ownerName}
-      </Text>
-    </View>
-
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>Credit Category</Text>
-      <View style={styles.creditBadge}>
-        <Text style={styles.creditBadgeText}>
-          {creditCategory.toUpperCase()}
-        </Text>
-      </View>
-    </View>
-
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>Available Credit</Text>
-      <Text style={styles.creditValue}>
-        ₹{(retailer.availableCredit || 0).toLocaleString()}
-      </Text>
-    </View>
-  </CBCard>
-)}
-          {selectedShop && (
-  <CBCard>
-<TouchableOpacity
-  onPress={chooseShop}
->
-    <Text style={styles.label}>
-      Deliver To
-    </Text>
-
-    <Text
-      style={{
-        fontSize: 18,
-        fontWeight: "700",
-        marginTop: 8,
-      }}
-    >
-      🏪 {selectedShop.shopName}
-{shops.length > 1 ? " ▼" : ""}
-    </Text>
-
-    <Text
-      style={{
-        color: "#64748B",
-        marginTop: 6,
-      }}
-    >
-      📍 {selectedShop.address}
-    </Text>
-  </TouchableOpacity>
-</CBCard>
-)}
-
-          <View style={styles.card}>
-
-            <OrderTypeSelector
-  value={
-    orderType as
-      "weight" | "birds"
-  }
+<OrderTypeSelector
+  value={orderType}
   onChange={setOrderType}
 />
 
-            {orderType ===
-            "weight" ? (
-              <>
-
-                <Text style={styles.sectionHeading}>
-  Enter Weight
-</Text>
-
-<View style={styles.weightRow}>
-  {weightSlabs.map((item) => (
-    <TouchableOpacity
-      key={item}
-      style={[
-        styles.weightChip,
-        requestedWeight === item &&
-          styles.weightChipActive,
-      ]}
-      onPress={() =>
-        setRequestedWeight(item)
-      }
-    >
-      <Text
-        style={[
-          styles.weightChipText,
-          requestedWeight === item && {
-            color: "#FFFFFF",
-          },
-        ]}
-      >
-        {item} kg
-      </Text>
-    </TouchableOpacity>
-  ))}
-</View>
-
-<CBInput
-  placeholder="Enter Custom Weight"
-  value={requestedWeight}
-  onChangeText={setRequestedWeight}
-  keyboardType="numeric"
-/>
-
-{Number(requestedWeight) > 0 && (
-  <View style={styles.infoBox}>
-    <Text style={styles.infoTitle}>
-      Estimated Birds
-    </Text>
-
-    <Text style={styles.infoValue}>
-      ≈ {estimatedBirds} Birds
-    </Text>
-
-    <Text style={styles.infoSubtitle}>
-      Based on average 2.0 KG live bird
-    </Text>
-  </View>
-)}
-
-              </>
-            ) : (
-              <>
-                <Text
-                  style={
-                    styles.label
-                  }
-                >
-                  Number of Birds
-                </Text>
-
-                <TextInput
-                  style={
-                    styles.input
-                  }
-                  placeholder="Bird Count"
-                  value={birds}
-                  onChangeText={
-                    setBirds
-                  }
-                  keyboardType="numeric"
-                />
-                {Number(birds) > 0 && (
-  <Text
-    style={{
-      marginTop: 10,
-      color: "#64748B",
-      fontSize: 14,
-    }}
-  >
-    Estimated Weight: ≈ {estimatedWeight} KG{"\n"}
-    (Based on average 2.0 KG live bird)
-  </Text>
-)}
-              </>
-            )}
-<BirdPreferenceCard
-  onChange={setBirdPreferences}
-/>
-
-<FulfilmentPreferenceCard
+<QuantitySelector
+  orderType={orderType}
   value={
-    fulfilmentPreference as
-      any
+    orderType === "weight"
+      ? Number(requestedWeight || 0)
+      : Number(birds || 0)
   }
-  onChange={
-    setFulfilmentPreference
-  }
+  onSelect={(qty) => {
+    if (orderType === "weight") {
+      setRequestedWeight(String(qty));
+    } else {
+      setBirds(String(qty));
+    }
+  }}
+  onIncrease={() => {
+    if (orderType === "weight") {
+      setRequestedWeight(
+        String(
+          Number(requestedWeight || 0) + 10
+        )
+      );
+    } else {
+      setBirds(
+        String(
+          Number(birds || 0) + 5
+        )
+      );
+    }
+  }}
+  onDecrease={() => {
+    if (orderType === "weight") {
+      setRequestedWeight(
+        String(
+          Math.max(
+            0,
+            Number(requestedWeight || 0) - 10
+          )
+        )
+      );
+    } else {
+      setBirds(
+        String(
+          Math.max(
+            0,
+            Number(birds || 0) - 5
+          )
+        )
+      );
+    }
+  }}
 />
 
-<DeliveryPriorityCard
-  onChange={setDeliveryPriority}
+<LiveEstimateCard
+  orderType={orderType}
+  quantity={
+    orderType === "weight"
+      ? Number(requestedWeight || 0)
+      : Number(birds || 0)
+  }
+  estimatedBirds={estimatedBirds}
+  estimatedWeight={estimatedWeight}
+  estimatedAmount={estimatedAmount}
+  todayRate={todayRate}
 />
-            <Text
-  style={styles.label}
->
-  Preferred Delivery Date
-</Text>
 
 <TouchableOpacity
-  style={styles.input}
+  style={styles.customizeCard}
   onPress={() =>
-    setShowDatePicker(true)
+    setShowAdvanced(!showAdvanced)
   }
 >
-  <Text>
-    {deliveryDate}
+
+  <View>
+
+    <Text style={styles.customizeTitle}>
+      ⚙ Customize Today's Order
+    </Text>
+
+    <Text style={styles.customizeSubtitle}>
+      Change bird preference,
+      delivery priority,
+      fulfilment,
+      delivery date and notes.
+    </Text>
+
+  </View>
+
+  <Text style={styles.arrow}>
+    {showAdvanced ? "▲" : "▼"}
   </Text>
+
 </TouchableOpacity>
 
-{showDatePicker && (
-  <DateTimePicker
-    value={
-      new Date(deliveryDate)
-    }
-    mode="date"
-    minimumDate={
-      new Date()
-    }
-    onChange={(
-      event,
-      selectedDate
-    ) => {
-      setShowDatePicker(
-        false
-      );
+{showAdvanced && (
+  <>
+    <BirdPreferenceCard
+      onChange={setBirdPreferences}
+    />
 
-      if (selectedDate) {
-        setDeliveryDate(
-          selectedDate
-            .toISOString()
-            .split("T")[0]
-        );
+    <FulfilmentPreferenceCard
+      value={fulfilmentPreference}
+      onChange={setFulfilmentPreference}
+    />
+
+    <DeliveryPriorityCard
+      onChange={setDeliveryPriority}
+    />
+
+    <DeliveryDateCard
+      value={deliveryDate}
+      showPicker={showDatePicker}
+      onOpen={() =>
+        setShowDatePicker(true)
       }
-    }}
-  />
-)}
-{birdPreferences.some(
-  (x) => x.selected
-) && (
+      onClose={() =>
+        setShowDatePicker(false)
+      }
+      onChange={setDeliveryDate}
+    />
 
-<View
-  style={{
-    backgroundColor:"#FEF3C7",
-    padding:15,
-    borderRadius:12,
-    marginBottom:15,
+    <NotesCard
+      value={notes}
+      onChange={setNotes}
+    />
+  </>
+)}
+
+      </ScrollView>
+
+<BottomSheet
+  visible={showShopSheet}
+  title="Choose Delivery Shop"
+  selectedId={selectedShop?.id}
+  items={shops.map((shop) => ({
+    id: shop.id,
+    title: shop.shopName,
+    subtitle: shop.address,
+  }))}
+  onClose={() =>
+    setShowShopSheet(false)
+  }
+  onSelect={(id) => {
+
+    const shop = shops.find(
+      (item) => item.id === id
+    );
+
+    if (shop) {
+      setSelectedShop(shop);
+    }
+
   }}
->
-
-<Text
-style={{
-fontWeight:"700",
-marginBottom:6,
-}}
->
-Bird Preference Summary
-</Text>
-
-<Text>
-Selected Birds: {selectedBirds}
-</Text>
-
-<Text>
-Estimated Weight: {selectedWeight.toFixed(1)} KG
-</Text>
-
-</View>
-
-)}
-            <OrderEstimateCard
-
-  orderType={
-    orderType as
-      "weight" | "birds"
-  }
-
-  requestedWeight={
-    Number(requestedWeight)
-  }
-
-  estimatedBirds={
-    estimatedBirds
-  }
-
-  birdCount={
-    Number(birds)
-  }
-
-  estimatedWeight={
-    estimatedWeight
-  }
-
-  rate={todayRate}
-
-  estimatedAmount={
-    estimatedAmount
-  }
-
-  advanceAmount={
-    advanceRequired
-  }
-
 />
 
-            <Text
-  style={styles.label}
->
-  Notes (Optional)
-</Text>
-
-            <TextInput
-              style={
-                styles.notesInput
-              }
-              multiline
-              value={notes}
-              onChangeText={
-                setNotes
-              }
-              placeholder="Delivery instructions (optional)"
-            />
-          </View>
-
-          <CBButton
-  title="Review Order"
-  onPress={reviewOrder}
+<StickyFooter
+  amount={estimatedAmount}
+  onReview={reviewOrder}
 />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
 }
 
 const styles =
@@ -955,24 +800,23 @@ rateBadgeValue: {
       marginBottom: 20,
     },
 
-    shopName: {
-      color: "#FFF",
-      fontSize: 22,
-      fontWeight: "700",
-    },
+    shopName:{
+  color:"#0F172A",
+  fontSize:22,
+  fontWeight:"700",
+},
 
-    shopInfo: {
-      color: "#FFF",
-      marginTop: 4,
-    },
-
-    card: {
-      backgroundColor:
-        "#FFF",
-      borderRadius: 18,
-      padding: 18,
-      marginBottom: 20,
-    },
+shopInfo: {
+  color: "#64748B",
+  marginTop: 6,
+  fontSize: 15,
+},
+card: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 18,
+  padding: 18,
+  marginBottom: 20,
+},
 
     label: {
       fontWeight: "600",
@@ -1101,5 +945,36 @@ creditValue: {
   color: "#FFF",
   fontWeight: "700",
   fontSize: 20,
+},
+customizeCard:{
+  backgroundColor:"#FFFFFF",
+  borderRadius:18,
+  padding:18,
+  marginTop:20,
+  marginBottom:10,
+  flexDirection:"row",
+  justifyContent:"space-between",
+  alignItems:"center",
+  borderWidth:1,
+  borderColor:"#E2E8F0",
+},
+
+customizeTitle:{
+  fontSize:17,
+  fontWeight:"700",
+  color:"#0F172A",
+},
+
+customizeSubtitle:{
+  marginTop:6,
+  fontSize:14,
+  color:"#64748B",
+  lineHeight:20,
+},
+
+arrow:{
+  fontSize:22,
+  color:"#F97316",
+  fontWeight:"700",
 },
   });

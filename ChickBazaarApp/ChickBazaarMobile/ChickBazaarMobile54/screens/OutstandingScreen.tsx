@@ -5,6 +5,10 @@ import React, {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import OutstandingCard from "../components/payments/OutstandingCard";
+
+import TransactionCard from "../components/payments/TransactionCard";
+
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
@@ -77,107 +81,58 @@ export default function OutstandingScreen() {
           Credit Summary
         </Text>
 
-        <View
-          style={styles.topCard}
-        >
-          <Text
-            style={
-              styles.topCardTitle
-            }
-          >
-            Available Credit
-          </Text>
+        <OutstandingCard
+  outstanding={outstanding}
+  creditLimit={creditLimit}
+/>
 
-          <Text
-            style={
-              styles.topCardAmount
-            }
-          >
-            ₹
-            {availableCredit.toLocaleString()}
-          </Text>
+        <View style={styles.card}>
 
-          <View
-            style={
-              styles.categoryBadge
-            }
-          >
-            <Text
-              style={
-                styles.categoryText
-              }
-            >
-              {(
-                retailer.creditCategory ||
-                "new"
-              ).toUpperCase()}
-            </Text>
-          </View>
-        </View>
+  <Text style={styles.label}>
+    Credit Limit
+  </Text>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={styles.label}
-          >
-            💳 Credit Limit
-          </Text>
+  <Text style={styles.value}>
+    ₹{creditLimit.toLocaleString()}
+  </Text>
 
-          <Text
-            style={styles.value}
-          >
-            ₹
-            {creditLimit.toLocaleString()}
-          </Text>
-        </View>
+  <View style={styles.divider} />
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={styles.label}
-          >
-            💰 Available Credit
-          </Text>
+  <Text style={styles.label}>
+    Credit Category
+  </Text>
 
-          <Text
-            style={[
-              styles.value,
-              {
-                color:
-                  "#16A34A",
-              },
-            ]}
-          >
-            ₹
-            {availableCredit.toLocaleString()}
-          </Text>
-        </View>
+  <Text style={styles.categoryValue}>
+    {(retailer.creditCategory || "NEW").toUpperCase()}
+  </Text>
 
-        <View
-          style={styles.card}
-        >
-          <Text
-            style={styles.label}
-          >
-            ⚠ Outstanding
-            Balance
-          </Text>
+</View>
+<Text style={styles.sectionTitle}>
+  Recent Transactions
+</Text>
 
-          <Text
-            style={[
-              styles.value,
-              {
-                color:
-                  "#DC2626",
-              },
-            ]}
-          >
-            ₹
-            {outstanding.toLocaleString()}
-          </Text>
-        </View>
+<TransactionCard
+  title="Invoice CB-2026-0145"
+  amount={15400}
+  date="02 Jul 2026"
+  type="debit"
+/>
+
+<TransactionCard
+  title="Payment Received"
+  amount={20000}
+  date="01 Jul 2026"
+  type="credit"
+/>
+
+<TransactionCard
+  title="Invoice CB-2026-0139"
+  amount={12150}
+  date="30 Jun 2026"
+  type="debit"
+/>
+
+                
       </ScrollView>
     </SafeAreaView>
   );
@@ -267,4 +222,25 @@ const styles =
       color: "#0F172A",
       marginTop: 8,
     },
+
+    divider: {
+  height: 1,
+  backgroundColor: "#E2E8F0",
+  marginVertical: 16,
+},
+
+categoryValue: {
+  marginTop: 8,
+  fontSize: 20,
+  fontWeight: "700",
+  color: "#F97316",
+},
+
+sectionTitle: {
+  fontSize: 22,
+  fontWeight: "700",
+  color: "#0F172A",
+  marginTop: 24,
+  marginBottom: 12,
+},
   });

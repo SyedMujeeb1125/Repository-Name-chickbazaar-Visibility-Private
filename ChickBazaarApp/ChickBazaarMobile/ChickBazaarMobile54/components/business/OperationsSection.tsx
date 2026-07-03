@@ -1,11 +1,10 @@
 import React from "react";
+
 import {
   View,
   Text,
   StyleSheet,
 } from "react-native";
-
-import Card from "../ui/Card";
 
 type Props = {
   activeOrders: number;
@@ -18,15 +17,24 @@ export default function OperationsSection({
   captain,
   eta,
 }: Props) {
+
+  if (activeOrders === 0) {
+    return null;
+  }
+
   return (
-    <Card>
+
+    <View style={styles.card}>
+
       <Text style={styles.heading}>
-        🚚 Today's Operations
+        Today's Delivery
       </Text>
+
+      <View style={styles.divider} />
 
       <View style={styles.row}>
         <Text style={styles.label}>
-          Active Orders
+          Orders
         </Text>
 
         <Text style={styles.value}>
@@ -34,76 +42,87 @@ export default function OperationsSection({
         </Text>
       </View>
 
-      {captain ? (
-        <>
-          <View style={styles.divider} />
+      <View style={styles.row}>
+        <Text style={styles.label}>
+          Captain
+        </Text>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>
-              Captain
-            </Text>
+        <Text style={styles.value}>
+          {captain || "Not Assigned"}
+        </Text>
+      </View>
 
-            <Text style={styles.value}>
-              {captain}
-            </Text>
-          </View>
+      <View style={styles.row}>
+        <Text style={styles.label}>
+          ETA
+        </Text>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>
-              ETA
-            </Text>
+        <Text style={styles.value}>
+          {eta || "--"}
+        </Text>
+      </View>
 
-            <Text style={styles.value}>
-              {eta}
-            </Text>
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={styles.divider} />
+      <View style={styles.statusBox}>
+        <Text style={styles.status}>
+          🚚 Your order is being prepared for delivery.
+        </Text>
+      </View>
 
-          <Text style={styles.empty}>
-            No active delivery assigned.
-          </Text>
-        </>
-      )}
-    </Card>
+    </View>
+
   );
+
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 18,
-  },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 6,
-  },
+card:{
+backgroundColor:"#FFFFFF",
+borderRadius:22,
+padding:20,
+marginBottom:22,
+elevation:3,
+},
 
-  label: {
-    color: "#64748B",
-    fontSize: 15,
-  },
+heading:{
+fontSize:22,
+fontWeight:"800",
+color:"#0F172A",
+},
 
-  value: {
-    color: "#0F172A",
-    fontSize: 15,
-    fontWeight: "700",
-  },
+divider:{
+height:1,
+backgroundColor:"#EEF2F7",
+marginVertical:18,
+},
 
-  divider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
-    marginVertical: 14,
-  },
+row:{
+flexDirection:"row",
+justifyContent:"space-between",
+marginBottom:14,
+},
 
-  empty: {
-    color: "#94A3B8",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
+label:{
+color:"#64748B",
+fontSize:15,
+},
+
+value:{
+fontWeight:"700",
+fontSize:16,
+color:"#0F172A",
+},
+
+statusBox:{
+marginTop:10,
+backgroundColor:"#FFF7ED",
+padding:16,
+borderRadius:16,
+},
+
+status:{
+color:"#EA580C",
+fontWeight:"600",
+},
+
 });
