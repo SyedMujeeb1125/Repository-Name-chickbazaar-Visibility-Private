@@ -110,6 +110,18 @@ export async function GET(request: Request) {
     .limit(1)
     .single();
 
+    const currentDelivery =
+  (orders || []).find((order: any) =>
+    [
+      "new",
+      "confirmed",
+      "allocated",
+      "preparing",
+      "vehicle_assigned",
+      "out_for_delivery",
+    ].includes(order.status)
+  );
+
   return NextResponse.json({
     shopName:
       retailer.shop_name ??
@@ -140,6 +152,30 @@ export async function GET(request: Request) {
     outstanding:
       totalDebit -
       totalCredit,
+
+      currentDelivery: currentDelivery
+  ? {
+      orderNumber:
+        currentDelivery.order_number,
+
+      status:
+        currentDelivery.status,
+
+      captain:
+        currentDelivery.assigned_driver,
+
+      vehicle:
+        currentDelivery.assigned_vehicle,
+
+      eta: "Calculating...",
+
+      requestedWeight:
+        currentDelivery.requested_weight,
+
+      estimatedAmount:
+        currentDelivery.estimated_amount,
+    }
+  : null,
 
     recentOrders:
       (orders || []).slice(

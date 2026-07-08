@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(
   request: Request
@@ -14,15 +14,25 @@ export async function GET(
     return NextResponse.json(null);
   }
 
-  const db = await readDb();
+  const {
+    data: retailer,
+    error,
+  } = await supabase
+    .from("retailers")
+    .select("*")
+    .eq("mobile", mobile)
+    .single();
 
-  const retailer =
-    db.retailers.find(
-      (r: any) =>
-        r.mobile === mobile
+  if (error) {
+    console.error(
+      "Retailer profile fetch error:",
+      error
     );
 
+    return NextResponse.json(null);
+  }
+
   return NextResponse.json(
-    retailer || null
+    retailer ?? null
   );
 }

@@ -149,10 +149,54 @@ export type RetailerLocationRecord = {
 
   address: string;
 
+  addressLine1?: string;
+
+  addressLine2?: string;
+
+  landmark?: string;
+
+  city?: string;
+
+  district?: string;
+
+  state?: string;
+
+  country?: string;
+
+  pincode?: string;
+
+  googlePlaceId?: string;
+
+  formattedAddress?: string;
+
+  plusCode?: string;
+
   latitude?: number;
+
   longitude?: number;
 
+  accuracy?: number;
+
+  confidenceScore?: number;
+
+  verificationStatus?:
+    | "verified"
+    | "pending"
+    | "rejected";
+
+  serviceZone?:
+    | "north"
+    | "south"
+    | "east"
+    | "west"
+    | "central"
+    | "outside";
+
+  isDefault?: boolean;
+
   createdAt: string;
+
+  updatedAt?: string;
 };
 
 export type FarmInventoryRecord = {

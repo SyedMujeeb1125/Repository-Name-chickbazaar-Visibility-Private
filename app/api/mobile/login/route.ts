@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import {
-  readDb,
-  retailerPrimaryShopExists,
-  addRetailerLocation,
-  createId,
-} from "@/lib/storage";
+
+import { supabase } from "@/lib/supabase";
+import { createId } from "@/lib/storage";
+import { createSignedToken } from "@/lib/auth";
 
 export async function POST(
   request: Request
@@ -15,15 +13,19 @@ export async function POST(
     body.mobile || ""
   );
 
-  const db = await readDb();
+  // Find retailer
 
-  const retailer =
-    db.retailers.find(
-      (r: any) =>
-        r.mobile === mobile
-    );
+  const {
+    data: retailer,
+    error: retailerError,
+  } = await supabase
+    .from("retailers")
+    .select("*")
+    .eq("mobile", mobile)
+    .single();
 
-  if (!retailer) {
+  if (retailerError || !retailer) {
+
     return NextResponse.json(
       {
         success: false,
@@ -34,60 +36,122 @@ export async function POST(
         status: 404,
       }
     );
+
   }
-  const shopExists =
-  await retailerPrimaryShopExists(
-    retailer.mobile
-  );
 
-  console.log(
-  "LOGIN RETAILER:",
-  retailer.mobile
-);
+  // Check primary shop
 
-console.log(
-  "SHOP EXISTS:",
-  shopExists
-);
+  const {
+    data: existingShop,
+    error: shopError,
+  } = await supabase
+    .from("retailer_locations")
+    .select("id")
+    .eq(
+      "retailer_mobile",
+      retailer.mobile
+    )
+    .limit(1)
+    .maybeSingle();
 
-if (!shopExists) {
-  console.log(
-  "CREATING PRIMARY SHOP..."
-);
-  await addRetailerLocation({
-    id: createId("shop"),
+  if (shopError) {
 
-    retailerMobile:
-      retailer.mobile,
+    console.error(
+      "Shop lookup error:",
+      shopError
+    );
 
-    shopName:
-      retailer.shopName,
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          "Unable to verify retailer shop.",
+      },
+      {
+        status: 500,
+      }
+    );
 
-    contactPerson:
-      retailer.ownerName,
+  }
 
-    mobile:
-      retailer.mobile,
+  // Auto-create primary shop if missing
 
-    address:
-      retailer.address,
+  if (!existingShop) {
 
-    latitude:
-      retailer.latitude,
+    const {
+      error: locationError,
+    } = await supabase
+      .from(
+        "retailer_locations"
+      )
+      .insert({
 
-    longitude:
-      retailer.longitude,
+        id:
+          createId("shop"),
 
-    createdAt:
-      new Date().toISOString(),
-  });
-  console.log(
-  "PRIMARY SHOP CREATED"
-);
-}
+        retailer_mobile:
+          retailer.mobile,
+
+        shop_name:
+          retailer.shop_name,
+
+        contact_person:
+          retailer.owner_name,
+
+        mobile:
+          retailer.mobile,
+
+        address:
+          retailer.address,
+
+        latitude:
+          retailer.latitude,
+
+        longitude:
+          retailer.longitude,
+
+        created_at:
+          new Date().toISOString(),
+
+      });
+
+    if (locationError) {
+
+      console.error(
+        "Primary shop creation error:",
+        locationError
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Unable to create primary shop.",
+        },
+        {
+          status: 500,
+        }
+      );
+
+    }
+
+  }
+
+  // Create access token
+
+  const accessToken =
+    createSignedToken(
+      retailer.mobile
+    );
 
   return NextResponse.json({
+
     success: true,
+
+    accessToken,
+
     retailer,
+
   });
+
 }

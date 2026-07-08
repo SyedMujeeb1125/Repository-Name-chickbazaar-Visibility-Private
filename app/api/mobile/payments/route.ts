@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  getRetailerPayments,
-  readDb,
-} from "@/lib/storage";
+
+import { supabase } from "@/lib/supabase";
 
 export async function GET(
   request: Request
@@ -17,24 +15,52 @@ export async function GET(
     return NextResponse.json([]);
   }
 
-  const db = await readDb();
+  // Find retailer
 
-  const retailer =
-    db.retailers.find(
-      (r: any) =>
-        r.mobile === mobile
-    );
+  const {
+    data: retailer,
+    error: retailerError,
+  } = await supabase
+    .from("retailers")
+    .select("id")
+    .eq("mobile", mobile)
+    .single();
 
-  if (!retailer) {
+  if (retailerError || !retailer) {
     return NextResponse.json([]);
   }
 
-  const payments =
-    await getRetailerPayments(
+  // Fetch payments
+
+  const {
+    data: payments,
+    error: paymentsError,
+  } = await supabase
+    .from("retailer_ledger")
+    .select("*")
+    .eq(
+      "retailer_id",
       retailer.id
+    )
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (paymentsError) {
+    console.error(
+      "Payments fetch error:",
+      paymentsError
     );
 
+    return NextResponse.json(
+      [],
+      {
+        status: 500,
+      }
+    );
+  }
+
   return NextResponse.json(
-    payments
+    payments ?? []
   );
 }

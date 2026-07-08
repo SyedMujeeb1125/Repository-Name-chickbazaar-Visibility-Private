@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readDb } from "@/lib/storage";
+
+import { supabase } from "@/lib/supabase";
 
 export async function GET(
   request: Request
@@ -14,15 +15,39 @@ export async function GET(
     return NextResponse.json([]);
   }
 
-  const db = await readDb();
+  const {
+    data: shops,
+    error,
+  } = await supabase
+    .from("retailer_locations")
+    .select("*")
+    .eq(
+      "retailer_mobile",
+      mobile
+    )
+    .order("created_at", {
+      ascending: true,
+    });
 
-  const shops =
-  db.retailerLocations.filter(
-    (s: any) =>
-      s.retailerMobile === mobile
-  );
+  if (error) {
+    console.error(
+      "Shops fetch error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          "Unable to fetch shops.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 
   return NextResponse.json(
-    shops
+    shops ?? []
   );
 }
