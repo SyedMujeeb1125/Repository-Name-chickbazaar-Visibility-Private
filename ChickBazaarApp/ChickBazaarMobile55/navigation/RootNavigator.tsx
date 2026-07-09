@@ -1,6 +1,7 @@
 import React from "react";
 
 import {
+  DefaultTheme,
   NavigationContainer,
 } from "@react-navigation/native";
 
@@ -12,6 +13,14 @@ import LoadingView from "../components/ui/LoadingView";
 import {
   useAuth,
 } from "../context/AuthContext";
+
+const ChickBazaarTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "transparent",
+  },
+};
 
 export default function RootNavigator() {
 
@@ -28,7 +37,9 @@ export default function RootNavigator() {
 
   return (
 
-    <NavigationContainer>
+    <NavigationContainer
+  theme={ChickBazaarTheme}
+>
 
       {loggedIn ? (
 

@@ -1,16 +1,15 @@
 import React from "react";
 
 import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 
 import {
   Colors,
   Radius,
-  Spacing,
   Typography,
 } from "../../theme";
 
@@ -19,6 +18,7 @@ type Props = {
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
+  variant?: "solid" | "outline";
 };
 
 export default function PrimaryButton({
@@ -26,8 +26,14 @@ export default function PrimaryButton({
   onPress,
   loading = false,
   disabled = false,
+  variant = "solid",
 }: Props) {
+
+  const outline =
+    variant === "outline";
+
   return (
+
     <TouchableOpacity
       activeOpacity={0.9}
       disabled={
@@ -36,28 +42,51 @@ export default function PrimaryButton({
       onPress={onPress}
       style={[
         styles.button,
+
+        outline &&
+          styles.outlineButton,
+
         disabled &&
           styles.disabled,
       ]}
     >
+
       {loading ? (
+
         <ActivityIndicator
-          color="#FFFFFF"
+          color={
+            outline
+              ? Colors.primary
+              : "#FFFFFF"
+          }
         />
+
       ) : (
+
         <Text
-          style={styles.text}
+          style={[
+            styles.text,
+
+            outline &&
+              styles.outlineText,
+          ]}
         >
           {title}
         </Text>
+
       )}
+
     </TouchableOpacity>
+
   );
+
 }
 
 const styles =
   StyleSheet.create({
+
     button: {
+
       height: 56,
 
       backgroundColor:
@@ -85,14 +114,35 @@ const styles =
       },
 
       elevation: 4,
+
+    },
+
+    outlineButton: {
+
+      backgroundColor:
+        "#FFFFFF",
+
+      borderWidth: 2,
+
+      borderColor:
+        Colors.primary,
+
+      elevation: 0,
+
+      shadowOpacity: 0,
+
     },
 
     disabled: {
+
       opacity: 0.5,
+
     },
 
     text: {
-      color: Colors.white,
+
+      color:
+        Colors.white,
 
       fontSize:
         Typography.body,
@@ -101,5 +151,14 @@ const styles =
         Typography.bold,
 
       letterSpacing: 0.5,
+
     },
+
+    outlineText: {
+
+      color:
+        Colors.primary,
+
+    },
+
   });

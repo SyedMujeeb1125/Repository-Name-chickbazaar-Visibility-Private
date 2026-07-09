@@ -1,6 +1,7 @@
 import React from "react";
 
 import {
+  Image,
   StyleSheet,
   Text,
   View,
@@ -30,15 +31,6 @@ export default function LiveRateCard({
   let validTill =
     "Valid till 11:00 AM";
 
-  let trend =
-    "₹10 Lower than Yesterday";
-
-  let trendIcon =
-    "arrow-down-bold";
-
-  let countdown =
-    "01:42:18";
-
   let badge =
     "REGULAR";
 
@@ -53,16 +45,7 @@ export default function LiveRateCard({
     validTill =
       "Valid till 6:00 PM";
 
-    trend =
-      "₹15 Higher than Regular";
-
-    trendIcon =
-      "arrow-up-bold";
-
-    countdown =
-      "04:18:10";
-
-    badge =
+      badge =
       "EXPRESS";
 
   }
@@ -75,12 +58,6 @@ export default function LiveRateCard({
     validTill =
       "Tomorrow's rate available before 9:00 AM";
 
-    trend =
-      "";
-
-    countdown =
-      "";
-
     badge =
       "TOMORROW";
 
@@ -89,6 +66,12 @@ export default function LiveRateCard({
   return (
 
     <View style={styles.card}>
+
+      <Image
+  source={require("../../assets/live-rate-chicken.png")}
+  resizeMode="contain"
+  style={styles.heroImage}
+/>
 
       <View style={styles.pattern1} />
 
@@ -142,23 +125,23 @@ export default function LiveRateCard({
 
           <View style={styles.marketRow}>
 
-            <MaterialCommunityIcons
+  <MaterialCommunityIcons
 
-              name={trendIcon as any}
+    name="food-drumstick"
 
-              size={18}
+    size={18}
 
-              color="#FFFFFF"
+    color="#FFFFFF"
 
-            />
+  />
 
-            <Text style={styles.marketText}>
+  <Text style={styles.marketText}>
 
-              {trend}
+    Healthy Live Broiler Chicken
 
-            </Text>
+  </Text>
 
-          </View>
+</View>
 
           <View style={styles.timerCard}>
 
@@ -176,15 +159,15 @@ export default function LiveRateCard({
 
               <Text style={styles.timerTitle}>
 
-                Rate Ends In
+  Order Before 9:00 AM
 
-              </Text>
+</Text>
 
-              <Text style={styles.timer}>
+<Text style={styles.timer}>
 
-                {countdown}
+  Same-Day Delivery
 
-              </Text>
+</Text>
 
             </View>
 
@@ -235,9 +218,11 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#F97316",
 
-    borderRadius: 28,
+    borderRadius: 26,
 
-    padding: 22,
+    paddingHorizontal: 20,
+
+    paddingVertical: 14,
 
     marginBottom: 18,
 
@@ -304,9 +289,9 @@ const styles = StyleSheet.create({
 
     borderRadius: 18,
 
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
 
-    paddingVertical: 6,
+    paddingVertical: 4,
 
   },
 
@@ -326,11 +311,11 @@ const styles = StyleSheet.create({
 
   title: {
 
-    marginTop: 16,
+    marginTop: 10,
 
     color: "#FFFFFF",
 
-    fontSize: 16,
+    fontSize: 15,
 
     fontWeight: "700",
 
@@ -352,11 +337,11 @@ const styles = StyleSheet.create({
 
     color: "#FFFFFF",
 
-    fontSize: 52,
+    fontSize: 42,
 
     fontWeight: "900",
 
-    lineHeight: 58,
+    lineHeight: 46,
 
   },
 
@@ -364,11 +349,11 @@ const styles = StyleSheet.create({
 
     color: "#FFFFFF",
 
-    fontSize: 22,
+    fontSize: 18,
 
     fontWeight: "700",
 
-    marginBottom: 8,
+    marginBottom: 5,
 
     marginLeft: 6,
 
@@ -380,7 +365,7 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginTop: 12,
+    marginTop: 8,
 
   },
 
@@ -402,15 +387,15 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginTop: 20,
+    marginTop: 12,
 
     backgroundColor: "rgba(255,255,255,0.16)",
 
     borderRadius: 16,
 
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
 
-    paddingVertical: 12,
+    paddingVertical: 8,
 
   },
 
@@ -430,7 +415,7 @@ const styles = StyleSheet.create({
 
     color: "#FFFFFF",
 
-    fontSize: 22,
+    fontSize: 18,
 
     fontWeight: "900",
 
@@ -440,11 +425,11 @@ const styles = StyleSheet.create({
 
   validity: {
 
-    marginTop: 14,
+    marginTop: 8,
 
     color: "rgba(255,255,255,0.92)",
 
-    fontSize: 13,
+    fontSize: 12,
 
     fontWeight: "600",
 
@@ -465,5 +450,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
 
   },
+
+  heroImage: {
+  position: "absolute",
+  right: 1,
+  top: -65,
+  width: 200,
+  height: 300,
+  opacity: 1.80,
+},
 
 });

@@ -48,6 +48,7 @@ export default function ChickBazaarTabBar({
 
       default:
         return "circle";
+
     }
 
   }
@@ -174,14 +175,17 @@ export default function ChickBazaarTabBar({
   );
 
 }
+
 const styles = StyleSheet.create({
 
   safeArea: {
-    backgroundColor: "transparent",
-  },
+  
+},
 
   container: {
+
     marginHorizontal: 14,
+
     marginBottom: 8,
 
     height: 82,
@@ -197,17 +201,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
 
     shadowColor: "#000",
+
     shadowOpacity: 0.12,
+
     shadowRadius: 18,
+
     shadowOffset: {
       width: 0,
       height: 8,
     },
 
     elevation: 18,
+
   },
 
   tab: {
+
     flex: 1,
 
     alignItems: "center",
@@ -215,9 +224,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
 
     height: "100%",
+
   },
 
   orderButtonWrapper: {
+
     marginTop: -8,
 
     width: 92,
@@ -225,10 +236,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
     justifyContent: "center",
+
   },
 
   orderButton: {
+
     width: 88,
+
     height: 88,
 
     borderRadius: 44,
@@ -244,17 +258,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
 
     shadowColor: ORANGE,
+
     shadowOpacity: 0.35,
+
     shadowRadius: 14,
+
     shadowOffset: {
       width: 0,
       height: 8,
     },
 
     elevation: 18,
+
   },
 
   orderText: {
+
     color: "#FFFFFF",
 
     fontSize: 10,
@@ -266,9 +285,11 @@ const styles = StyleSheet.create({
     marginTop: 3,
 
     letterSpacing: 0.3,
+
   },
 
   label: {
+
     marginTop: 5,
 
     fontSize: 11,
@@ -276,14 +297,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
 
     color: GREY,
+
   },
 
   activeLabel: {
+
     color: ORANGE,
+
     fontWeight: "800",
+
   },
 
   activeLine: {
+
     marginTop: 5,
 
     width: 22,
@@ -293,6 +319,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
 
     backgroundColor: ORANGE,
+
   },
 
 });

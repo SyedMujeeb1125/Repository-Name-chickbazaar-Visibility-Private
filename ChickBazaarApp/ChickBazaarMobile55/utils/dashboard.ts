@@ -19,4 +19,7 @@ export enum DashboardState {
 
   DELIVERED = "DELIVERED",
 
+  // Yesterday's order can be repeated
+  REPEAT_ORDER_AVAILABLE = "REPEAT_ORDER_AVAILABLE",
+
 }

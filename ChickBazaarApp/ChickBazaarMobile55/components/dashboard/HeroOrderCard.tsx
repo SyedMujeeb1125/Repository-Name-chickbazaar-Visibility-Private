@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
 
     height: 56,
 
-    borderRadius: 28,
+    borderRadius: 26,
 
     backgroundColor: "#F97316",
 

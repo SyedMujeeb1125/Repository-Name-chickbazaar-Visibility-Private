@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 
   card:{
     backgroundColor:"#FFFFFF",
-    borderRadius:24,
+    borderRadius: 26,
     padding:22,
     marginBottom:30,
 
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   iconCircle:{
     width:48,
     height:48,
-    borderRadius:24,
+    borderRadius: 26,
     backgroundColor:"#FFF7ED",
     justifyContent:"center",
     alignItems:"center",

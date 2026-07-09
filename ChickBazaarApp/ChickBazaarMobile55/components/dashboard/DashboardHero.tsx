@@ -7,29 +7,69 @@ import {
   View,
 } from "react-native";
 
+import {
+  getDeliveryHeader,
+  getTodayDate,
+  getTomorrowDate,
+} from "../../utils/dateHelpers";
+
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import PrimaryButton from "../ui/PrimaryButton";
 
 type Props = {
   hasOrderToday: boolean;
+
   deliveryStatus?: string;
+
   driverName?: string;
+
   eta?: string;
+
+  isDelivered?: boolean;
+
   onPlaceOrder: () => void;
+
   onTrackOrder: () => void;
+
+  onRepeatOrder?: () => void;
+
+  onChangeQuantity?: () => void;
 };
 
 export default function DashboardHero({
+
   hasOrderToday,
+
   deliveryStatus,
+
   driverName,
+
   eta,
+
+  isDelivered = false,
+
   onPlaceOrder,
+
   onTrackOrder,
+
+  onRepeatOrder,
+
+  onChangeQuantity,
+
 }: Props) {
 
+  console.log("hasOrderToday =", hasOrderToday);
+
   const hour = new Date().getHours();
+
+  const today = getDeliveryHeader(
+  getTodayDate()
+);
+
+const tomorrow = getDeliveryHeader(
+  getTomorrowDate()
+);
 
   const isRegular = hour < 11;
 
@@ -219,9 +259,21 @@ export default function DashboardHero({
 
         <View style={{ flex: 1 }}>
 
-          <Text style={styles.deliveryTitle}>
-            Today's Delivery
-          </Text>
+          <View>
+
+  <Text style={styles.deliveryTitle}>
+    {today.relativeDay}'s Delivery
+  </Text>
+
+  <Text style={styles.deliveryDate}>
+    {today.weekday}
+  </Text>
+
+  <Text style={styles.deliverySubDate}>
+    {today.formattedDate}
+  </Text>
+
+</View>
 
           <Text style={styles.deliveryStatus}>
             {deliveryStatus || "Confirmed"}
@@ -314,7 +366,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#FFFFFF",
 
-    borderRadius: 24,
+    borderRadius: 26,
 
     padding: 20,
 
@@ -520,5 +572,27 @@ const styles = StyleSheet.create({
     color: "#0F172A",
 
   },
+
+  deliveryDate: {
+
+  marginTop: 4,
+
+  fontSize: 15,
+
+  fontWeight: "700",
+
+  color: "#334155",
+
+},
+
+deliverySubDate: {
+
+  marginTop: 2,
+
+  fontSize: 13,
+
+  color: "#64748B",
+
+},
 
 });

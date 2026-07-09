@@ -122,6 +122,38 @@ export async function GET(request: Request) {
     ].includes(order.status)
   );
 
+  // -------------------------------------
+// Last Delivered Order
+// -------------------------------------
+
+const lastDeliveredOrder =
+  (orders || []).find((order: any) =>
+    [
+      "delivered",
+      "completed",
+    ].includes(order.status)
+  );
+
+// -------------------------------------
+// Repeat Order Availability
+// -------------------------------------
+
+const today = new Date();
+
+today.setHours(0, 0, 0, 0);
+
+const deliveredYesterday =
+  lastDeliveredOrder?.delivered_at
+    ? new Date(
+        lastDeliveredOrder.delivered_at
+      ) < today
+    : false;
+
+const repeatOrderAvailable =
+  !!lastDeliveredOrder &&
+  deliveredYesterday &&
+  !currentDelivery;
+
   return NextResponse.json({
     shopName:
       retailer.shop_name ??
@@ -176,6 +208,37 @@ export async function GET(request: Request) {
         currentDelivery.estimated_amount,
     }
   : null,
+
+  repeatOrder: repeatOrderAvailable
+  ? {
+      available: true,
+
+      orderNumber:
+        lastDeliveredOrder.order_number,
+
+      weight: Number(
+        lastDeliveredOrder.actual_weight ??
+        lastDeliveredOrder.requested_weight ??
+        0
+      ),
+
+      rate: Number(
+        lastDeliveredOrder.rate_per_kg ??
+        0
+      ),
+
+      amount: Number(
+        lastDeliveredOrder.final_amount ??
+        lastDeliveredOrder.estimated_amount ??
+        0
+      ),
+
+      deliveredAt:
+        lastDeliveredOrder.delivered_at,
+    }
+  : {
+      available: false,
+    },
 
     recentOrders:
       (orders || []).slice(
