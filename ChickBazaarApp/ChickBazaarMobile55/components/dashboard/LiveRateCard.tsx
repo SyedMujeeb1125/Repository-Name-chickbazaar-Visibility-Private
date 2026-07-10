@@ -52,16 +52,16 @@ export default function LiveRateCard({
 
   if (hour >= 18) {
 
-    title =
-      "TODAY CLOSED";
+  title =
+    "TOMORROW DELIVERY";
 
-    validTill =
-      "Tomorrow's rate available before 9:00 AM";
+  validTill =
+    "Book now for tomorrow's healthy live broiler chicken delivery.";
 
-    badge =
-      "TOMORROW";
+  badge =
+    "BOOK NOW";
 
-  }
+}
 
   return (
 
@@ -123,62 +123,46 @@ export default function LiveRateCard({
 
           </View>
 
-          <View style={styles.marketRow}>
-
+          <View
+  style={{
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+  }}
+>
   <MaterialCommunityIcons
-
-    name="food-drumstick"
-
+    name="clock-outline"
     size={18}
-
     color="#FFFFFF"
-
   />
 
-  <Text style={styles.marketText}>
+  <View style={{ marginLeft: 8 }}>
 
-    Healthy Live Broiler Chicken
+    <Text
+      style={{
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "700",
+      }}
+    >
+      Order before 11:00 AM
+    </Text>
 
-  </Text>
+    <Text
+      style={{
+        color: "rgba(255,255,255,0.9)",
+        fontSize: 13,
+        marginTop: 2,
+      }}
+    >
+      ✓ Same-Day Delivery
+    </Text>
 
+  </View>
 </View>
 
-          <View style={styles.timerCard}>
 
-            <MaterialCommunityIcons
-
-              name="clock-outline"
-
-              size={18}
-
-              color="#FFF"
-
-            />
-
-            <View style={{marginLeft:10}}>
-
-              <Text style={styles.timerTitle}>
-
-  Order Before 9:00 AM
-
-</Text>
-
-<Text style={styles.timer}>
-
-  Same-Day Delivery
-
-</Text>
-
-            </View>
-
-          </View>
-
-          <Text style={styles.validity}>
-
-            {validTill}
-
-          </Text>
-
+          
         </>
 
       ) : (
@@ -189,7 +173,7 @@ export default function LiveRateCard({
 
             name="calendar"
 
-            size={64}
+            size={48}
 
             color="rgba(255,255,255,0.9)"
 
@@ -197,9 +181,21 @@ export default function LiveRateCard({
 
           <Text style={styles.closedText}>
 
-            {validTill}
+  {validTill}
 
-          </Text>
+</Text>
+
+<Text
+  style={{
+    color: "#FFF",
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 13,
+    opacity: 0.9,
+  }}
+>
+  Order opens again tomorrow before 9:00 AM.
+</Text>
 
         </>
 
@@ -222,7 +218,7 @@ const styles = StyleSheet.create({
 
     paddingHorizontal: 20,
 
-    paddingVertical: 14,
+    paddingVertical: 2,
 
     marginBottom: 18,
 
@@ -443,7 +439,7 @@ const styles = StyleSheet.create({
 
     textAlign: "center",
 
-    fontSize: 16,
+    fontSize: 14,
 
     lineHeight: 24,
 

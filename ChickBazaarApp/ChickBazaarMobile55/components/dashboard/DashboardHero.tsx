@@ -262,8 +262,8 @@ const tomorrow = getDeliveryHeader(
           <View>
 
   <Text style={styles.deliveryTitle}>
-    {today.relativeDay}'s Delivery
-  </Text>
+  Today's Order
+</Text>
 
   <Text style={styles.deliveryDate}>
     {today.weekday}
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 26,
 
-    padding: 20,
+    padding: 16,
 
     marginBottom: 18,
 
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
 
   buttonContainer: {
 
-    marginTop: 22,
+    marginTop: 8,
 
   },
 
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#E2E8F0",
 
-    marginVertical: 22,
+    marginVertical: 14,
 
   },
 
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginBottom: 18,
+    marginBottom: 12,
 
   },
 

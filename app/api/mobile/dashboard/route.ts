@@ -191,7 +191,19 @@ const repeatOrderAvailable =
         currentDelivery.order_number,
 
       status:
-        currentDelivery.status,
+  currentDelivery.status === "new"
+    ? "Order Confirmed"
+    : currentDelivery.status === "confirmed"
+    ? "Order Confirmed"
+    : currentDelivery.status === "allocated"
+    ? "Farm Allocated"
+    : currentDelivery.status === "preparing"
+    ? "Preparing Order"
+    : currentDelivery.status === "vehicle_assigned"
+    ? "Vehicle Assigned"
+    : currentDelivery.status === "out_for_delivery"
+    ? "Out for Delivery"
+    : currentDelivery.status,
 
       captain:
         currentDelivery.assigned_driver,

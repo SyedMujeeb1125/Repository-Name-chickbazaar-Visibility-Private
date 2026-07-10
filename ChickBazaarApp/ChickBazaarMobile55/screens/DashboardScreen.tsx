@@ -43,7 +43,7 @@ export default function DashboardScreen({
     useState<any>(null);
 
   const [loading, setLoading] =
-    useState(true);
+  useState(false);
 
   const [drawerVisible, setDrawerVisible] =
     useState(false);
@@ -51,12 +51,19 @@ export default function DashboardScreen({
     const [placingRepeatOrder, setPlacingRepeatOrder] =
   useState(false);
 
+  const [firstLoad, setFirstLoad] =
+  useState(true);
+
   const { logout } =
     useAuth();
 
   useEffect(() => {
 
     loadDashboard();
+
+    if (firstLoad) {
+  setLoading(true);
+}
 
     const timer =
       setInterval(
@@ -71,6 +78,10 @@ export default function DashboardScreen({
 
   async function loadDashboard() {
 
+    const start = Date.now();
+
+  console.log("Dashboard API started...");
+
     try {
 
       
@@ -84,15 +95,34 @@ export default function DashboardScreen({
         return;
       }
 
-      const response =
-  await fetch(
-    `http://10.144.143.74:3000/api/mobile/dashboard?mobile=${mobile}`
-  );
+      
+
+      const response = await fetch(
+  `https://www.chickbazaar.com/api/mobile/dashboard?mobile=${mobile}`
+);
+
+  console.log(
+  "Fetch completed in",
+  Date.now() - start,
+  "ms"
+);
 
       const data =
         await response.json();
 
+        console.log(
+  "JSON parsed in",
+  Date.now() - start,
+  "ms"
+);
+
       setDashboard(data);
+
+      console.log(
+  "Dashboard set in",
+  Date.now() - start,
+  "ms"
+);
 
     } catch (err) {
 
@@ -101,6 +131,7 @@ export default function DashboardScreen({
     } finally {
 
       setLoading(false);
+setFirstLoad(false);
 
     }
 
