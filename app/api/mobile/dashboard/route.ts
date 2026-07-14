@@ -154,6 +154,71 @@ const repeatOrderAvailable =
   deliveredYesterday &&
   !currentDelivery;
 
+  // -------------------------------------
+// Retailer Account
+// -------------------------------------
+
+const latestOrder = orders?.[0];
+
+const currentBill = Number(
+  latestOrder?.final_bill_amount ??
+  latestOrder?.final_amount ??
+  0
+);
+
+const advancePaid = Number(
+  latestOrder?.advance_amount ?? 0
+);
+
+const cashReceived = Number(
+  latestOrder?.cash_received ?? 0
+);
+
+const upiReceived = Number(
+  latestOrder?.upi_received ?? 0
+);
+
+const totalPaid = Number(
+  latestOrder?.total_paid ??
+  cashReceived +
+  upiReceived +
+  advancePaid
+);
+
+const balanceDue = Math.max(
+  currentBill - totalPaid,
+  0
+);
+
+let accountStatus = "Ready to Order";
+
+if (latestOrder) {
+
+  if (
+    latestOrder.advance_payment_status === "paid" &&
+    currentBill === 0
+  ) {
+
+    accountStatus = "Advance Received";
+
+  } else if (
+    currentBill > 0 &&
+    balanceDue > 0
+  ) {
+
+    accountStatus = "Payment Pending";
+
+  } else if (
+    currentBill > 0 &&
+    balanceDue <= 0
+  ) {
+
+    accountStatus = "Paid";
+
+  }
+
+}
+
   return NextResponse.json({
     shopName:
       retailer.shop_name ??
@@ -251,6 +316,29 @@ const repeatOrderAvailable =
   : {
       available: false,
     },
+
+    account: {
+
+  currentBill,
+
+  advancePaid,
+
+  cashReceived,
+
+  upiReceived,
+
+  amountPaid:
+    totalPaid,
+
+  balanceDue,
+
+  paymentMethod:
+    "Advance + Final Payment",
+
+  status:
+    accountStatus,
+
+},
 
     recentOrders:
       (orders || []).slice(

@@ -22,6 +22,21 @@ export async function POST(
     formData.get("deliveryNotes") || ""
   );
 
+  const cashReceived = Number(
+  formData.get("cashReceived") || 0
+);
+
+const upiReceived = Number(
+  formData.get("upiReceived") || 0
+);
+
+const paymentMode = String(
+  formData.get("paymentMode") || ""
+);
+
+const upiTransactionId = String(
+  formData.get("upiTransactionId") || ""
+);
   const podPhoto =
     formData.get("podPhoto") as File | null;
 
@@ -80,21 +95,94 @@ console.log(
     }
   }
 
+  const { data: order } = await supabase
+  .from("orders")
+  .select("*")
+  .eq("id", orderId)
+  .single();
+
+if (!order) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Order not found",
+    },
+    {
+      status: 404,
+    }
+  );
+}
+
+const rate =
+  Number(order.rate_per_kg ?? 0);
+
+const advance =
+  Number(order.advance_amount ?? 500);
+
+const finalBill =
+  actualWeight * rate;
+
+const totalPaid =
+  advance +
+  cashReceived +
+  upiReceived;
+
+const balanceDue =
+  Math.max(
+    finalBill - totalPaid,
+    0
+  );
+
+const paymentStatus =
+  balanceDue > 0
+    ? "payment_pending"
+    : "paid";
+
+const orderStatus =
+  balanceDue > 0
+    ? "delivered"
+    : "completed";
+
   const { error } = await supabase
   .from("orders")
   .update({
-    status: "delivered",
 
-    actual_weight: actualWeight,
+  status: orderStatus,
 
-    delivery_notes: deliveryNotes,
+  actual_weight: actualWeight,
 
-    delivered_at: new Date().toISOString(),
+  final_bill_amount: finalBill,
 
-    pod_photo_url: podPhotoUrl,
+  cash_received: cashReceived,
 
-    pod_uploaded_at: new Date().toISOString(),
-  })
+  upi_received: upiReceived,
+
+  total_paid: totalPaid,
+
+  balance_due: balanceDue,
+
+  payment_status: paymentStatus,
+
+  payment_mode: paymentMode,
+
+  upi_transaction_id: upiTransactionId,
+
+  payment_collected_by: "Driver",
+
+  payment_collected_at:
+    new Date().toISOString(),
+
+  delivery_notes: deliveryNotes,
+
+  delivered_at:
+    new Date().toISOString(),
+
+  pod_photo_url: podPhotoUrl,
+
+  pod_uploaded_at:
+    new Date().toISOString(),
+
+})
   .eq("id", orderId);
 
 if (error) {

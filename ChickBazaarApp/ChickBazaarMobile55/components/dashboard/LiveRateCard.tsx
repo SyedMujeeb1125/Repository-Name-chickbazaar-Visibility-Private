@@ -32,7 +32,7 @@ export default function LiveRateCard({
     "Valid till 11:00 AM";
 
   let badge =
-    "REGULAR";
+    "TODAY'S RATE";
 
   if (
     hour >= 11 &&
@@ -81,7 +81,7 @@ export default function LiveRateCard({
 
         <MaterialCommunityIcons
 
-          name="chart-line"
+          name="currency-inr"
 
           size={14}
 
@@ -210,17 +210,19 @@ const styles = StyleSheet.create({
 
   card: {
 
-    overflow: "hidden",
+  overflow: "hidden",
 
-    backgroundColor: "#F97316",
+  backgroundColor: "#F97316",
 
-    borderRadius: 26,
+  borderRadius: 26,
 
-    paddingHorizontal: 20,
+  paddingHorizontal: 22,
 
-    paddingVertical: 2,
+  paddingTop: 16,
 
-    marginBottom: 18,
+  paddingBottom: 16,
+
+  marginBottom: 18,
 
     shadowColor: "#F97316",
 
@@ -321,13 +323,15 @@ const styles = StyleSheet.create({
 
   rateRow: {
 
-    flexDirection: "row",
+  flexDirection: "row",
 
-    alignItems: "flex-end",
+  alignItems: "flex-end",
 
-    marginTop: 10,
+  marginTop: 14,
 
-  },
+  marginBottom: 8,
+
+},
 
   rate: {
 
@@ -361,7 +365,7 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginTop: 8,
+    marginTop: 14,
 
   },
 
@@ -383,7 +387,7 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginTop: 12,
+    marginTop: 8,
 
     backgroundColor: "rgba(255,255,255,0.16)",
 
@@ -448,12 +452,17 @@ const styles = StyleSheet.create({
   },
 
   heroImage: {
+
   position: "absolute",
-  right: 1,
-  top: -65,
-  width: 200,
-  height: 300,
-  opacity: 1.80,
+
+  right: -10,
+
+  top: -70,
+
+  width: 215,
+
+  height: 320,
+
 },
 
 });

@@ -10,7 +10,6 @@ import {
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 type Props = {
-
   invoiceAmount: number;
 
   amountPaid: number;
@@ -18,16 +17,15 @@ type Props = {
   advancePaid: number;
 
   paymentStatus:
-    | "Paid"
-    | "Partial"
-    | "Pending";
+  | "Ready to Order"
+  | "Advance Received"
+  | "Payment Pending"
+  | "Paid";
 
   onViewDetails: () => void;
-
 };
 
 function formatAmount(amount: number) {
-
   if (amount >= 10000000) {
     return `₹${(amount / 10000000).toFixed(1)}Cr`;
   }
@@ -41,21 +39,14 @@ function formatAmount(amount: number) {
   }
 
   return `₹${amount.toLocaleString()}`;
-
 }
 
 export default function RetailerAccountCard({
-
   invoiceAmount,
-
   amountPaid,
-
   advancePaid,
-
   paymentStatus,
-
   onViewDetails,
-
 }: Props) {
 
   const balance =
@@ -65,16 +56,15 @@ export default function RetailerAccountCard({
     );
 
   const statusColor =
+  paymentStatus === "Paid"
+    ? "#16A34A"
+    : paymentStatus === "Advance Received"
+    ? "#2563EB"
+    : paymentStatus === "Payment Pending"
+    ? "#F97316"
+    : "#64748B";
 
-    paymentStatus === "Paid"
-
-      ? "#16A34A"
-
-      : paymentStatus === "Partial"
-
-      ? "#F97316"
-
-      : "#DC2626";
+  const statusText = paymentStatus;
 
   return (
 
@@ -92,7 +82,7 @@ export default function RetailerAccountCard({
         >
 
           <Text style={styles.viewAll}>
-            View Invoice →
+            View Bill →
           </Text>
 
         </TouchableOpacity>
@@ -101,92 +91,74 @@ export default function RetailerAccountCard({
 
       <View style={styles.card}>
 
-        <Row
+        <Text style={styles.billTitle}>
+          Current Bill
+        </Text>
 
+        <Text style={styles.billAmount}>
+          {invoiceAmount > 0
+            ? formatAmount(invoiceAmount)
+            : "Bill will be generated after delivery"}
+        </Text>
+
+        <Divider />
+
+        <Row
           icon="cash-check"
-
           label="Advance Paid"
-
-          value={formatAmount(
-            advancePaid
-          )}
-
+          value={formatAmount(advancePaid)}
           valueColor="#16A34A"
-
         />
 
         <Divider />
 
         <Row
-
-          icon="file-document-outline"
-
-          label="Current Invoice"
-
-          value={formatAmount(
-            invoiceAmount
-          )}
-
-        />
-
-        <Divider />
-
-        <Row
-
-          icon="cash"
-
-          label="Amount Paid"
-
-          value={formatAmount(
-            amountPaid
-          )}
-
-          valueColor="#16A34A"
-
-        />
-
-        <Divider />
-
-        <Row
-
           icon="wallet-outline"
-
           label="Balance Due"
-
-          value={formatAmount(
-            balance
-          )}
-
+          value={formatAmount(balance)}
           valueColor={
             balance > 0
-              ? "#DC2626"
+              ? "#F97316"
               : "#16A34A"
           }
+        />
 
+        <Divider />
+
+        <Row
+          icon="file-document-outline"
+          label="Payment Type"
+          value="Advance + Final Payment"
         />
 
         <Divider />
 
         <View style={styles.statusCard}>
 
-          <View>
+          <MaterialCommunityIcons
+  name={
+    paymentStatus === "Paid"
+      ? "check-circle"
+      : paymentStatus === "Advance Received"
+      ? "cash-check"
+      : paymentStatus === "Payment Pending"
+      ? "clock-outline"
+      : "clipboard-check-outline"
+  }
+  size={22}
+  color={statusColor}
+/>
 
-            <Text style={styles.label}>
-              Payment Status
-            </Text>
-
-            <Text
-              style={[
-                styles.status,
-                {
-                  color: statusColor,
-                },
-              ]}
-            >
-              ● {paymentStatus}
-            </Text>
-
-          </View>
+          <Text
+            style={[
+              styles.status,
+              {
+                color: statusColor,
+              },
+            ]}
+          >
+            {statusText}
+          </Text>
 
         </View>
 
@@ -199,7 +171,7 @@ export default function RetailerAccountCard({
           />
 
           <Text style={styles.footerText}>
-            Bill-to-Bill Settlement
+            Remaining amount is payable during delivery.
           </Text>
 
         </View>
@@ -213,23 +185,16 @@ export default function RetailerAccountCard({
 }
 
 function Divider() {
-
   return (
     <View style={styles.divider} />
   );
-
 }
 
 function Row({
-
   icon,
-
   label,
-
   value,
-
   valueColor = "#0F172A",
-
 }: any) {
 
   return (
@@ -239,13 +204,9 @@ function Row({
       <View style={styles.left}>
 
         <MaterialCommunityIcons
-
           name={icon}
-
           size={20}
-
           color="#F97316"
-
         />
 
         <Text style={styles.label}>
@@ -270,10 +231,11 @@ function Row({
   );
 
 }
+
 const styles = StyleSheet.create({
 
   container: {
-    marginBottom: 20,
+    marginBottom: 22,
   },
 
   header: {
@@ -292,7 +254,7 @@ const styles = StyleSheet.create({
   viewAll: {
     color: "#F97316",
     fontWeight: "700",
-    fontSize: 13,
+    fontSize: 14,
   },
 
   card: {
@@ -300,7 +262,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 26,
 
-    padding: 20,
+    padding: 22,
 
     shadowColor: "#000",
 
@@ -316,11 +278,27 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
 
+  billTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#64748B",
+    textAlign: "center",
+  },
+
+  billAmount: {
+    fontSize: 34,
+    fontWeight: "900",
+    color: "#0F172A",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 20,
+  },
+
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
 
   left: {
@@ -349,20 +327,28 @@ const styles = StyleSheet.create({
   statusCard: {
     marginTop: 18,
 
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFF7ED",
 
-    borderRadius: 16,
+    borderRadius: 18,
 
-    padding: 16,
+    paddingVertical: 14,
+
+    paddingHorizontal: 18,
+
+    flexDirection: "row",
+
+    justifyContent: "center",
+
+    alignItems: "center",
 
     borderWidth: 1,
 
-    borderColor: "#E2E8F0",
+    borderColor: "#FED7AA",
   },
 
   status: {
-    marginTop: 6,
-    fontSize: 18,
+    marginLeft: 10,
+    fontSize: 16,
     fontWeight: "800",
   },
 
@@ -387,6 +373,8 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontSize: 13,
     fontWeight: "600",
+    textAlign: "center",
+    flex: 1,
   },
 
 });

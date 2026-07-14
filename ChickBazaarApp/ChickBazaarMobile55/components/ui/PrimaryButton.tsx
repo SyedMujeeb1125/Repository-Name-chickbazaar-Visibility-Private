@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  ViewStyle,
 } from "react-native";
 
 import {
@@ -19,6 +20,7 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   variant?: "solid" | "outline";
+  style?: ViewStyle;
 };
 
 export default function PrimaryButton({
@@ -27,6 +29,7 @@ export default function PrimaryButton({
   loading = false,
   disabled = false,
   variant = "solid",
+  style,
 }: Props) {
 
   const outline =
@@ -41,14 +44,15 @@ export default function PrimaryButton({
       }
       onPress={onPress}
       style={[
-        styles.button,
+  styles.button,
+  style,
 
-        outline &&
-          styles.outlineButton,
+  outline &&
+    styles.outlineButton,
 
-        disabled &&
-          styles.disabled,
-      ]}
+  disabled &&
+    styles.disabled,
+]}
     >
 
       {loading ? (
@@ -87,7 +91,7 @@ const styles =
 
     button: {
 
-      height: 56,
+      height: 52,
 
       backgroundColor:
         Colors.primary,

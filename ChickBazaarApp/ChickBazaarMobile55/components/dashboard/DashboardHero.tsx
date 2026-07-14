@@ -88,7 +88,7 @@ const tomorrow = getDeliveryHeader(
       "PLACE ORDER";
 
     let badge =
-      "REGULAR DELIVERY";
+      "READY TO ORDER";
 
     let badgeColor =
       "#16A34A";
@@ -98,22 +98,22 @@ const tomorrow = getDeliveryHeader(
 
     if (isExpress) {
 
-      title =
-        "PLACE EXPRESS ORDER";
+  title =
+    "PLACE TODAY'S ORDER";
 
-      button =
-        "PLACE EXPRESS ORDER";
+  button =
+    "PLACE ORDER";
 
-      badge =
-        "EXPRESS DELIVERY";
+  badge =
+    "EXPRESS DELIVERY";
 
-      badgeColor =
-        "#F97316";
+  badgeColor =
+    "#F97316";
 
-      description =
-        "Need birds urgently? Express delivery is available with additional charges.";
+  description =
+    "Need birds urgently? Express delivery is available with additional charges.";
 
-    }
+}
 
     if (isTomorrow) {
 
@@ -180,58 +180,60 @@ const tomorrow = getDeliveryHeader(
               {title}
             </Text>
 
-            <Text style={styles.description}>
-              {description}
-            </Text>
+            <Text
+  style={{
+    marginTop: 8,
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  }}
+>
+  Order in less than a minute.
+</Text>
 
-            <View style={styles.featureRow}>
+                        <View style={styles.featureRow}>
+  <MaterialCommunityIcons
+    name="check"
+    size={18}
+    color="#16A34A"
+  />
+  <Text style={styles.featureText}>
+    Live Broiler Chicken
+  </Text>
+</View>
 
-              <MaterialCommunityIcons
-                name="check-circle"
-                size={18}
-                color="#16A34A"
-              />
+<View style={styles.featureRow}>
+  <MaterialCommunityIcons
+    name="check"
+    size={18}
+    color="#16A34A"
+  />
+  <Text style={styles.featureText}>
+    Healthy Feed
+  </Text>
+</View>
 
-              <Text style={styles.featureText}>
-                Farm Fresh Quality
-              </Text>
-
-            </View>
-
-            <View style={styles.featureRow}>
-
-              <MaterialCommunityIcons
-                name="check-circle"
-                size={18}
-                color="#16A34A"
-              />
-
-              <Text style={styles.featureText}>
-                Healthy Live Broiler Chicken
-              </Text>
-
-            </View>
-
-            <View style={styles.featureRow}>
-
-              <MaterialCommunityIcons
-                name="check-circle"
-                size={18}
-                color="#16A34A"
-              />
-
-              <Text style={styles.featureText}>
-                Direct Farm Procurement
-              </Text>
-
-            </View>
+<View style={styles.featureRow}>
+  <MaterialCommunityIcons
+    name="check"
+    size={18}
+    color="#16A34A"
+  />
+  <Text style={styles.featureText}>
+    Same-Day Delivery
+  </Text>
+</View>
 
             <View style={styles.buttonContainer}>
 
               <PrimaryButton
-                title={button}
-                onPress={onPlaceOrder}
-              />
+  title={button}
+  onPress={onPlaceOrder}
+  style={{
+    width: "95%",
+    alignSelf: "center",
+  }}
+/>
 
             </View>
 
@@ -348,9 +350,13 @@ const tomorrow = getDeliveryHeader(
       <View style={styles.buttonContainer}>
 
         <PrimaryButton
-          title="TRACK ORDER"
-          onPress={onTrackOrder}
-        />
+  title="TRACK ORDER"
+  onPress={onTrackOrder}
+  style={{
+    width: "95%",
+    alignSelf: "center",
+  }}
+/>
 
       </View>
 
@@ -363,29 +369,24 @@ const tomorrow = getDeliveryHeader(
 const styles = StyleSheet.create({
 
   card: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 26,
 
-    backgroundColor: "#FFFFFF",
+  paddingTop: 16,
+  paddingHorizontal: 16,
+  paddingBottom: 8,
 
-    borderRadius: 26,
+  marginBottom: 8,
 
-    padding: 16,
-
-    marginBottom: 18,
-
-    shadowColor: "#000",
-
-    shadowOpacity: 0.08,
-
-    shadowRadius: 16,
-
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-
-    elevation: 8,
-
+  shadowColor: "#000",
+  shadowOpacity: 0.08,
+  shadowRadius: 16,
+  shadowOffset: {
+    width: 0,
+    height: 8,
   },
+  elevation: 8,
+},
 
   heroRow: {
 
@@ -397,11 +398,11 @@ const styles = StyleSheet.create({
 
   chicken: {
 
-    width: 120,
+    width: 130,
 
-    height: 150,
+    height: 165,
 
-    marginRight: 16,
+    marginRight: 6,
 
   },
 
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
 
     marginLeft: 6,
 
-    fontSize: 12,
+    fontSize: 14,
 
     fontWeight: "700",
 
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
 
   title: {
 
-    fontSize: 24,
+    fontSize: 20,
 
     fontWeight: "900",
 
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
 
     fontSize: 14,
 
-    lineHeight: 21,
+    lineHeight: 20,
 
     color: "#64748B",
 
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
 
   buttonContainer: {
 
-    marginTop: 8,
+    marginTop: 10,
 
   },
 
@@ -501,17 +502,17 @@ const styles = StyleSheet.create({
 
   deliveryChicken: {
 
-    width: 95,
+    width: 65,
 
-    height: 120,
+    height: 82,
 
-    marginRight: 18,
+    marginRight: 12,
 
   },
 
   deliveryTitle: {
 
-    fontSize: 24,
+    fontSize: 18,
 
     fontWeight: "900",
 
@@ -537,7 +538,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#E2E8F0",
 
-    marginVertical: 14,
+    marginVertical: 10,
 
   },
 
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginBottom: 12,
+    marginBottom: 8,
 
   },
 
@@ -577,7 +578,7 @@ const styles = StyleSheet.create({
 
   marginTop: 4,
 
-  fontSize: 15,
+  fontSize: 14,
 
   fontWeight: "700",
 
@@ -587,7 +588,7 @@ const styles = StyleSheet.create({
 
 deliverySubDate: {
 
-  marginTop: 2,
+  marginTop: 0,
 
   fontSize: 13,
 
