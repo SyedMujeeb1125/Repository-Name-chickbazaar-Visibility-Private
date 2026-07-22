@@ -1,113 +1,80 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { API } from "../config/api";
 import Api from "./api";
+import SessionService from "./session";
 
-export type Profile = {
-
+export interface Profile {
   ownerName: string;
-
   shopName: string;
-
   mobile: string;
-
   email: string;
-
   address: string;
-
   businessType?: string;
-
   gstNumber?: string;
-
   fssaiNumber?: string;
-
   creditLimit?: number;
-
   creditCategory?: string;
+}
 
-};
+async function getRetailerMobile(): Promise<string> {
+  const retailer =
+    await SessionService.getRetailer<{
+      mobile: string;
+    }>();
 
-async function getRetailerMobile() {
-
-  const mobile =
-    await AsyncStorage.getItem(
-      "retailerMobile"
-    );
-
-  if (!mobile) {
-
-    throw new Error(
-      "Retailer not logged in."
-    );
-
+  if (!retailer?.mobile) {
+    throw new Error("Retailer not logged in.");
   }
 
-  return mobile;
-
+  return retailer.mobile;
 }
 
 const ProfileService = {
-
   async getProfile() {
-
     const mobile =
       await getRetailerMobile();
 
     return Api.get<Profile>(
-      `/profile?mobile=${mobile}`
+      `${API.PROFILE.GET}?mobile=${encodeURIComponent(
+        mobile
+      )}`
     );
-
   },
 
   async updatePersonalDetails(data: {
-
     ownerName: string;
-
     email: string;
-
     address: string;
-
   }) {
-
     const mobile =
       await getRetailerMobile();
 
     return Api.put(
-      "/profile",
+      API.PROFILE.UPDATE,
       {
         mobile,
         ...data,
       }
     );
-
   },
 
   async updateShopDetails(data: {
-
     shopName: string;
-
     businessType: string;
-
     gstNumber: string;
-
     fssaiNumber: string;
-
     address: string;
-
   }) {
-
     const mobile =
       await getRetailerMobile();
 
     return Api.put(
-      "/shop",
+      API.PROFILE.UPDATE_SHOP,
       {
         mobile,
         ...data,
       }
     );
-
   },
-
 };
 
 export default ProfileService;

@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  "https://www.chickbazaar.com/api/mobile";
+import { apiUrl } from "../config/api";
 
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
@@ -11,100 +10,82 @@ async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-
   const {
     method = "GET",
     body,
     headers = {},
   } = options;
 
-  const response = await fetch(
-    `${API_BASE_URL}${endpoint}`,
-    {
-      method,
+  const isFormData = body instanceof FormData;
 
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...headers,
-      },
+  const response = await fetch(apiUrl(endpoint), {
+    method,
+    headers: {
+      Accept: "application/json",
+      ...(isFormData
+        ? {}
+        : {
+            "Content-Type": "application/json",
+          }),
+      ...headers,
+    },
+    body:
+      body === undefined
+        ? undefined
+        : isFormData
+        ? body
+        : JSON.stringify(body),
+  });
 
-      body:
-        body !== undefined
-          ? JSON.stringify(body)
-          : undefined,
-    }
-  );
+  let data: any;
 
-  if (!response.ok) {
-
-    const message =
-      await response.text();
-
-    throw new Error(
-      message ||
-      "Request failed."
-    );
-
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid server response.");
   }
 
-  return response.json();
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.error ||
+        "Request failed."
+    );
+  }
 
+  return data as T;
 }
 
 const Api = {
-
   get<T>(endpoint: string) {
-
-    return request<T>(
-      endpoint
-    );
-
+    return request<T>(endpoint);
   },
 
   post<T>(
     endpoint: string,
     body: any
   ) {
-
-    return request<T>(
-      endpoint,
-      {
-        method: "POST",
-        body,
-      }
-    );
-
+    return request<T>(endpoint, {
+      method: "POST",
+      body,
+    });
   },
 
   put<T>(
     endpoint: string,
     body: any
   ) {
-
-    return request<T>(
-      endpoint,
-      {
-        method: "PUT",
-        body,
-      }
-    );
-
+    return request<T>(endpoint, {
+      method: "PUT",
+      body,
+    });
   },
 
-  delete<T>(
-    endpoint: string
-  ) {
-
-    return request<T>(
-      endpoint,
-      {
-        method: "DELETE",
-      }
-    );
-
+  delete<T>(endpoint: string) {
+    return request<T>(endpoint, {
+      method: "DELETE",
+    });
   },
-
 };
 
 export default Api;

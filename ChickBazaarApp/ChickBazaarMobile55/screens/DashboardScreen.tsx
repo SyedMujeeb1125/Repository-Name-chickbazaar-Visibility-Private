@@ -1,13 +1,15 @@
 import React, {
+  useCallback,
   useEffect,
   useState,
 } from "react";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 
 import {
   Alert,
   ImageBackground,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   View,
@@ -31,111 +33,122 @@ import SideDrawer from "../components/navigation/SideDrawer";
 
 import LoadingView from "../components/ui/LoadingView";
 
-import {
-  DashboardState,
-} from "../utils/dashboard";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API } from "../config/api";
+import Api from "../services/api";
+import SessionService from "../services/session";
+
 
 export default function DashboardScreen({
   navigation,
 }: any) {
 
   const [dashboard, setDashboard] =
-    useState<any>(null);
+  useState<any>(null);
 
-  const [loading, setLoading] =
-  useState(false);
-
-  const [drawerVisible, setDrawerVisible] =
-    useState(false);
-
-    const [placingRepeatOrder, setPlacingRepeatOrder] =
-  useState(false);
-
-  const [firstLoad, setFirstLoad] =
+const [loading, setLoading] =
   useState(true);
 
-  const { logout } =
-    useAuth();
+const [drawerVisible, setDrawerVisible] =
+  useState(false);
+
+const [placingRepeatOrder, setPlacingRepeatOrder] =
+  useState(false);
+
+const [refreshing, setRefreshing] =
+  useState(false);
+
+const { logout } =
+  useAuth();
 
   useEffect(() => {
+  loadDashboard(true);
 
-    loadDashboard();
+  const timer = setInterval(() => {
+    loadDashboard(false);
+  }, 60000);
 
-    if (firstLoad) {
-  setLoading(true);
-}
 
-    const timer =
-      setInterval(
-        loadDashboard,
-        30000
-      );
+  return () => clearInterval(timer);
+}, []);
 
-    return () =>
-      clearInterval(timer);
-
-  }, []);
-
-  async function loadDashboard() {
-
-    const start = Date.now();
-
-  console.log("Dashboard API started...");
-
-    try {
-
-      
-
-      const mobile =
-        await AsyncStorage.getItem(
-          "retailerMobile"
-        );
-
-      if (!mobile) {
-        return;
-      }
-
-      
-
-      const response = await fetch(
-  `https://www.chickbazaar.com/api/mobile/dashboard?mobile=${mobile}`
+  useFocusEffect(
+  useCallback(() => {
+    loadDashboard(false);
+  }, [])
 );
 
-  console.log(
-  "Fetch completed in",
-  Date.now() - start,
-  "ms"
-);
+  async function loadDashboard(
+  showLoader = false
+) {
+  
+  if (showLoader) {
+    setLoading(true);
+  }
 
-      const data =
-        await response.json();
+  
+  try {
+    const retailer =
+      await SessionService.getRetailer<{
+        mobile: string;
+      }>();
 
-        console.log(
-  "JSON parsed in",
-  Date.now() - start,
-  "ms"
-);
-
-      setDashboard(data);
-
-      console.log(
-  "Dashboard set in",
-  Date.now() - start,
-  "ms"
-);
-
-    } catch (err) {
-
-      console.log(err);
-
-    } finally {
-
-      setLoading(false);
-setFirstLoad(false);
-
+    if (!retailer?.mobile) {
+            return;
     }
 
+
+    const data =
+      await Api.get<any>(
+        `${API.DASHBOARD.GET}?mobile=${encodeURIComponent(
+          retailer.mobile
+        )}`
+      );
+
+    
+
+    setDashboard(data);
+
+    if (data?.retailerId) {
+  await AsyncStorage.setItem(
+    "retailerId",
+    data.retailerId
+  );
+}
+  } catch (error) {
+    
+    const message =
+  error instanceof Error
+    ? error.message.toLowerCase()
+    : "";
+
+  if (
+    message.includes("network") ||
+    message.includes("fetch")
+  ) {
+    Alert.alert(
+      "No Internet Connection",
+      "Please check your internet connection and pull down to refresh."
+    );
+  } else if (
+    message.includes("timeout")
+  ) {
+    Alert.alert(
+      "Request Timed Out",
+      "The server is taking longer than expected. Please try again."
+    );
+  } else {
+    Alert.alert(
+      "Unable to Load Dashboard",
+      "Something went wrong. Please try again."
+    );
   }
+} finally {
+    if (showLoader) {
+      setLoading(false);
+    }
+  }
+}
 
   async function repeatOrderNow() {
 
@@ -143,46 +156,28 @@ setFirstLoad(false);
 
     setPlacingRepeatOrder(true);
 
-    const mobile =
-      await AsyncStorage.getItem(
-        "retailerMobile"
-      );
+    const retailer =
+  await SessionService.getRetailer<{
+    mobile: string;
+  }>();
 
-    if (!mobile) {
-      return;
-    }
+const mobile = retailer?.mobile;
 
-    const response =
-      await fetch(
-        "http://10.144.143.74:3000/api/mobile/repeat-order",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-
-            mobile,
-
-            weight:
-              dashboard.repeatOrder.weight,
-
-          }),
-
-        }
-      );
+if (!mobile) {
+  return;
+}
 
     const result =
-      await response.json();
+  await Api.post<any>(
+    "/mobile/repeat-order",
+    {
+      mobile,
+      weight:
+        dashboard.repeatOrder.weight,
+    }
+  );
 
-    console.log(
-      "Repeat Order Result:",
-      result
-    );
-
+    
     if (result.success) {
 
   await loadDashboard();
@@ -201,10 +196,11 @@ setFirstLoad(false);
 
 }
 
-  } catch (err) {
-
-  console.log(err);
-
+  } catch (error) {
+  Alert.alert(
+    "Unable to Place Order",
+    "Please try again."
+  );
 }
 
 finally {
@@ -215,89 +211,46 @@ finally {
 
 }
 
+const onRefresh = async () => {
+  try {
+    setRefreshing(true);
+    await loadDashboard(false);
+  } finally {
+    setRefreshing(false);
+  }
+};
+
   if (loading) {
     return <LoadingView />;
   }
 
-  const currentHour =
-    new Date().getHours();
+  const dashboardState = dashboard?.businessStatus;
 
-  let dashboardState =
-    DashboardState.NO_ORDER;
+  const currentHour = new Date().getHours();
 
-  if (dashboard?.currentDelivery) {
+const rateMode =
+  currentHour >= 19
+    ? "tomorrow"
+    : currentHour <= 17
+    ? "today"
+    : "publishing";
 
-    switch (
-      dashboard.currentDelivery.status
-    ) {
+const deliveryDate =
+  rateMode === "tomorrow"
+    ? "Tomorrow's Delivery"
+    : "Today's Delivery";
 
-      case "new":
-      case "confirmed":
-        dashboardState =
-          DashboardState.ORDER_CONFIRMED;
-        break;
+const updatedAt =
+  rateMode === "publishing"
+    ? "Publishing at 7:00 PM"
+    : "Updated • 7:00 PM";
 
-      case "allocated":
-        dashboardState =
-          DashboardState.FARM_ALLOCATED;
-        break;
-
-      case "preparing":
-        dashboardState =
-          DashboardState.PREPARING;
-        break;
-
-      case "vehicle_assigned":
-        dashboardState =
-          DashboardState.VEHICLE_ASSIGNED;
-        break;
-
-      case "out_for_delivery":
-        dashboardState =
-          DashboardState.OUT_FOR_DELIVERY;
-        break;
-
-      case "delivered":
-      case "completed":
-        dashboardState =
-          DashboardState.DELIVERED;
-        break;
-
-      default:
-        dashboardState =
-          DashboardState.NO_ORDER;
-
-    }
-
-  } else if (
-    currentHour >= 11 &&
-    currentHour < 18
-  ) {
-
-    dashboardState =
-      DashboardState.AFTER_CUTOFF;
-
-  }
-
-  if (
-  dashboard?.repeatOrder?.available
-) {
-
-  dashboardState =
-    DashboardState.REPEAT_ORDER_AVAILABLE;
-
-}
-
-console.log(
-  "Repeat Order:",
-  dashboard?.repeatOrder
+    const activeOrder = dashboard?.recentOrders?.find(
+  (order: any) =>
+    order.order_number === dashboard?.currentDelivery?.orderNumber
 );
 
-console.log(
-  "Dashboard State:",
-  dashboardState
-);
-
+ 
   return (
 
     <SafeAreaView
@@ -315,11 +268,17 @@ console.log(
       >
 
         <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={
-            styles.container
-          }
-        >
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={styles.container}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      colors={["#F97316"]}
+      tintColor="#F97316"
+    />
+  }
+>
 
           <DashboardHeader
             shopName={
@@ -331,13 +290,7 @@ console.log(
               "HSR Layout"
             }
             notificationCount={3}
-            orderStatus={
-              currentHour < 11
-                ? "regular"
-                : currentHour < 18
-                ? "express"
-                : "tomorrow"
-            }
+            
             onMenuPress={() =>
               setDrawerVisible(true)
             }
@@ -349,14 +302,18 @@ console.log(
           />
 
           <LiveRateCard
-            rate={Number(
-              dashboard?.todayRate ||
-                150
-            )}
-          />
+  mode={rateMode}
+  rate={
+    rateMode === "tomorrow"
+      ? Number(dashboard?.tomorrowRate ?? dashboard?.todayRate ?? 150)
+      : Number(dashboard?.todayRate ?? 150)
+  }
+/>
 
           <DashboardHeroRenderer
   state={dashboardState}
+
+  account={dashboard?.account}
 
   repeatOrder={dashboard?.repeatOrder}
 
@@ -364,8 +321,36 @@ console.log(
     dashboard?.currentDelivery?.status
   }
 
+  orderWeight={
+    dashboard?.currentDelivery?.requestedWeight ??
+    activeOrder?.requested_weight
+  }
+
+  rate={
+    activeOrder?.rate_per_kg
+  }
+
+  estimatedAmount={
+    dashboard?.currentDelivery?.estimatedAmount ??
+    activeOrder?.estimated_amount
+  }
+
+  deliveryWindow={
+    dashboard?.currentDelivery?.deliveryWindow ??
+    "Today's Delivery"
+  }
+
   driverName={
     dashboard?.currentDelivery?.captain
+  }
+
+  driverPhone={
+    dashboard?.currentDelivery?.driverPhone
+  }
+
+  vehicleNumber={
+    dashboard?.currentDelivery?.vehicle ??
+    activeOrder?.assigned_vehicle
   }
 
   eta={
@@ -376,15 +361,21 @@ console.log(
     navigation.navigate("Order")
   }
 
-  onTrackOrder={() =>
-    navigation.navigate("Orders")
-  }
+  onTrackOrder={() => {
+    if (activeOrder?.id) {
+      navigation.navigate("OrderDetails", {
+        orderId: activeOrder.id,
+      });
+    } else {
+      navigation.navigate("Orders");
+    }
+  }}
 
   onRepeatOrder={repeatOrderNow}
 
   placingRepeatOrder={
-  placingRepeatOrder
-}
+    placingRepeatOrder
+  }
 
   onChangeQuantity={() =>
     navigation.navigate("Order")
@@ -396,55 +387,41 @@ console.log(
     marginTop: 20,
   }}
 >
-
   <RetailerAccountCard
-              advancePaid={500}
-              invoiceAmount={
-                dashboard?.invoiceAmount ||
-                0
-              }
-              amountPaid={
-                dashboard?.amountPaid ||
-                0
-              }
-              paymentStatus={
-                dashboard?.paymentStatus ||
-                "Paid"
-              }
-              onViewDetails={() =>
-                navigation.navigate(
-                  "Business"
-                )
-              }
-            />
+    invoiceAmount={
+      dashboard?.account?.currentBill ?? 0
+    }
+    amountPaid={
+      dashboard?.account?.amountPaid ?? 0
+    }
+    outstanding={
+      dashboard?.account?.balanceDue ?? 0
+    }
+  />
+</View>
 
-          </View>
-
-          <QuickActionsSection
-            onShops={() =>
-              navigation.navigate(
-                "Profile",
-                {
-                  screen: "MyShops",
-                }
-              )
-            }
-            onOrders={() =>
-              navigation.navigate(
-                "Orders"
-              )
-            }
-            onBills={() =>
-              navigation.navigate(
-                "Business"
-              )
-            }
-            onProfile={() =>
-              navigation.navigate(
-                "Profile"
-              )
-            }
-          />
+<View
+  style={{
+    marginTop: 28,
+  }}
+>
+  <QuickActionsSection
+    onShops={() =>
+      navigation.navigate("Profile", {
+        screen: "MyShops",
+      })
+    }
+    onOrders={() =>
+      navigation.navigate("Orders")
+    }
+    onBills={() =>
+      navigation.navigate("Business")
+    }
+    onProfile={() =>
+      navigation.navigate("Profile")
+    }
+  />
+</View>
 
           <OrdersSection
             orders={

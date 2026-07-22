@@ -8,6 +8,7 @@ import ActivityScreen from "../screens/ActivityScreen";
 import AddShopScreen from "../screens/AddShopScreen";
 import MyShopsScreen from "../screens/MyShopsScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import ScheduledOrdersScreen from "../screens/ScheduledOrdersScreen";
 
 const Stack =
   createNativeStackNavigator();
@@ -18,14 +19,19 @@ export default function AccountStack() {
 
     <Stack.Navigator
       screenOptions={{
-        headerShown:false,
+        headerShown: false,
       }}
     >
 
       <Stack.Screen
-  name="ProfileHome"
-  component={ProfileScreen}
-/>
+        name="ProfileHome"
+        component={ProfileScreen}
+      />
+
+      <Stack.Screen
+        name="ScheduledOrders"
+        component={ScheduledOrdersScreen}
+      />
 
       <Stack.Screen
         name="MyShops"

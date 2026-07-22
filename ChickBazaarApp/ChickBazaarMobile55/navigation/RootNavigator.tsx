@@ -1,5 +1,7 @@
 import React from "react";
 
+import { StatusBar } from "expo-status-bar";
+
 import {
   DefaultTheme,
   NavigationContainer,
@@ -10,11 +12,9 @@ import MainTabNavigator from "./MainTabNavigator";
 
 import LoadingView from "../components/ui/LoadingView";
 
-import {
-  useAuth,
-} from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
-const ChickBazaarTheme = {
+const navigationTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
@@ -23,36 +23,25 @@ const ChickBazaarTheme = {
 };
 
 export default function RootNavigator() {
-
-  const {
-    loading,
-    loggedIn,
-  } = useAuth();
+  const { loading, loggedIn } = useAuth();
 
   if (loading) {
-
     return <LoadingView />;
-
   }
 
   return (
-
-    <NavigationContainer
-  theme={ChickBazaarTheme}
->
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar
+        style="dark"
+        translucent
+        backgroundColor="transparent"
+      />
 
       {loggedIn ? (
-
         <MainTabNavigator />
-
       ) : (
-
         <AuthNavigator />
-
       )}
-
     </NavigationContainer>
-
   );
-
 }

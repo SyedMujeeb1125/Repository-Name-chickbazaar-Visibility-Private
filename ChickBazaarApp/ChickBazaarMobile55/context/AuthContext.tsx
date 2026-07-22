@@ -1,30 +1,32 @@
 import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AuthService, {
+  LoginResponse,
+} from "../services/auth.service";
 
 type AuthContextType = {
   loading: boolean;
   loggedIn: boolean;
-  login: (mobile: string) => Promise<void>;
+  login: (
+    session: LoginResponse
+  ) => Promise<void>;
   logout: () => Promise<void>;
 };
 
-const AuthContext =
-  createContext<AuthContextType | undefined>(
-    undefined
-  );
+const AuthContext = createContext<
+  AuthContextType | undefined
+>(undefined);
 
 export function AuthProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
   const [loading, setLoading] =
     useState(true);
 
@@ -36,47 +38,38 @@ export function AuthProvider({
   }, []);
 
   async function restoreSession() {
-
     try {
+      const isLoggedIn =
+        await AuthService.isLoggedIn();
 
-      const mobile =
-        await AsyncStorage.getItem(
-          "retailerMobile"
-        );
-
-      setLoggedIn(!!mobile);
-
+      setLoggedIn(isLoggedIn);
+    } catch {
+      setLoggedIn(false);
     } finally {
-
       setLoading(false);
-
     }
-
   }
 
   async function login(
-    mobile: string
+    session: LoginResponse
   ) {
-
-    await AsyncStorage.setItem(
-      "retailerMobile",
-      mobile
-    );
-
-    setLoggedIn(true);
-
+    // AuthService has already stored the token
+    // and retailer before this is called.
+    if (session.success) {
+      setLoggedIn(true);
+    }
   }
 
   async function logout() {
-
-    await AsyncStorage.clear();
-
-    setLoggedIn(false);
-
+    try {
+      await AuthService.logout();
+      setLoggedIn(false);
+    } catch (error) {
+      throw error;
+    }
   }
 
   return (
-
     <AuthContext.Provider
       value={{
         loading,
@@ -85,28 +78,20 @@ export function AuthProvider({
         logout,
       }}
     >
-
       {children}
-
     </AuthContext.Provider>
-
   );
-
 }
 
 export function useAuth() {
-
   const context =
     useContext(AuthContext);
 
   if (!context) {
-
     throw new Error(
       "useAuth must be used inside AuthProvider"
     );
-
   }
 
   return context;
-
 }

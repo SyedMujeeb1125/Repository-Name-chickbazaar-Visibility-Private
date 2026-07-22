@@ -25,7 +25,6 @@ export default function LiveEstimateCard({
   estimatedAmount,
   todayRate,
 }: Props) {
-
   function Row({
     icon,
     label,
@@ -37,9 +36,7 @@ export default function LiveEstimateCard({
   }) {
     return (
       <View style={styles.row}>
-
         <View style={styles.left}>
-
           <MaterialCommunityIcons
             name={icon as any}
             size={18}
@@ -49,35 +46,29 @@ export default function LiveEstimateCard({
           <Text style={styles.label}>
             {label}
           </Text>
-
         </View>
 
         <Text style={styles.value}>
           {value}
         </Text>
-
       </View>
     );
   }
 
   return (
-
     <Card>
-
       <View style={styles.header}>
-
         <Text style={styles.heading}>
-          Order Summary
+          Live Estimate
         </Text>
 
         <View style={styles.badge}>
+          <View style={styles.liveDot} />
 
           <Text style={styles.badgeText}>
-            LIVE
+            LIVE RATE
           </Text>
-
         </View>
-
       </View>
 
       <Row
@@ -88,8 +79,8 @@ export default function LiveEstimateCard({
         }
         label={
           orderType === "weight"
-            ? "Weight"
-            : "Birds"
+            ? "Requested Weight"
+            : "Requested Birds"
         }
         value={
           orderType === "weight"
@@ -118,64 +109,84 @@ export default function LiveEstimateCard({
 
       <Row
         icon="currency-inr"
-        label="Today's Rate"
-        value={`₹${todayRate}/kg`}
+        label="Today's Live Rate"
+        value={`₹${todayRate.toLocaleString("en-IN")}/kg`}
       />
 
       <View style={styles.divider} />
 
-      <View style={styles.totalRow}>
-
-        <Text style={styles.totalLabel}>
-          TOTAL
+      <View style={styles.totalCard}>
+        <Text style={styles.totalTitle}>
+          Estimated Payable
         </Text>
 
         <Text style={styles.totalAmount}>
-          ₹{estimatedAmount.toLocaleString()}
+          ₹{estimatedAmount.toLocaleString("en-IN")}
         </Text>
 
+        <Text style={styles.totalSubtitle}>
+          Calculated using today's published live rate.
+        </Text>
       </View>
 
+      <View style={styles.info}>
+        <MaterialCommunityIcons
+          name="information-outline"
+          size={18}
+          color="#2563EB"
+        />
+
+        <Text style={styles.infoText}>
+          Final billing is based on the actual delivered weight.
+        </Text>
+      </View>
     </Card>
-
   );
-
 }
 
 const styles = StyleSheet.create({
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 20,
   },
 
   heading: {
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#0F172A",
   },
 
   badge: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#FFF7ED",
-    borderRadius: 16,
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
+  },
+
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#16A34A",
+    marginRight: 6,
   },
 
   badgeText: {
     color: "#EA580C",
     fontWeight: "800",
     fontSize: 11,
-    letterSpacing: 1,
+    letterSpacing: 0.6,
   },
 
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
 
   left: {
@@ -199,26 +210,49 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#E2E8F0",
-    marginVertical: 14,
+    marginVertical: 18,
   },
 
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  totalCard: {
+    backgroundColor: "#FFF7ED",
+    borderRadius: 18,
+    padding: 20,
     alignItems: "center",
   },
 
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#334155",
-    letterSpacing: 1,
+  totalTitle: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "600",
   },
 
   totalAmount: {
-    fontSize: 28,
+    marginTop: 8,
+    fontSize: 36,
     fontWeight: "900",
     color: "#F97316",
   },
 
+  totalSubtitle: {
+    marginTop: 8,
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+  },
+
+  info: {
+    flexDirection: "row",
+    marginTop: 18,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 14,
+    padding: 12,
+  },
+
+  infoText: {
+    flex: 1,
+    marginLeft: 8,
+    color: "#1E3A8A",
+    fontSize: 13,
+    lineHeight: 20,
+  },
 });

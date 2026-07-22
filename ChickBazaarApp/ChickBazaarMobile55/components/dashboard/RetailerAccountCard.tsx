@@ -3,228 +3,97 @@ import React from "react";
 import {
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 type Props = {
+
   invoiceAmount: number;
 
   amountPaid: number;
 
-  advancePaid: number;
+  outstanding: number;
 
-  paymentStatus:
-  | "Ready to Order"
-  | "Advance Received"
-  | "Payment Pending"
-  | "Paid";
-
-  onViewDetails: () => void;
 };
 
-function formatAmount(amount: number) {
-  if (amount >= 10000000) {
-    return `₹${(amount / 10000000).toFixed(1)}Cr`;
-  }
-
-  if (amount >= 100000) {
-    return `₹${(amount / 100000).toFixed(1)}L`;
-  }
-
-  if (amount >= 1000) {
-    return `₹${(amount / 1000).toFixed(1)}K`;
-  }
-
-  return `₹${amount.toLocaleString()}`;
-}
-
 export default function RetailerAccountCard({
+
   invoiceAmount,
+
   amountPaid,
-  advancePaid,
-  paymentStatus,
-  onViewDetails,
+
+  outstanding,
+
 }: Props) {
-
-  const balance =
-    Math.max(
-      invoiceAmount - amountPaid,
-      0
-    );
-
-  const statusColor =
-  paymentStatus === "Paid"
-    ? "#16A34A"
-    : paymentStatus === "Advance Received"
-    ? "#2563EB"
-    : paymentStatus === "Payment Pending"
-    ? "#F97316"
-    : "#64748B";
-
-  const statusText = paymentStatus;
 
   return (
 
-    <View style={styles.container}>
+    <View style={styles.card}>
 
       <View style={styles.header}>
 
-        <Text style={styles.heading}>
-          Retailer Account
-        </Text>
-
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={onViewDetails}
-        >
-
-          <Text style={styles.viewAll}>
-            View Bill →
-          </Text>
-
-        </TouchableOpacity>
-
-      </View>
-
-      <View style={styles.card}>
-
-        <Text style={styles.billTitle}>
-          Current Bill
-        </Text>
-
-        <Text style={styles.billAmount}>
-          {invoiceAmount > 0
-            ? formatAmount(invoiceAmount)
-            : "Bill will be generated after delivery"}
-        </Text>
-
-        <Divider />
-
-        <Row
-          icon="cash-check"
-          label="Advance Paid"
-          value={formatAmount(advancePaid)}
-          valueColor="#16A34A"
-        />
-
-        <Divider />
-
-        <Row
-          icon="wallet-outline"
-          label="Balance Due"
-          value={formatAmount(balance)}
-          valueColor={
-            balance > 0
-              ? "#F97316"
-              : "#16A34A"
-          }
-        />
-
-        <Divider />
-
-        <Row
-          icon="file-document-outline"
-          label="Payment Type"
-          value="Advance + Final Payment"
-        />
-
-        <Divider />
-
-        <View style={styles.statusCard}>
-
-          <MaterialCommunityIcons
-  name={
-    paymentStatus === "Paid"
-      ? "check-circle"
-      : paymentStatus === "Advance Received"
-      ? "cash-check"
-      : paymentStatus === "Payment Pending"
-      ? "clock-outline"
-      : "clipboard-check-outline"
-  }
-  size={22}
-  color={statusColor}
-/>
-
-          <Text
-            style={[
-              styles.status,
-              {
-                color: statusColor,
-              },
-            ]}
-          >
-            {statusText}
-          </Text>
-
-        </View>
-
-        <View style={styles.footer}>
-
-          <MaterialCommunityIcons
-            name="information-outline"
-            size={16}
-            color="#64748B"
-          />
-
-          <Text style={styles.footerText}>
-            Remaining amount is payable during delivery.
-          </Text>
-
-        </View>
-
-      </View>
-
-    </View>
-
-  );
-
-}
-
-function Divider() {
-  return (
-    <View style={styles.divider} />
-  );
-}
-
-function Row({
-  icon,
-  label,
-  value,
-  valueColor = "#0F172A",
-}: any) {
-
-  return (
-
-    <View style={styles.row}>
-
-      <View style={styles.left}>
-
         <MaterialCommunityIcons
-          name={icon}
-          size={20}
+          name="file-document-outline"
+          size={22}
           color="#F97316"
         />
 
-        <Text style={styles.label}>
-          {label}
+        <Text style={styles.title}>
+          BUSINESS SUMMARY
         </Text>
 
       </View>
 
-      <Text
-        style={[
-          styles.value,
-          {
-            color: valueColor,
-          },
-        ]}
-      >
-        {value}
-      </Text>
+      <View style={styles.divider} />
+
+      <View style={styles.row}>
+
+        <Text style={styles.label}>
+          Today's Invoice
+        </Text>
+
+        <Text style={styles.value}>
+          ₹{invoiceAmount.toLocaleString()}
+        </Text>
+
+      </View>
+
+      <View style={styles.row}>
+
+        <Text style={styles.label}>
+          Amount Paid
+        </Text>
+
+        <Text style={styles.value}>
+          ₹{amountPaid.toLocaleString()}
+        </Text>
+
+      </View>
+
+      <View style={styles.row}>
+
+        <Text style={styles.outstandingLabel}>
+          Outstanding
+        </Text>
+
+        <Text
+          style={[
+            styles.outstanding,
+
+            {
+              color:
+                outstanding > 0
+                  ? "#DC2626"
+                  : "#16A34A",
+            },
+          ]}
+        >
+          ₹{outstanding.toLocaleString()}
+        </Text>
+
+      </View>
 
     </View>
 
@@ -234,147 +103,103 @@ function Row({
 
 const styles = StyleSheet.create({
 
-  container: {
-    marginBottom: 22,
-  },
+  card:{
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 14,
-  },
+    backgroundColor:"#FFFFFF",
 
-  heading: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
+    borderRadius:24,
 
-  viewAll: {
-    color: "#F97316",
-    fontWeight: "700",
-    fontSize: 14,
-  },
+    padding:20,
 
-  card: {
-    backgroundColor: "#FFFFFF",
+    shadowColor:"#000",
 
-    borderRadius: 26,
+    shadowOpacity:0.05,
 
-    padding: 22,
+    shadowRadius:10,
 
-    shadowColor: "#000",
-
-    shadowOpacity: 0.08,
-
-    shadowRadius: 14,
-
-    shadowOffset: {
-      width: 0,
-      height: 8,
+    shadowOffset:{
+      width:0,
+      height:4,
     },
 
-    elevation: 6,
+    elevation:3,
+
   },
 
-  billTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#64748B",
-    textAlign: "center",
+  header:{
+
+    flexDirection:"row",
+
+    alignItems:"center",
+
   },
 
-  billAmount: {
-    fontSize: 34,
-    fontWeight: "900",
-    color: "#0F172A",
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 20,
+  title:{
+
+    marginLeft:8,
+
+    fontSize:16,
+
+    fontWeight:"800",
+
+    color:"#0F172A",
+
   },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
+  divider:{
+
+    height:1,
+
+    backgroundColor:"#E2E8F0",
+
+    marginVertical:18,
+
   },
 
-  left: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
+  row:{
+
+    flexDirection:"row",
+
+    justifyContent:"space-between",
+
+    marginBottom:18,
+
   },
 
-  label: {
-    marginLeft: 12,
-    fontSize: 15,
-    color: "#64748B",
-    fontWeight: "600",
+  label:{
+
+    color:"#64748B",
+
+    fontSize:14,
+
   },
 
-  value: {
-    fontSize: 16,
-    fontWeight: "800",
+  value:{
+
+    color:"#0F172A",
+
+    fontWeight:"700",
+
+    fontSize:15,
+
   },
 
-  divider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
+  outstandingLabel:{
+
+    color:"#0F172A",
+
+    fontSize:16,
+
+    fontWeight:"800",
+
   },
 
-  statusCard: {
-    marginTop: 18,
+  outstanding:{
 
-    backgroundColor: "#FFF7ED",
+    fontSize:20,
 
-    borderRadius: 18,
+    fontWeight:"900",
 
-    paddingVertical: 14,
-
-    paddingHorizontal: 18,
-
-    flexDirection: "row",
-
-    justifyContent: "center",
-
-    alignItems: "center",
-
-    borderWidth: 1,
-
-    borderColor: "#FED7AA",
-  },
-
-  status: {
-    marginLeft: 10,
-    fontSize: 16,
-    fontWeight: "800",
-  },
-
-  footer: {
-    marginTop: 18,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    borderTopWidth: 1,
-
-    borderTopColor: "#E2E8F0",
-
-    paddingTop: 16,
-  },
-
-  footerText: {
-    marginLeft: 6,
-    color: "#64748B",
-    fontSize: 13,
-    fontWeight: "600",
-    textAlign: "center",
-    flex: 1,
   },
 
 });

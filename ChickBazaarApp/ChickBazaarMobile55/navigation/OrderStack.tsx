@@ -6,7 +6,8 @@ import {
 
 import OrderSuccessScreen from "../screens/OrderSuccessScreen";
 import PaymentCheckoutScreen from "../screens/PaymentCheckoutScreen";
-import PlaceOrderScreen from "../screens/PlaceOrderScreen";
+import PlaceOrderScreenV2 from "../screens/PlaceOrderScreenV2";
+
 import ReviewOrderScreen from "../screens/ReviewOrderScreen";
 
 const Stack =
@@ -23,9 +24,11 @@ export default function OrderStack() {
     >
 
       <Stack.Screen
-        name="PlaceOrder"
-        component={PlaceOrderScreen}
-      />
+  name="PlaceOrderV2"
+  component={PlaceOrderScreenV2}
+/>
+
+      
 
       <Stack.Screen
         name="ReviewOrder"

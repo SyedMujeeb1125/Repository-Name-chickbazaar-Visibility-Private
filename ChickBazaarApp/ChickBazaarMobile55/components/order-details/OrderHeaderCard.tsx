@@ -12,6 +12,8 @@ type Props = {
   orderNumber: string;
   status: string;
   orderDate: string;
+  eta?: string;
+  deliverySlot?: string;
 };
 
 export default function OrderHeaderCard({

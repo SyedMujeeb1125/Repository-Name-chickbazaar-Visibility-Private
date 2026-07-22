@@ -87,7 +87,7 @@ export default function ReviewOrderScreen({
           </View>
 
           <Text style={styles.shopName}>
-            {selectedShop?.shopName}
+            {selectedShop?.shop_name}
           </Text>
 
           <Text style={styles.shopAddress}>
@@ -121,12 +121,10 @@ export default function ReviewOrderScreen({
     </Text>
 
     <Text style={styles.valueSmall}>
-      {deliveryPriority === "express"
-        ? "⚡ Express Order"
-        : deliveryPriority === "tomorrow"
-        ? "📅 Tomorrow Order"
-        : "🟢 Regular Order"}
-    </Text>
+  {deliveryPriority === "tomorrow"
+    ? "📅 Tomorrow Delivery"
+    : "🚚 Today's Delivery"}
+</Text>
 
   </View>
 
@@ -193,8 +191,8 @@ export default function ReviewOrderScreen({
   <View style={styles.row}>
 
     <Text style={styles.label}>
-      Today's Rate
-    </Text>
+  Applicable Rate
+</Text>
 
     <CBAmount
       amount={todayRate}
@@ -221,11 +219,9 @@ export default function ReviewOrderScreen({
       Advance Required
     </Text>
 
-    <Text
-      style={styles.advanceText}
-    >
-      ₹500
-    </Text>
+    <Text style={styles.advanceText}>
+  ₹{advanceRequired}
+</Text>
 
   </View>
 
@@ -254,9 +250,9 @@ export default function ReviewOrderScreen({
     using the actual delivered weight.
   </Text>
 
-</CBCard>         {/* Delivery Details */}
-
-        <CBCard>
+</CBCard>
+{/* Delivery Details */}
+<CBCard>
 
           <View style={styles.sectionHeader}>
             <MaterialCommunityIcons
@@ -270,16 +266,7 @@ export default function ReviewOrderScreen({
             </Text>
           </View>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>
-              Delivery Date
-            </Text>
-
-            <Text style={styles.valueSmall}>
-              {deliveryDate}
-            </Text>
-          </View>
-
+          
           <View style={styles.row}>
             <Text style={styles.label}>
               Priority
@@ -306,8 +293,8 @@ export default function ReviewOrderScreen({
             </Text>
 
             <Text style={styles.valueSmall}>
-              10:30 AM - 11:30 AM
-            </Text>
+  Will be shared after farm allocation
+</Text>
           </View>
 
         </CBCard>
@@ -425,12 +412,21 @@ export default function ReviewOrderScreen({
 
           <View style={styles.nextButton}>
             <CBButton
-              title="PAY ₹500 & PLACE ORDER"
+              title={`PAY ₹${advanceRequired} & PLACE ORDER`}
               onPress={() =>
-                navigation.navigate(
-  "PaymentCheckout",
-  route.params
-)
+  navigation.navigate("PaymentCheckout", {
+    retailerId: route.params.retailerId,
+    selectedShop,
+    todayRate,
+    quantity,
+    estimatedAmount,
+    advanceRequired,
+    deliveryDate,
+    notes,
+    orderType,
+    deliveryPriority,
+    fulfilmentPreference,
+  })
               }
             />
           </View>

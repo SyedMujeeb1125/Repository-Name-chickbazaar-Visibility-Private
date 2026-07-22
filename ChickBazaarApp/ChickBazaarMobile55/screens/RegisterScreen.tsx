@@ -1,115 +1,113 @@
 import React, { useState } from "react";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-import {
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../context/AuthContext";
 
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Keyboard,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ScrollView,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
+
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
+import { API } from "../config/api";
+import Api from "../services/api";
+import AuthService from "../services/auth.service";
+
+type RegisterResponse = {
+  success: boolean;
+  error?: string;
+};
 
 export default function RegisterScreen({
   navigation,
 }: any) {
-  const [shopName, setShopName] =
-    useState("");
+  const { login: signIn } = useAuth();
 
-  const [ownerName, setOwnerName] =
-    useState("");
+  const [shopName, setShopName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [mobile, setMobile] =
-    useState("");
-
-  const [email, setEmail] =
-    useState("");
+  const isFormValid =
+    shopName.trim().length > 0 &&
+    ownerName.trim().length > 0 &&
+    /^\d{10}$/.test(mobile);
 
   const submit = async () => {
+    Keyboard.dismiss();
+
+    if (loading || !isFormValid) {
+      return;
+    }
+
+    const shop = shopName.trim();
+    const owner = ownerName.trim();
+    const mobileNumber = mobile.trim();
+
     try {
-      const response = await fetch(
-        "https://www.chickbazaar.com/api/mobile/register-retailer",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            shopName,
-            ownerName,
-            mobile,
-            email,
-          }),
-        }
-      );
+      setLoading(true);
 
-      const data =
-        await response.json();
+      const response =
+        await Api.post<RegisterResponse>(
+          API.AUTH.REGISTER,
+          {
+            shopName: shop,
+            ownerName: owner,
+            mobile: mobileNumber,
+          }
+        );
 
-      if (!data.success) {
+      if (!response.success) {
         Alert.alert(
-          "Error",
-          "Registration Failed"
+          "Registration Failed",
+          response.error ??
+            "Unable to register retailer."
         );
         return;
       }
 
-      await AsyncStorage.setItem(
-  "retailerMobile",
-  mobile
-);
+      const loginResponse =
+        await AuthService.login({
+          mobile: mobileNumber,
+        });
 
-Alert.alert(
-  "Success",
-  "Retailer Registered Successfully",
-  [
-    {
-      text: "OK",
-      onPress: () =>
-        navigation.navigate(
-          "Dashboard"
-        ),
-    },
-  ]
-);
+      await signIn(loginResponse);
+
+      Alert.alert(
+        "Success",
+        "Retailer registered successfully."
+      );
     } catch (error: any) {
       Alert.alert(
-        "Error",
-        String(error)
+        "Registration Failed",
+        error?.message ??
+          "Unable to connect to the server."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
+    <SafeAreaView style={styles.safeArea}>
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
+        accessible={false}
       >
-        <ScrollView
-          contentContainerStyle={
-            styles.container
-          }
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={
-            false
-          }
+          enableOnAndroid
+          extraScrollHeight={30}
+          showsVerticalScrollIndicator={false}
         >
           <Image
             source={require("../assets/logo.png")}
@@ -117,153 +115,239 @@ Alert.alert(
           />
 
           <View style={styles.card}>
-            <Text
-              style={styles.title}
-            >
+            <Text style={styles.title}>
               Retailer Registration
             </Text>
 
-            <Text
-              style={
-                styles.subtitle
-              }
-            >
-              Register your shop and
-              start ordering from
-              ChickBazaar
+            <Text style={styles.subtitle}>
+              Register your retail shop to
+              start ordering healthy live
+              broiler chicken.
             </Text>
 
             <TextInput
               style={styles.input}
               placeholder="Shop Name"
+              accessibilityLabel="Shop name"
+              autoFocus
+              editable={!loading}
               value={shopName}
-              onChangeText={
-                setShopName
-              }
+              returnKeyType="next"
+              autoCapitalize="words"
+              autoCorrect={false}
+              onChangeText={setShopName}
             />
 
             <TextInput
               style={styles.input}
               placeholder="Owner Name"
+              accessibilityLabel="Owner name"
+              editable={!loading}
               value={ownerName}
-              onChangeText={
-                setOwnerName
-              }
+              returnKeyType="next"
+              autoCapitalize="words"
+              autoCorrect={false}
+              onChangeText={setOwnerName}
             />
 
             <TextInput
               style={styles.input}
               placeholder="Mobile Number"
-              keyboardType="phone-pad"
-              maxLength={10}
-              value={mobile}
-              onChangeText={
-                setMobile
-              }
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              keyboardType="email-address"
+              accessibilityLabel="Mobile number"
+              keyboardType="number-pad"
+              textContentType="telephoneNumber"
+              autoComplete="tel"
+              autoCorrect={false}
               autoCapitalize="none"
-              value={email}
-              onChangeText={
-                setEmail
+              maxLength={10}
+              returnKeyType="done"
+              blurOnSubmit
+              editable={!loading}
+              value={mobile}
+              onChangeText={(text) =>
+                setMobile(
+                  text.replace(/\D/g, "")
+                )
               }
+              onSubmitEditing={submit}
             />
 
             <TouchableOpacity
-              style={
-                styles.button
+              style={[
+                styles.button,
+                (!isFormValid || loading) &&
+                  styles.buttonDisabled,
+              ]}
+              disabled={
+                !isFormValid || loading
               }
               onPress={submit}
+              accessibilityRole="button"
+              accessibilityLabel="Register"
             >
-              <Text
-                style={
-                  styles.buttonText
-                }
-              >
-                Register
+              {loading ? (
+                <ActivityIndicator
+                  color="#FFFFFF"
+                />
+              ) : (
+                <Text style={styles.buttonText}>
+                  Register
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              disabled={loading}
+              style={
+                loading && styles.linkDisabled
+              }
+              onPress={() =>
+                navigation.goBack()
+              }
+            >
+              <Text style={styles.loginText}>
+                Already have an account?
+                Login
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+                    <View style={styles.footer}>
+            <Text style={styles.version}>
+              ChickBazaar Retailer App
+            </Text>
+
+            <Text style={styles.versionNo}>
+              Version 1.0.0
+            </Text>
+
+            <Text style={styles.powered}>
+              Made with ❤️ in India
+            </Text>
+          </View>
+        </KeyboardAwareScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor:
-        "#F8FAFC",
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+
+  logoImage: {
+    width: 250,
+    height: 120,
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginBottom: 35,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 6,
     },
 
-    container: {
-      flexGrow: 1,
-      justifyContent:
-        "center",
-      padding: 24,
-    },
+    elevation: 6,
+  },
 
-    logoImage: {
-      width: 220,
-      height: 100,
-      resizeMode: "contain",
-      alignSelf: "center",
-      marginBottom: 20,
-    },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+    textAlign: "center",
+    color: "#0F172A",
+  },
 
-    card: {
-      backgroundColor:
-        "#FFFFFF",
-      borderRadius: 24,
-      padding: 24,
-      elevation: 4,
-    },
+  subtitle: {
+    textAlign: "center",
+    color: "#64748B",
+    marginTop: 10,
+    marginBottom: 24,
+    fontSize: 15,
+    lineHeight: 22,
+  },
 
-    title: {
-      fontSize: 28,
-      fontWeight: "700",
-      textAlign: "center",
-      color: "#0F172A",
-    },
+  input: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: "#0F172A",
+    marginBottom: 16,
+  },
 
-    subtitle: {
-      textAlign: "center",
-      color: "#64748B",
-      marginTop: 8,
-      marginBottom: 24,
-      fontSize: 14,
-    },
+  button: {
+    backgroundColor: "#F97316",
+    paddingVertical: 16,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
 
-    input: {
-      backgroundColor:
-        "#F8FAFC",
-      borderWidth: 1,
-      borderColor:
-        "#E2E8F0",
-      borderRadius: 14,
-      padding: 16,
-      fontSize: 16,
-      marginBottom: 14,
-    },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
 
-    button: {
-      backgroundColor:
-        "#F97316",
-      padding: 16,
-      borderRadius: 14,
-      marginTop: 10,
-    },
+  buttonText: {
+    color: "#FFFFFF",
+    textAlign: "center",
+    fontWeight: "700",
+    fontSize: 17,
+  },
 
-    buttonText: {
-      color: "#FFFFFF",
-      textAlign: "center",
-      fontWeight: "700",
-      fontSize: 16,
-    },
-  });
+  loginText: {
+    textAlign: "center",
+    marginTop: 22,
+    color: "#F97316",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+
+  linkDisabled: {
+    opacity: 0.6,
+  },
+
+  footer: {
+    alignItems: "center",
+    marginTop: 34,
+    paddingBottom: 20,
+  },
+
+  version: {
+    color: "#334155",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  versionNo: {
+    marginTop: 2,
+    color: "#64748B",
+    fontSize: 13,
+  },
+
+  powered: {
+    marginTop: 8,
+    color: "#94A3B8",
+    fontSize: 12,
+  },
+});

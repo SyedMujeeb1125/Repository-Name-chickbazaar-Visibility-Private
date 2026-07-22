@@ -1,9 +1,9 @@
 import React from "react";
 
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 const STATUSES = [

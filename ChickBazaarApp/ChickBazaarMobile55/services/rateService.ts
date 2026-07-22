@@ -28,7 +28,7 @@ async function request(
 }
 
 export async function getTodayRate() {
-  return request("/today-rate");
+  return request("/rate");
 }
 
 export async function getRateHistory() {

@@ -1,12 +1,8 @@
 export enum DashboardState {
-
-  // No order placed yet (before booking cutoff)
   NO_ORDER = "NO_ORDER",
 
-  // Booking cutoff crossed, retailer has not ordered
   AFTER_CUTOFF = "AFTER_CUTOFF",
 
-  // Order lifecycle
   ORDER_CONFIRMED = "ORDER_CONFIRMED",
 
   FARM_ALLOCATED = "FARM_ALLOCATED",
@@ -19,7 +15,11 @@ export enum DashboardState {
 
   DELIVERED = "DELIVERED",
 
-  // Yesterday's order can be repeated
-  REPEAT_ORDER_AVAILABLE = "REPEAT_ORDER_AVAILABLE",
+  PAYMENT_PENDING = "PAYMENT_PENDING",
 
+  READY_FOR_TOMORROW_ORDER = "READY_FOR_TOMORROW_ORDER",
+
+  SCHEDULE_CONFIRMATION_PENDING = "SCHEDULE_CONFIRMATION_PENDING",
+
+  FUTURE_ORDER_CONFIRMED = "FUTURE_ORDER_CONFIRMED",
 }

@@ -1,18 +1,42 @@
 export type CreatePaymentRequest = {
   retailerId: string;
   amount: number;
-  orderData: any;
+  orderData: Record<string, unknown>;
 };
 
-export type PaymentResult = {
+export interface PaymentResult {
   success: boolean;
-  paymentId?: string;
   orderId?: string;
+  orderNumber?: string;
+  paymentId?: string;
   message?: string;
+}
+
+const API_BASE = "http://10.144.143.74:3000/api/mobile";
+
+const JSON_HEADERS = {
+  "Content-Type": "application/json",
 };
 
-const API_BASE =
-  "https://www.chickbazaar.com/api/mobile";
+async function postJson<T>(
+  endpoint: string,
+  body: unknown,
+  defaultError: string
+): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message ?? defaultError);
+  }
+
+  return data as T;
+}
 
 /**
  * STEP 1
@@ -21,26 +45,11 @@ const API_BASE =
 export async function createPayment(
   request: CreatePaymentRequest
 ) {
-  const response = await fetch(
-    `${API_BASE}/payments/create`,
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify(request),
-    }
+  return postJson(
+    "/payments/create",
+    request,
+    "Unable to create payment."
   );
-
-  if (!response.ok) {
-    throw new Error(
-      "Unable to create payment."
-    );
-  }
-
-  return response.json();
 }
 
 /**
@@ -56,17 +65,13 @@ export async function createPayment(
 export async function launchPayment(
   amount: number
 ): Promise<PaymentResult> {
-
-  await new Promise(resolve =>
-    setTimeout(resolve, 1800)
-  );
+  // Simulate payment gateway
+  await new Promise((resolve) => setTimeout(resolve, 1800));
 
   return {
     success: true,
-    paymentId:
-      "PAY_" + Date.now(),
+    paymentId: `PAY_${Date.now()}`,
   };
-
 }
 
 /**
@@ -76,31 +81,13 @@ export async function launchPayment(
 export async function verifyPayment(
   paymentId: string
 ) {
-
-  const response = await fetch(
-    `${API_BASE}/payments/verify`,
+  return postJson(
+    "/payments/verify",
     {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-
-      body: JSON.stringify({
-        paymentId,
-      }),
-    }
+      paymentId,
+    },
+    "Payment verification failed."
   );
-
-  if (!response.ok) {
-    throw new Error(
-      "Payment verification failed."
-    );
-  }
-
-  return response.json();
-
 }
 
 /**
@@ -108,35 +95,20 @@ export async function verifyPayment(
  * Create ChickBazaar Order
  */
 export async function createOrder(
-  orderData: any,
+  request: CreatePaymentRequest,
   paymentId: string
 ): Promise<PaymentResult> {
+  const payload = {
+    retailerId: request.retailerId,
+    paymentId,
+    ...request.orderData,
+  };
 
-  const response = await fetch(
-    `${API_BASE}/orders/create`,
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-
-      body: JSON.stringify({
-        paymentId,
-        ...orderData,
-      }),
-    }
+  return postJson<PaymentResult>(
+    "/orders/create",
+    payload,
+    "Unable to create order."
   );
-
-  if (!response.ok) {
-    throw new Error(
-      "Unable to create order."
-    );
-  }
-
-  return response.json();
-
 }
 
 /**
@@ -147,53 +119,38 @@ export async function createOrder(
 export async function processAdvancePayment(
   request: CreatePaymentRequest
 ): Promise<PaymentResult> {
-
   try {
-
-    // Create payment
+    // STEP 1
     await createPayment(request);
 
-    // Launch Razorpay (Mock in Expo Go)
-    const payment =
-      await launchPayment(
-        request.amount
-      );
+    // STEP 2
+    const payment = await launchPayment(request.amount);
 
-    if (!payment.success) {
-
+    if (!payment.success || !payment.paymentId) {
       return {
         success: false,
         message: "Payment failed.",
       };
-
     }
 
-    // Verify
-    await verifyPayment(
-      payment.paymentId!
+    // STEP 3
+    await verifyPayment(payment.paymentId);
+
+    // STEP 4
+
+        const order = await createOrder(
+      request,
+      payment.paymentId
     );
 
-    // Create Order
-    const order =
-      await createOrder(
-        request.orderData,
-        payment.paymentId!
-      );
-
     return order;
-
-  } catch (error: any) {
-
+  } catch (error) {
     return {
-
       success: false,
-
       message:
-        error?.message ??
-        "Unknown payment error.",
-
+        error instanceof Error
+          ? error.message
+          : "Unexpected payment error. Please try again.",
     };
-
   }
-
 }

@@ -3,14 +3,19 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import * as Linking from "expo-linking";
+import MapView, {
+  Marker,
+  Polyline,
+} from "react-native-maps";
 
 type Props = {
   navigation: any;
@@ -24,7 +29,7 @@ export default function OrderTrackingScreen({
 
   const {
     orderId = "CB-2026-000245",
-    status = "farm_allocated",
+    status = "vehicle_assigned",
     requestedWeight = 250,
     estimatedBirds = 165,
     deliverySlot = "2:00 PM – 4:00 PM",
@@ -36,6 +41,100 @@ export default function OrderTrackingScreen({
 
   const balance =
     estimatedInvoice - advancePaid;
+
+    const driverLocation = {
+  latitude: 12.9143,
+  longitude: 77.6385,
+};
+
+const destinationLocation = {
+  latitude: 12.9238,
+  longitude: 77.6245,
+};
+
+const eta = "18 mins";
+const distance = "2.6 km";
+
+const vehicleNumber = "KA01AB1234";
+const captainRating = 4.9;
+const completedTrips = 824;
+
+const statusConfig = {
+  order_confirmed: {
+    title: "Order Confirmed",
+    description: "We've received your order.",
+    icon: "clipboard-check-outline",
+  },
+  farm_allocated: {
+    title: "Farm Allocation in Progress",
+    description: "Allocating the healthiest live broiler chicken.",
+    icon: "warehouse",
+  },
+  preparing: {
+    title: "Preparing Your Order",
+    description: "Birds are being prepared for dispatch.",
+    icon: "food-drumstick",
+  },
+  vehicle_assigned: {
+    title: "Captain Assigned",
+    description: "Your delivery captain has been assigned.",
+    icon: "truck-check-outline",
+  },
+  out_for_delivery: {
+    title: "Out For Delivery",
+    description: "Your order is on its way.",
+    icon: "truck-fast",
+  },
+  delivered: {
+    title: "Delivered",
+    description: "Order delivered successfully.",
+    icon: "check-circle-outline",
+  },
+} as const;
+
+const currentStatus =
+  statusConfig[
+    (status as keyof typeof statusConfig) ??
+      "order_confirmed"
+  ];
+
+  const timelineSteps = [
+  {
+    key: "order_confirmed",
+    title: "Order Confirmed",
+    subtitle: "Order received successfully.",
+    alwaysCompleted: true,
+  },
+  {
+    key: "advance_paid",
+    title: `₹${advancePaid} Advance Received`,
+    subtitle: "Payment verified successfully.",
+    alwaysCompleted: true,
+  },
+  {
+    key: "farm_allocated",
+    title: "Farm Allocated",
+    subtitle:
+      "Healthy live broiler chicken is being prepared.",
+  },
+  {
+    key: "vehicle_assigned",
+    title: "Captain Assigned",
+    subtitle:
+      captainName ??
+      "Waiting for captain assignment.",
+  },
+  {
+    key: "out_for_delivery",
+    title: "Out For Delivery",
+    subtitle: "Captain is on the way.",
+  },
+  {
+    key: "delivered",
+    title: "Delivered",
+    subtitle: "Order delivered successfully.",
+  },
+];
 
   return (
 
@@ -88,28 +187,22 @@ export default function OrderTrackingScreen({
               </Text>
 
               <Text style={styles.statusText}>
-                {status === "order_confirmed"
-                  ? "Order Confirmed"
-                  : status === "farm_allocated"
-                  ? "Farm Allocation in Progress"
-                  : status === "preparing"
-                  ? "Preparing Your Order"
-                  : status === "vehicle_assigned"
-                  ? "Captain Assigned"
-                  : status === "out_for_delivery"
-                  ? "Out For Delivery"
-                  : "Delivered"}
-              </Text>
+  {currentStatus.title}
+</Text>
+
+<Text style={styles.statusDescription}>
+  {currentStatus.description}
+</Text>
 
             </View>
 
             <View style={styles.successIcon}>
 
               <MaterialCommunityIcons
-                name="truck-delivery-outline"
-                size={34}
-                color="#F97316"
-              />
+  name={currentStatus.icon}
+  size={34}
+  color="#F97316"
+/>
 
             </View>
 
@@ -130,6 +223,79 @@ export default function OrderTrackingScreen({
           </View>
 
         </View>
+
+        {/* Live Map */}
+
+<View style={styles.mapCard}>
+
+  <MapView
+    style={styles.map}
+    initialRegion={{
+      latitude:
+        (driverLocation.latitude +
+          destinationLocation.latitude) /
+        2,
+      longitude:
+        (driverLocation.longitude +
+          destinationLocation.longitude) /
+        2,
+      latitudeDelta: 0.03,
+      longitudeDelta: 0.03,
+    }}
+  >
+
+    <Marker
+      coordinate={driverLocation}
+      title="Delivery Captain"
+      pinColor="#F97316"
+    />
+
+    <Marker
+      coordinate={destinationLocation}
+      title="Delivery Address"
+      pinColor="#16A34A"
+    />
+
+    <Polyline
+      coordinates={[
+        driverLocation,
+        destinationLocation,
+      ]}
+      strokeWidth={4}
+      strokeColor="#F97316"
+    />
+
+  </MapView>
+
+  <View style={styles.etaCard}>
+
+    <View>
+
+      <Text style={styles.etaTitle}>
+        Estimated Arrival
+      </Text>
+
+      <Text style={styles.etaValue}>
+        {eta}
+      </Text>
+
+    </View>
+
+    <View>
+
+      <Text style={styles.etaTitle}>
+        Distance
+      </Text>
+
+      <Text style={styles.etaValue}>
+        {distance}
+      </Text>
+
+    </View>
+
+  </View>
+
+</View>
 
         {/* Order Summary */}
 
@@ -211,77 +377,46 @@ export default function OrderTrackingScreen({
             Live Order Progress
           </Text>
                     <View style={styles.timeline}>
+  {timelineSteps.map((step, index) => {
+    const stepIndex = [
+      "order_confirmed",
+      "farm_allocated",
+      "vehicle_assigned",
+      "out_for_delivery",
+      "delivered",
+    ].indexOf(step.key);
 
-            <TimelineItem
-              completed
-              title="Order Confirmed"
-              subtitle="Order received successfully."
-            />
+    const currentIndex = [
+      "order_confirmed",
+      "farm_allocated",
+      "vehicle_assigned",
+      "out_for_delivery",
+      "delivered",
+    ].indexOf(status);
 
-            <TimelineLine />
+    const completed =
+      step.alwaysCompleted ||
+      (stepIndex !== -1 && stepIndex < currentIndex);
 
-            <TimelineItem
-              completed
-              title="₹500 Advance Received"
-              subtitle="Payment verified successfully."
-            />
+    const current =
+      step.key === status;
 
-            <TimelineLine />
+    return (
+      <React.Fragment key={step.key}>
+        <TimelineItem
+          completed={completed}
+          current={current}
+          title={step.title}
+          subtitle={step.subtitle}
+        />
 
-            <TimelineItem
-              completed={
-                status !== "order_confirmed"
-              }
-              current={
-                status === "farm_allocated"
-              }
-              title="Farm Allocated"
-              subtitle="Healthy live broiler chicken is being prepared."
-            />
-
-            <TimelineLine />
-
-            <TimelineItem
-              completed={
-                status === "vehicle_assigned" ||
-                status === "out_for_delivery" ||
-                status === "delivered"
-              }
-              current={
-                status === "vehicle_assigned"
-              }
-              title="Captain Assigned"
-              subtitle={
-                captainName
-                  ? captainName
-                  : "Waiting for captain assignment."
-              }
-            />
-
-            <TimelineLine />
-
-            <TimelineItem
-              completed={
-                status === "delivered"
-              }
-              current={
-                status === "out_for_delivery"
-              }
-              title="Out For Delivery"
-              subtitle="Captain is on the way."
-            />
-
-            <TimelineLine />
-
-            <TimelineItem
-              completed={
-                status === "delivered"
-              }
-              title="Delivered"
-              subtitle="Order delivered successfully."
-            />
-
-          </View>
+        {index !== timelineSteps.length - 1 && (
+          <TimelineLine />
+        )}
+      </React.Fragment>
+    );
+  })}
+</View>
 
         </View>
 
@@ -292,31 +427,94 @@ export default function OrderTrackingScreen({
 
             <View style={styles.captainHeader}>
 
-              <MaterialCommunityIcons
-                name="account-circle"
-                size={48}
-                color="#16A34A"
-              />
+  <View style={styles.driverAvatar}>
+    <MaterialCommunityIcons
+      name="account"
+      size={42}
+      color="#FFFFFF"
+    />
+  </View>
 
-              <View style={{ flex: 1, marginLeft: 12 }}>
+  <View style={{ flex: 1, marginLeft: 14 }}>
 
-                <Text style={styles.captainTitle}>
-                  Delivery Captain
-                </Text>
+    <Text style={styles.captainTitle}>
+      Delivery Captain
+    </Text>
 
-                <Text style={styles.captainName}>
-                  {captainName || "Captain Assigned"}
-                </Text>
+    <Text style={styles.captainName}>
+      {captainName || "Captain Assigned"}
+    </Text>
 
-              </View>
+    <View style={styles.driverInfoRow}>
+
+      <MaterialCommunityIcons
+        name="star"
+        size={14}
+        color="#F59E0B"
+      />
+
+      <Text style={styles.driverInfoText}>
+        {captainRating}
+      </Text>
+
+      <Text style={styles.driverDot}>
+        •
+      </Text>
+
+      <Text style={styles.driverInfoText}>
+        {completedTrips}+ Deliveries
+      </Text>
+
+    </View>
+
+  </View>
 
             </View>
+
+            <View style={styles.vehicleCard}>
+
+  <MaterialCommunityIcons
+    name="truck-delivery"
+    size={24}
+    color="#F97316"
+  />
+
+  <View style={{ marginLeft: 12, flex: 1 }}>
+
+    <Text style={styles.vehicleTitle}>
+      Delivery Vehicle
+    </Text>
+
+    <Text style={styles.vehicleNumber}>
+      {vehicleNumber}
+    </Text>
+
+  </View>
+
+  <View>
+
+    <Text style={styles.vehicleEta}>
+      {eta}
+    </Text>
+
+    <Text style={styles.vehicleDistance}>
+      {distance}
+    </Text>
+
+  </View>
+
+</View>
 
             <View style={styles.captainButtons}>
 
               <TouchableOpacity
-                style={styles.callButton}
-              >
+  style={styles.callButton}
+  onPress={() => {
+    if (captainPhone) {
+      Linking.openURL(`tel:${captainPhone}`);
+    }
+  }}
+>
 
                 <MaterialCommunityIcons
                   name="phone"
@@ -331,8 +529,15 @@ export default function OrderTrackingScreen({
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.whatsappButton}
-              >
+  style={styles.whatsappButton}
+  onPress={() => {
+    if (captainPhone) {
+      Linking.openURL(
+        `https://wa.me/91${captainPhone}`
+      );
+    }
+  }}
+>
 
                 <MaterialCommunityIcons
                   name="whatsapp"
@@ -476,10 +681,10 @@ function TimelineItem({
     : "#CBD5E1";
 
   const icon = completed
-    ? "check-circle"
-    : current
-    ? "progress-clock"
-    : "circle-outline";
+  ? "check-circle"
+  : current
+  ? "truck-fast"
+  : "circle-outline";
 
   return (
 
@@ -502,9 +707,17 @@ function TimelineItem({
           {title}
         </Text>
 
-        <Text style={styles.timelineSubtitle}>
-          {subtitle}
-        </Text>
+        <Text
+  style={[
+    styles.timelineSubtitle,
+    current && {
+      color: "#0F172A",
+      fontWeight: "600",
+    },
+  ]}
+>
+  {subtitle}
+</Text>
 
       </View>
 
@@ -879,5 +1092,105 @@ const styles = StyleSheet.create({
     fontWeight:"800",
     fontSize:16,
   },
+
+  mapCard: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 24,
+  overflow: "hidden",
+  marginBottom: 18,
+  elevation: 4,
+},
+
+map: {
+  height: 240,
+  width: "100%",
+},
+
+etaCard: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  padding: 18,
+},
+
+etaTitle: {
+  color: "#64748B",
+  fontSize: 13,
+},
+
+etaValue: {
+  marginTop: 4,
+  fontSize: 18,
+  fontWeight: "800",
+  color: "#0F172A",
+},
+
+statusDescription: {
+  marginTop: 6,
+  fontSize: 13,
+  color: "#64748B",
+  lineHeight: 18,
+},
+
+driverAvatar: {
+  width: 64,
+  height: 64,
+  borderRadius: 32,
+  backgroundColor: "#F97316",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+driverInfoRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginTop: 6,
+},
+
+driverInfoText: {
+  fontSize: 12,
+  color: "#64748B",
+  marginLeft: 4,
+},
+
+driverDot: {
+  marginHorizontal: 8,
+  color: "#CBD5E1",
+},
+
+vehicleCard: {
+  marginTop: 18,
+  marginBottom: 20,
+  padding: 16,
+  borderRadius: 16,
+  backgroundColor: "#FFF7ED",
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+vehicleTitle: {
+  fontSize: 12,
+  color: "#64748B",
+},
+
+vehicleNumber: {
+  marginTop: 4,
+  fontSize: 17,
+  fontWeight: "800",
+  color: "#0F172A",
+},
+
+vehicleEta: {
+  fontSize: 18,
+  fontWeight: "900",
+  color: "#EA580C",
+  textAlign: "right",
+},
+
+vehicleDistance: {
+  marginTop: 2,
+  fontSize: 12,
+  color: "#64748B",
+  textAlign: "right",
+},
 
 });

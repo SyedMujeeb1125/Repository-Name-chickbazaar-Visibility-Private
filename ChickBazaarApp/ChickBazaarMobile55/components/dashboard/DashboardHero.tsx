@@ -7,15 +7,15 @@ import {
   View,
 } from "react-native";
 
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
+import PrimaryButton from "../ui/PrimaryButton";
+
 import {
   getDeliveryHeader,
   getTodayDate,
   getTomorrowDate,
 } from "../../utils/dateHelpers";
-
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-
-import PrimaryButton from "../ui/PrimaryButton";
 
 type Props = {
   hasOrderToday: boolean;
@@ -47,92 +47,49 @@ export default function DashboardHero({
 
   eta,
 
-  isDelivered = false,
-
   onPlaceOrder,
 
   onTrackOrder,
 
-  onRepeatOrder,
-
-  onChangeQuantity,
-
 }: Props) {
-
-  console.log("hasOrderToday =", hasOrderToday);
 
   const hour = new Date().getHours();
 
   const today = getDeliveryHeader(
-  getTodayDate()
-);
+    getTodayDate()
+  );
 
-const tomorrow = getDeliveryHeader(
-  getTomorrowDate()
-);
+  getTomorrowDate();
 
-  const isRegular = hour < 11;
+  const isMorning = hour < 11;
 
-  const isExpress =
-    hour >= 11 && hour < 18;
-
-  const isTomorrow =
-    hour >= 18;
+  const isTomorrow = hour >= 18;
 
   if (!hasOrderToday) {
 
-    let title =
-      "PLACE TODAY'S ORDER";
+    const badge = isTomorrow
+      ? "TOMORROW DELIVERY"
+      : "TODAY DELIVERY";
 
-    let button =
-      "PLACE ORDER";
+    const badgeColor = isTomorrow
+      ? "#2563EB"
+      : "#16A34A";
 
-    let badge =
-      "READY TO ORDER";
+    const title = isTomorrow
+  ? "BOOK FOR TOMORROW"
+  : "PLACE TODAY'S ORDER";
 
-    let badgeColor =
-      "#16A34A";
+    const subtitle = isTomorrow
+      ? "Reserve tomorrow's fresh stock in advance."
+      : "Fresh live broiler chicken from verified farms.";
 
-    let description =
-      "Healthy live broiler chicken delivered directly from verified farms.";
+    const featureThree = isTomorrow
+      ? "Scheduled Tomorrow Delivery"
+      : "Same-Day Delivery";
 
-    if (isExpress) {
-
-  title =
-    "PLACE TODAY'S ORDER";
-
-  button =
-    "PLACE ORDER";
-
-  badge =
-    "EXPRESS DELIVERY";
-
-  badgeColor =
-    "#F97316";
-
-  description =
-    "Need birds urgently? Express delivery is available with additional charges.";
-
-}
-
-    if (isTomorrow) {
-
-      title =
-        "BOOK FOR TOMORROW";
-
-      button =
-        "BOOK NOW";
-
-      badge =
-        "TOMORROW DELIVERY";
-
-      badgeColor =
-        "#2563EB";
-
-      description =
-        "Reserve tomorrow's delivery slot today for uninterrupted business.";
-
-    }
+    const button = isTomorrow
+      ? "BOOK NOW"
+      : "PLACE ORDER";
 
     return (
 
@@ -143,7 +100,7 @@ const tomorrow = getDeliveryHeader(
           <Image
             source={require("../../assets/live-broiler.png")}
             resizeMode="contain"
-            style={styles.chicken}
+            style={styles.heroImage}
           />
 
           <View style={styles.content}>
@@ -153,13 +110,15 @@ const tomorrow = getDeliveryHeader(
                 styles.badge,
                 {
                   borderColor: badgeColor,
+                  backgroundColor:
+                    badgeColor + "12",
                 },
               ]}
             >
 
               <MaterialCommunityIcons
                 name="check-decagram"
-                size={16}
+                size={14}
                 color={badgeColor}
               />
 
@@ -180,60 +139,59 @@ const tomorrow = getDeliveryHeader(
               {title}
             </Text>
 
-            <Text
-  style={{
-    marginTop: 8,
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "500",
-  }}
->
-  Order in less than a minute.
-</Text>
+            <Text style={styles.subtitle}>
+              {subtitle}
+            </Text>
 
-                        <View style={styles.featureRow}>
-  <MaterialCommunityIcons
-    name="check"
-    size={18}
-    color="#16A34A"
-  />
-  <Text style={styles.featureText}>
-    Live Broiler Chicken
-  </Text>
-</View>
+            <View style={styles.featureRow}>
 
-<View style={styles.featureRow}>
-  <MaterialCommunityIcons
-    name="check"
-    size={18}
-    color="#16A34A"
-  />
-  <Text style={styles.featureText}>
-    Healthy Feed
-  </Text>
-</View>
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={18}
+                color="#16A34A"
+              />
 
-<View style={styles.featureRow}>
-  <MaterialCommunityIcons
-    name="check"
-    size={18}
-    color="#16A34A"
-  />
-  <Text style={styles.featureText}>
-    Same-Day Delivery
-  </Text>
-</View>
+              <Text style={styles.featureText}>
+                Healthy Live Broiler Chicken
+              </Text>
+
+            </View>
+
+            <View style={styles.featureRow}>
+
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={18}
+                color="#16A34A"
+              />
+
+              <Text style={styles.featureText}>
+                Farm Fresh Quality
+              </Text>
+
+            </View>
+
+            <View style={styles.featureRow}>
+
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={18}
+                color="#16A34A"
+              />
+
+              <Text style={styles.featureText}>
+                {featureThree}
+              </Text>
+
+            </View>
 
             <View style={styles.buttonContainer}>
 
               <PrimaryButton
-  title={button}
-  onPress={onPlaceOrder}
-  style={{
-    width: "95%",
-    alignSelf: "center",
-  }}
-/>
+                title={button}
+                onPress={onPlaceOrder}
+                style={styles.primaryButton}
+              />
 
             </View>
 
@@ -251,112 +209,143 @@ const tomorrow = getDeliveryHeader(
 
     <View style={styles.card}>
 
-      <View style={styles.deliveryHeader}>
+      <View style={styles.heroRow}>
 
         <Image
           source={require("../../assets/live-broiler.png")}
           resizeMode="contain"
-          style={styles.deliveryChicken}
+          style={styles.deliveryImage}
         />
 
-        <View style={{ flex: 1 }}>
+        <View style={styles.content}>
 
-          <View>
+          <View
+            style={[
+              styles.badge,
+              {
+                borderColor: "#F97316",
+                backgroundColor: "#FFF7ED",
+              },
+            ]}
+          >
 
-  <Text style={styles.deliveryTitle}>
-  Today's Order
-</Text>
+            <MaterialCommunityIcons
+              name="truck-check-outline"
+              size={14}
+              color="#F97316"
+            />
 
-  <Text style={styles.deliveryDate}>
-    {today.weekday}
-  </Text>
+            <Text
+              style={[
+                styles.badgeText,
+                {
+                  color: "#F97316",
+                },
+              ]}
+            >
+              ORDER CONFIRMED
+            </Text>
 
-  <Text style={styles.deliverySubDate}>
-    {today.formattedDate}
-  </Text>
+          </View>
 
-</View>
-
-          <Text style={styles.deliveryStatus}>
-            {deliveryStatus || "Confirmed"}
+          <Text style={styles.title}>
+            TODAY'S ORDER
           </Text>
 
+          <Text style={styles.subtitle}>
+            Your order is being prepared.
+          </Text>
+
+          <View style={styles.infoRow}>
+
+            <MaterialCommunityIcons
+              name="calendar-check-outline"
+              size={18}
+              color="#64748B"
+            />
+
+            <Text style={styles.infoLabel}>
+              Delivery
+            </Text>
+
+            <Text style={styles.infoValue}>
+              {today.weekday}
+            </Text>
+
+          </View>
+
+          <View style={styles.infoRow}>
+
+            <MaterialCommunityIcons
+              name="truck-delivery-outline"
+              size={18}
+              color="#64748B"
+            />
+
+            <Text style={styles.infoLabel}>
+              Status
+            </Text>
+
+            <Text
+              style={[
+                styles.infoValue,
+                {
+                  color: "#16A34A",
+                },
+              ]}
+            >
+              {deliveryStatus || "Confirmed"}
+            </Text>
+
+          </View>
+
+                    <View style={styles.infoRow}>
+
+            <MaterialCommunityIcons
+              name="account-circle-outline"
+              size={18}
+              color="#64748B"
+            />
+
+            <Text style={styles.infoLabel}>
+              Captain
+            </Text>
+
+            <Text style={styles.infoValue}>
+              {driverName || "Assigning..."}
+            </Text>
+
+          </View>
+
+          <View style={styles.infoRow}>
+
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={18}
+              color="#64748B"
+            />
+
+            <Text style={styles.infoLabel}>
+              ETA
+            </Text>
+
+            <Text style={styles.infoValue}>
+              {eta || "--"}
+            </Text>
+
+          </View>
+
+          <View style={styles.buttonContainer}>
+
+            <PrimaryButton
+              title="TRACK ORDER"
+              onPress={onTrackOrder}
+              style={styles.primaryButton}
+            />
+
+          </View>
+
         </View>
-
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.infoRow}>
-
-        <MaterialCommunityIcons
-          name="account-circle-outline"
-          size={22}
-          color="#64748B"
-        />
-
-        <Text style={styles.infoLabel}>
-          Delivery Captain
-        </Text>
-
-        <Text style={styles.infoValue}>
-          {driverName || "Assigning..."}
-        </Text>
-
-      </View>
-
-      <View style={styles.infoRow}>
-
-        <MaterialCommunityIcons
-          name="clock-outline"
-          size={22}
-          color="#64748B"
-        />
-
-        <Text style={styles.infoLabel}>
-          ETA
-        </Text>
-
-        <Text style={styles.infoValue}>
-          {eta || "--"}
-        </Text>
-
-      </View>
-            <View style={styles.infoRow}>
-
-        <MaterialCommunityIcons
-          name="truck-delivery-outline"
-          size={22}
-          color="#64748B"
-        />
-
-        <Text style={styles.infoLabel}>
-          Status
-        </Text>
-
-        <Text
-          style={[
-            styles.infoValue,
-            {
-              color: "#16A34A",
-            },
-          ]}
-        >
-          {deliveryStatus || "Order Confirmed"}
-        </Text>
-
-      </View>
-
-      <View style={styles.buttonContainer}>
-
-        <PrimaryButton
-  title="TRACK ORDER"
-  onPress={onTrackOrder}
-  style={{
-    width: "95%",
-    alignSelf: "center",
-  }}
-/>
 
       </View>
 
@@ -369,231 +358,150 @@ const tomorrow = getDeliveryHeader(
 const styles = StyleSheet.create({
 
   card: {
-  backgroundColor: "#FFFFFF",
-  borderRadius: 26,
+    backgroundColor: "#FFFFFF",
 
-  paddingTop: 16,
-  paddingHorizontal: 16,
-  paddingBottom: 8,
+    borderRadius: 28,
 
-  marginBottom: 8,
+    paddingHorizontal: 20,
 
-  shadowColor: "#000",
-  shadowOpacity: 0.08,
-  shadowRadius: 16,
-  shadowOffset: {
-    width: 0,
-    height: 8,
+    paddingVertical: 20,
+
+    marginBottom: 12,
+
+    minHeight: 340,
+
+    shadowColor: "#000",
+
+    shadowOpacity: 0.06,
+
+    shadowRadius: 14,
+
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+
+    elevation: 5,
   },
-  elevation: 8,
-},
 
   heroRow: {
-
     flexDirection: "row",
-
     alignItems: "center",
-
   },
 
-  chicken: {
-
+  heroImage: {
     width: 130,
-
     height: 165,
+    marginRight: 10,
+  },
 
-    marginRight: 6,
-
+  deliveryImage: {
+    width: 100,
+    height: 130,
+    marginRight: 16,
   },
 
   content: {
-
     flex: 1,
-
+    justifyContent: "center",
   },
 
   badge: {
-
     flexDirection: "row",
 
     alignItems: "center",
 
     alignSelf: "flex-start",
 
-    borderWidth: 1,
+    borderRadius: 18,
 
-    borderRadius: 20,
+    borderWidth: 1,
 
     paddingHorizontal: 10,
 
-    paddingVertical: 5,
+    paddingVertical: 6,
 
     marginBottom: 12,
-
   },
 
   badgeText: {
-
     marginLeft: 6,
 
-    fontSize: 14,
+    fontSize: 12,
 
-    fontWeight: "700",
-
+    fontWeight: "800",
   },
 
   title: {
+  fontSize: 14,
+  lineHeight: 24,
+  fontWeight: "900",
+  color: "#0F172A",
+},
 
-    fontSize: 20,
-
-    fontWeight: "900",
-
-    color: "#0F172A",
-
-  },
-
-  description: {
-
+  subtitle: {
     marginTop: 8,
+
+    marginBottom: 8,
 
     fontSize: 14,
 
-    lineHeight: 20,
+    lineHeight: 21,
 
     color: "#64748B",
-
   },
 
   featureRow: {
-
     flexDirection: "row",
 
     alignItems: "center",
 
-    marginTop: 12,
-
+    marginTop: 8,
   },
 
   featureText: {
-
     marginLeft: 8,
 
     fontSize: 14,
 
-    color: "#334155",
-
     fontWeight: "600",
 
-  },
-
-  buttonContainer: {
-
-    marginTop: 10,
-
-  },
-
-  deliveryHeader: {
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-  },
-
-  deliveryChicken: {
-
-    width: 65,
-
-    height: 82,
-
-    marginRight: 12,
-
-  },
-
-  deliveryTitle: {
-
-    fontSize: 18,
-
-    fontWeight: "900",
-
-    color: "#0F172A",
-
-  },
-
-  deliveryStatus: {
-
-    marginTop: 5,
-
-    fontSize: 15,
-
-    fontWeight: "700",
-
-    color: "#16A34A",
-
-  },
-
-  divider: {
-
-    height: 1,
-
-    backgroundColor: "#E2E8F0",
-
-    marginVertical: 10,
-
+    color: "#334155",
   },
 
   infoRow: {
-
     flexDirection: "row",
 
     alignItems: "center",
 
-    marginBottom: 8,
-
+    marginTop: 10,
   },
 
   infoLabel: {
-
-    marginLeft: 10,
-
-    color: "#64748B",
-
-    fontSize: 15,
+    marginLeft: 8,
 
     flex: 1,
 
+    fontSize: 14,
+
+    color: "#64748B",
   },
 
   infoValue: {
-
-    fontSize: 15,
+    fontSize: 14,
 
     fontWeight: "800",
 
     color: "#0F172A",
-
   },
 
-  deliveryDate: {
+  buttonContainer: {
+    marginTop: 12,
+  },
 
-  marginTop: 4,
-
-  fontSize: 14,
-
-  fontWeight: "700",
-
-  color: "#334155",
-
-},
-
-deliverySubDate: {
-
-  marginTop: 0,
-
-  fontSize: 13,
-
-  color: "#64748B",
-
-},
+  primaryButton: {
+    width: "100%",
+    alignSelf: "center",
+  },
 
 });

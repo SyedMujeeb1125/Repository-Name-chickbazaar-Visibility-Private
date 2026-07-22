@@ -1,468 +1,216 @@
-import React from "react";
-
-import {
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+
+export type LiveRateMode =
+  | "today"
+  | "tomorrow"
+  | "publishing";
 
 type Props = {
-
-  rate: number;
-
+  mode: LiveRateMode;
+  rate?: number;
 };
 
+const RATE_CONFIG = {
+  today: {
+    icon: "calendar-today",
+    badge: "LIVE RATE",
+    heading: "Today's Live Rate",
+  },
+  tomorrow: {
+    icon: "calendar-arrow-right",
+    badge: "LIVE RATE",
+    heading: "Tomorrow's Live Rate",
+  },
+  publishing: {
+    icon: "clock-outline",
+    badge: "RATE UPDATE",
+    heading: "Tomorrow's Live Rate",
+  },
+} as const;
+
 export default function LiveRateCard({
-
+  mode,
   rate,
-
 }: Props) {
-
-  const now = new Date();
-
-  const hour = now.getHours();
-
-  let title =
-    "LIVE BROILER RATE";
-
-  let validTill =
-    "Valid till 11:00 AM";
-
-  let badge =
-    "TODAY'S RATE";
-
-  if (
-    hour >= 11 &&
-    hour < 18
-  ) {
-
-    title =
-      "EXPRESS BROILER RATE";
-
-    validTill =
-      "Valid till 6:00 PM";
-
-      badge =
-      "EXPRESS";
-
-  }
-
-  if (hour >= 18) {
-
-  title =
-    "TOMORROW DELIVERY";
-
-  validTill =
-    "Book now for tomorrow's healthy live broiler chicken delivery.";
-
-  badge =
-    "BOOK NOW";
-
-}
+  const config = RATE_CONFIG[mode];
 
   return (
-
     <View style={styles.card}>
-
-      <Image
-  source={require("../../assets/live-rate-chicken.png")}
-  resizeMode="contain"
-  style={styles.heroImage}
-/>
-
       <View style={styles.pattern1} />
-
       <View style={styles.pattern2} />
 
       <View style={styles.badge}>
-
         <MaterialCommunityIcons
-
-          name="currency-inr"
-
+          name={config.icon}
           size={14}
-
-          color="#FFF"
-
+          color="#FFFFFF"
         />
 
         <Text style={styles.badgeText}>
-
-          {badge}
-
+          {config.badge}
         </Text>
-
       </View>
 
-      <Text style={styles.title}>
-
-        {title}
-
-      </Text>
-
-      {hour < 18 ? (
-
+      {mode === "publishing" ? (
         <>
+          <Text style={styles.publishHeading}>
+            Tomorrow's Live Rate
+          </Text>
+
+          <Text style={styles.publishSubtitle}>
+            Tomorrow's live rate will be published today at 7:00 PM.
+          </Text>
+        </>
+      ) : (
+        <>
+          <Text style={styles.heading}>
+            {config.heading}
+          </Text>
 
           <View style={styles.rateRow}>
-
             <Text style={styles.rate}>
-
-              ₹{rate}
-
+              {rate != null
+                ? `₹${rate.toLocaleString("en-IN")}`
+                : "--"}
             </Text>
 
             <Text style={styles.unit}>
-
               /kg
-
             </Text>
-
           </View>
 
-          <View
-  style={{
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-  }}
->
-  <MaterialCommunityIcons
-    name="clock-outline"
-    size={18}
-    color="#FFFFFF"
-  />
+          {mode === "today" && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.deliveryText}>
+                Today's Delivery
+              </Text>
 
-  <View style={{ marginLeft: 8 }}>
-
-    <Text
-      style={{
-        color: "#FFFFFF",
-        fontSize: 14,
-        fontWeight: "700",
-      }}
-    >
-      Order before 11:00 AM
-    </Text>
-
-    <Text
-      style={{
-        color: "rgba(255,255,255,0.9)",
-        fontSize: 13,
-        marginTop: 2,
-      }}
-    >
-      ✓ Same-Day Delivery
-    </Text>
-
-  </View>
-</View>
-
-
-          
+              <Text style={styles.updatedText}>
+                Updated • 7:00 PM
+              </Text>
+            </View>
+          )}
         </>
-
-      ) : (
-
-        <>
-
-          <MaterialCommunityIcons
-
-            name="calendar"
-
-            size={48}
-
-            color="rgba(255,255,255,0.9)"
-
-          />
-
-          <Text style={styles.closedText}>
-
-  {validTill}
-
-</Text>
-
-<Text
-  style={{
-    color: "#FFF",
-    textAlign: "center",
-    marginTop: 10,
-    fontSize: 13,
-    opacity: 0.9,
-  }}
->
-  Order opens again tomorrow before 9:00 AM.
-</Text>
-
-        </>
-
       )}
-
     </View>
-
   );
-
 }
+
 const styles = StyleSheet.create({
-
   card: {
-
-  overflow: "hidden",
-
-  backgroundColor: "#F97316",
-
-  borderRadius: 26,
-
-  paddingHorizontal: 22,
-
-  paddingTop: 16,
-
-  paddingBottom: 16,
-
-  marginBottom: 18,
-
-    shadowColor: "#F97316",
-
-    shadowOpacity: 0.28,
-
-    shadowRadius: 18,
-
+    overflow: "hidden",
+    backgroundColor: "#F97316",
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    marginBottom: 1,
+    minHeight: 76,
+    shadowColor: "#000",
+    shadowOpacity: 3,
+    shadowRadius: 14,
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: 8,
     },
-
-    elevation: 12,
-
+    elevation: 8,
   },
 
   pattern1: {
-
     position: "absolute",
-
-    right: -50,
-
-    top: -40,
-
-    width: 150,
-
-    height: 150,
-
-    borderRadius: 75,
-
+    right: -40,
+    top: -30,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: "rgba(255,255,255,0.08)",
-
   },
 
   pattern2: {
-
     position: "absolute",
-
-    right: 40,
-
-    bottom: -70,
-
-    width: 120,
-
-    height: 120,
-
-    borderRadius: 60,
-
+    right: 5,
+    bottom: -45,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: "rgba(255,255,255,0.05)",
-
   },
 
   badge: {
-
     alignSelf: "flex-start",
-
     flexDirection: "row",
-
     alignItems: "center",
-
     backgroundColor: "rgba(255,255,255,0.18)",
-
     borderRadius: 18,
-
     paddingHorizontal: 10,
-
-    paddingVertical: 4,
-
+    paddingVertical: 5,
   },
 
   badgeText: {
-
     color: "#FFFFFF",
-
-    fontSize: 11,
-
-    fontWeight: "800",
-
     marginLeft: 6,
-
-    letterSpacing: 0.8,
-
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.6,
   },
 
-  title: {
-
-    marginTop: 10,
-
+  heading: {
+    marginTop: 8,
     color: "#FFFFFF",
-
-    fontSize: 15,
-
-    fontWeight: "700",
-
-    letterSpacing: 0.6,
-
+    fontSize: 16,
+    fontWeight: "900",
   },
 
   rateRow: {
-
-  flexDirection: "row",
-
-  alignItems: "flex-end",
-
-  marginTop: 14,
-
-  marginBottom: 8,
-
-},
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
+  },
 
   rate: {
-
     color: "#FFFFFF",
-
-    fontSize: 42,
-
+    fontSize: 30,
     fontWeight: "900",
-
-    lineHeight: 46,
-
+    lineHeight: 30,
   },
 
   unit: {
-
     color: "#FFFFFF",
-
-    fontSize: 18,
-
+    fontSize: 14,
     fontWeight: "700",
-
-    marginBottom: 5,
-
-    marginLeft: 6,
-
+    marginLeft: 5,
+    marginBottom: 3,
   },
 
-  marketRow: {
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
+  publishHeading: {
     marginTop: 14,
-
-  },
-
-  marketText: {
-
-    marginLeft: 8,
-
     color: "#FFFFFF",
-
-    fontSize: 14,
-
-    fontWeight: "700",
-
-  },
-
-  timerCard: {
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    marginTop: 8,
-
-    backgroundColor: "rgba(255,255,255,0.16)",
-
-    borderRadius: 16,
-
-    paddingHorizontal: 12,
-
-    paddingVertical: 8,
-
-  },
-
-  timerTitle: {
-
-    color: "rgba(255,255,255,0.9)",
-
-    fontSize: 12,
-
-    fontWeight: "600",
-
-  },
-
-  timer: {
-
-    marginTop: 2,
-
-    color: "#FFFFFF",
-
-    fontSize: 18,
-
+    fontSize: 22,
     fontWeight: "900",
-
-    letterSpacing: 1,
-
   },
 
-  validity: {
-
+  publishSubtitle: {
     marginTop: 8,
-
-    color: "rgba(255,255,255,0.92)",
-
-    fontSize: 12,
-
+    color: "#FFF7ED",
+    fontSize: 16,
     fontWeight: "600",
-
   },
 
-  closedText: {
+  infoContainer: {
+    marginTop: 12,
+  },
 
-    marginTop: 20,
-
+  deliveryText: {
     color: "#FFFFFF",
-
-    textAlign: "center",
-
-    fontSize: 14,
-
-    lineHeight: 24,
-
+    fontSize: 15,
     fontWeight: "700",
-
   },
 
-  heroImage: {
-
-  position: "absolute",
-
-  right: -10,
-
-  top: -70,
-
-  width: 215,
-
-  height: 320,
-
-},
-
+  updatedText: {
+    marginTop: 4,
+    color: "#FFF7ED",
+    fontSize: 13,
+  },
 });

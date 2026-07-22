@@ -13,69 +13,40 @@ import ChickBazaarTabBar from "../components/navigation/ChickBazaarTabBar";
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
-
   return (
-
     <Tab.Navigator
-
       tabBar={(props) => (
-
         <ChickBazaarTabBar {...props} />
-
       )}
-
       screenOptions={{
-
         headerShown: false,
-
         tabBarHideOnKeyboard: true,
-
       }}
-
     >
-
       <Tab.Screen
-
         name="Home"
-
         component={HomeStack}
-
       />
 
       <Tab.Screen
-
         name="Orders"
-
         component={OrdersStack}
-
       />
 
       <Tab.Screen
-
         name="Order"
-
         component={OrderStack}
-
       />
 
       <Tab.Screen
-
         name="Business"
-
         component={BusinessStack}
-
       />
 
       <Tab.Screen
-
         name="Profile"
-
         component={AccountStack}
-
       />
-
     </Tab.Navigator>
-
   );
-
 }

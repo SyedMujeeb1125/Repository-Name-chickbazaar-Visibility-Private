@@ -1,129 +1,88 @@
 import React, { useState } from "react";
-
-import { useAuth } from "../context/AuthContext";
-
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import {
+  ActivityIndicator,
   Alert,
   Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  Keyboard,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function LoginScreen({
-  navigation,
-}: any) {
+import { useAuth } from "../context/AuthContext";
+import AuthService from "../services/auth.service";
 
-  const [mobile, setMobile] =
-    useState("");
+export default function LoginScreen({ navigation }: any) {
+  const { login: signIn } = useAuth();
 
-  const { login: signIn } =
-    useAuth();
+  const [mobile, setMobile] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
 
-    if (mobile.length !== 10) {
+    if (loading) {
+      return;
+    }
 
+    const mobileNumber = mobile.trim();
+
+    if (!/^\d{10}$/.test(mobileNumber)) {
       Alert.alert(
         "Invalid Mobile Number",
         "Please enter a valid 10-digit mobile number."
       );
-
       return;
-
     }
 
     try {
+      setLoading(true);
 
-      const response =
-        await fetch(
-          "http://10.144.143.74:3000/api/mobile/login",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              mobile,
-            }),
-          }
-        );
+      const response = await AuthService.login({
+        mobile: mobileNumber,
+      });
 
-      const data =
-        await response.json();
-
-        console.log(data);
-
-      if (!data.success) {
-
-        Alert.alert(
-          "Login Failed",
-          "Retailer not found."
-        );
-
-        return;
-
-      }
-
-      await signIn(mobile);
-
+      await signIn(response);
     } catch (error: any) {
-
       Alert.alert(
-        "Error",
-        error?.message ??
-          "Something went wrong."
+        "Login Failed",
+        error?.message || "Unable to connect to the server."
       );
-
+    } finally {
+      setLoading(false);
     }
-
   };
 
   return (
-
-    <SafeAreaView
-      style={styles.safeArea}
-    >
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
+    <SafeAreaView style={styles.safeArea}>
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
+        accessible={false}
       >
-
-        <ScrollView
-          contentContainerStyle={
-            styles.container
-          }
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraScrollHeight={30}
           showsVerticalScrollIndicator={false}
         >
-
           <Image
             source={require("../assets/logo.png")}
             style={styles.logoImage}
           />
 
           <View style={styles.card}>
-
             <Text style={styles.title}>
               Retailer Login
             </Text>
 
             <Text style={styles.subtitle}>
-              Login using your registered
-              mobile number to continue.
+              Login using your registered mobile number to continue.
             </Text>
 
             <TextInput
@@ -132,42 +91,55 @@ export default function LoginScreen({
               placeholderTextColor="#94A3B8"
               keyboardType="number-pad"
               maxLength={10}
+              editable={!loading}
               value={mobile}
-              onChangeText={setMobile}
+              autoComplete="tel"
+              textContentType="telephoneNumber"
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="done"
+              blurOnSubmit
+              accessibilityLabel="Mobile number"
+              onSubmitEditing={handleLogin}
+              onChangeText={(text) =>
+                setMobile(text.replace(/\D/g, ""))
+              }
             />
 
             <TouchableOpacity
-              style={styles.button}
+              style={[
+                styles.button,
+                loading && styles.buttonDisabled,
+              ]}
               activeOpacity={0.85}
+              disabled={loading}
               onPress={handleLogin}
+              accessibilityRole="button"
+              accessibilityLabel="Login"
             >
-
-              <Text style={styles.buttonText}>
-                Login
-              </Text>
-
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>
+                  Login
+                </Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
+              disabled={loading}
+              style={loading && styles.linkDisabled}
               onPress={() =>
-                navigation.navigate(
-                  "Register"
-                )
+                navigation.navigate("Register")
               }
             >
-
-              <Text
-                style={styles.register}
-              >
+              <Text style={styles.register}>
                 Don't have an account? Register
               </Text>
-
             </TouchableOpacity>
-
           </View>
 
           <View style={styles.footer}>
-
             <Text style={styles.version}>
               ChickBazaar Retailer App
             </Text>
@@ -179,145 +151,130 @@ export default function LoginScreen({
             <Text style={styles.powered}>
               Made with ❤️ in India
             </Text>
-
           </View>
-
-        </ScrollView>
-
-      </KeyboardAvoidingView>
-
+        </KeyboardAwareScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
-
   );
-
 }
 
-const styles =
-  StyleSheet.create({
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
 
-    safeArea: {
-      flex: 1,
-      backgroundColor:
-        "#F8FAFC",
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+
+  logoImage: {
+    width: 250,
+    height: 120,
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginBottom: 35,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 6,
     },
 
-    container: {
-      flexGrow: 1,
-      justifyContent:
-        "center",
-      paddingHorizontal: 24,
-      paddingVertical: 40,
-    },
+    elevation: 6,
+  },
 
-    logoImage: {
-      width: 250,
-      height: 120,
-      resizeMode: "contain",
-      alignSelf: "center",
-      marginBottom: 35,
-    },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+    textAlign: "center",
+    color: "#0F172A",
+  },
 
-    card: {
-      backgroundColor:
-        "#FFFFFF",
+  subtitle: {
+    textAlign: "center",
+    color: "#64748B",
+    marginTop: 10,
+    marginBottom: 24,
+    fontSize: 15,
+    lineHeight: 22,
+  },
 
-      borderRadius: 24,
+  input: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: "#0F172A",
+    marginBottom: 18,
+  },
 
-      padding: 24,
+  button: {
+    backgroundColor: "#F97316",
+    paddingVertical: 16,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
-      shadowColor: "#000",
+  buttonDisabled: {
+    opacity: 0.7,
+  },
 
-      shadowOpacity: 0.08,
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "700",
+    textAlign: "center",
+  },
 
-      shadowRadius: 12,
+  register: {
+    textAlign: "center",
+    marginTop: 22,
+    color: "#F97316",
+    fontWeight: "700",
+    fontSize: 15,
+  },
 
-      shadowOffset: {
-        width: 0,
-        height: 6,
-      },
+  linkDisabled: {
+    opacity: 0.6,
+  },
 
-      elevation: 6,
-    },
+  footer: {
+    alignItems: "center",
+    marginTop: 34,
+    paddingBottom: 20,
+  },
 
-    title: {
-      fontSize: 28,
-      fontWeight: "700",
-      textAlign: "center",
-      color: "#0F172A",
-    },
+  version: {
+    color: "#334155",
+    fontSize: 14,
+    fontWeight: "700",
+  },
 
-    subtitle: {
-      textAlign: "center",
-      color: "#64748B",
-      marginTop: 10,
-      marginBottom: 24,
-      fontSize: 15,
-      lineHeight: 22,
-    },
+  versionNo: {
+    marginTop: 2,
+    color: "#64748B",
+    fontSize: 13,
+  },
 
-    input: {
-      backgroundColor:
-        "#F8FAFC",
-
-      borderWidth: 1,
-
-      borderColor:
-        "#E2E8F0",
-
-      borderRadius: 14,
-
-      padding: 16,
-
-      fontSize: 16,
-
-      marginBottom: 18,
-    },
-
-    button: {
-      backgroundColor:
-        "#F97316",
-
-      paddingVertical: 16,
-
-      borderRadius: 14,
-    },
-
-    buttonText: {
-      color: "#FFFFFF",
-      textAlign: "center",
-      fontSize: 17,
-      fontWeight: "700",
-    },
-
-    register: {
-      textAlign: "center",
-      marginTop: 22,
-      color: "#F97316",
-      fontWeight: "700",
-      fontSize: 15,
-    },
-
-    footer: {
-      alignItems: "center",
-      marginTop: 34,
-    },
-
-    version: {
-      color: "#334155",
-      fontSize: 14,
-      fontWeight: "700",
-    },
-
-    versionNo: {
-      marginTop: 2,
-      color: "#64748B",
-      fontSize: 13,
-    },
-
-    powered: {
-      marginTop: 8,
-      color: "#94A3B8",
-      fontSize: 12,
-    },
-
-  });
+  powered: {
+    marginTop: 8,
+    color: "#94A3B8",
+    fontSize: 12,
+  },
+});

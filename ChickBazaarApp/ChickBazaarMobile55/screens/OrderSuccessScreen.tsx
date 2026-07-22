@@ -1,14 +1,12 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from "react";
-
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import {
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import CBAmount from "../components/common/CBAmount";
 import CBButton from "../components/common/CBButton";
@@ -19,36 +17,33 @@ export default function OrderSuccessScreen({
   navigation,
   route,
 }: any) {
-
   const {
-    orderId,
-    estimatedAmount,
-    deliveryDate,
-  } = route.params ?? {};
+  orderId,
+  orderNumber,
+  estimatedAmount = 0,
+  deliveryDate,
+  advancePaid = 0,
+} = route.params ?? {};
 
   return (
-
     <SafeAreaView style={styles.container}>
-
-      <View style={styles.content}>
-
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <CBHeader
           title="Order Placed Successfully"
           subtitle="We're preparing your healthy live broiler chicken."
         />
 
-        {/* Success Card */}
-
+        {/* Success */}
         <CBCard>
-
           <View style={styles.successCircle}>
-
             <MaterialCommunityIcons
               name="check"
               size={58}
               color="#16A34A"
             />
-
           </View>
 
           <Text style={styles.successTitle}>
@@ -56,11 +51,10 @@ export default function OrderSuccessScreen({
           </Text>
 
           <Text style={styles.orderId}>
-            {orderId || "Generating Order ID..."}
-          </Text>
+  {orderNumber || orderId}
+</Text>
 
           <View style={styles.statusBadge}>
-
             <MaterialCommunityIcons
               name="food-drumstick"
               size={18}
@@ -70,141 +64,155 @@ export default function OrderSuccessScreen({
             <Text style={styles.statusText}>
               Healthy Live Broiler Chicken
             </Text>
-
           </View>
-
         </CBCard>
 
-        {/* Delivery Card */}
-
-        <CBCard>
-
+        {/* Delivery */}
+        <CBCard style={styles.cardSpacing}>
           <View style={styles.sectionHeader}>
-
             <MaterialCommunityIcons
-              name="truck-delivery-outline"
-              size={22}
-              color="#F97316"
+              name="truck-fast"
+              size={24}
+              color="#EA580C"
             />
 
             <Text style={styles.sectionTitle}>
               Expected Delivery
             </Text>
-
           </View>
 
           <View style={styles.deliveryBox}>
-
             <Text style={styles.deliveryDay}>
               {deliveryDate || "Today"}
             </Text>
 
             <Text style={styles.deliveryTime}>
-              2:00 PM – 4:00 PM
+              Standard Delivery
             </Text>
-
           </View>
-
         </CBCard>
 
-        {/* Estimated Bill */}
-
-        <CBCard>
-
+        {/* Bill */}
+        <CBCard style={styles.cardSpacing}>
           <View style={styles.sectionHeader}>
-
             <MaterialCommunityIcons
               name="cash-multiple"
-              size={22}
-              color="#F97316"
+              size={24}
+              color="#16A34A"
             />
 
             <Text style={styles.sectionTitle}>
               Estimated Bill
             </Text>
-
           </View>
 
-          <CBAmount
-            amount={estimatedAmount || 0}
-            size={34}
-          />
+          <CBAmount amount={estimatedAmount} />
+
+          <View
+  style={{
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+  }}
+>
+  <Text
+    style={{
+      fontSize: 15,
+      color: "#64748B",
+      marginBottom: 4,
+    }}
+  >
+    Advance Paid
+  </Text>
+
+  <Text
+    style={{
+      fontSize: 20,
+      fontWeight: "800",
+      color: "#16A34A",
+    }}
+  >
+    ₹{advancePaid.toLocaleString()}
+  </Text>
+</View>
 
           <Text style={styles.billNote}>
-            Final invoice will be generated
-            after the actual delivery weight
-            is recorded.
+            Final amount will be calculated after actual weight at delivery.
           </Text>
+        </CBCard>
 
-        </CBCard>         {/* Information Card */}
-
-        <CBCard>
-
+        {/* Information */}
+        <CBCard style={styles.cardSpacing}>
           <View style={styles.infoRow}>
-
             <MaterialCommunityIcons
-              name="information-outline"
-              size={22}
+              name="information"
+              size={24}
               color="#2563EB"
             />
 
             <Text style={styles.infoTitle}>
-              What's Next?
+              What Happens Next?
             </Text>
-
           </View>
 
           <Text style={styles.infoText}>
-            Our operations team is preparing your
-            healthy live broiler chicken.
+            • Your order has been received successfully.
           </Text>
 
           <Text style={styles.infoText}>
-            You can track your order anytime from
-            the Dashboard or Orders screen.
+            • Our operations team will allocate the nearest farm.
           </Text>
 
+          <Text style={styles.infoText}>
+            • You'll receive live tracking once the vehicle is assigned.
+          </Text>
+
+          <Text style={styles.infoText}>
+            • Final billing will be based on actual delivered weight.
+          </Text>
         </CBCard>
 
+        {/* Buttons */}
         <View style={styles.buttonContainer}>
+  <CBButton
+  title="Track My Order"
+  onPress={() =>
+    navigation.navigate("Orders", {
+      screen: "OrderDetails",
+      params: {
+        orderId,
+      },
+    })
+  }
+/>
 
-          <CBButton
-            title="Track Order"
-            onPress={() =>
-              navigation.navigate("MyOrders")
-            }
-          />
+  <View style={{ height: 12 }} />
 
-          <View style={{ height: 14 }} />
-
-          <CBButton
-            title="Back to Dashboard"
-            onPress={() =>
-              navigation.navigate("Dashboard")
-            }
-          />
-
-        </View>
-
-      </View>
-
+  <CBButton
+    title="Back to Home"
+    variant="outline"
+    onPress={() => navigation.popToTop()}
+  />
+</View>
+      </ScrollView>
     </SafeAreaView>
-
   );
-
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
 
   content: {
-    flex: 1,
     padding: 20,
-    justifyContent: "space-between",
+    paddingBottom: 40,
+  },
+
+  cardSpacing: {
+    marginTop: 16,
   },
 
   successCircle: {
@@ -227,7 +235,7 @@ const styles = StyleSheet.create({
 
   orderId: {
     marginTop: 10,
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: "700",
     color: "#334155",
     textAlign: "center",
@@ -255,38 +263,38 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 16,
   },
 
   sectionTitle: {
     marginLeft: 10,
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
   },
 
   deliveryBox: {
     backgroundColor: "#FFF7ED",
-    borderRadius: 20,
     padding: 18,
+    borderRadius: 16,
     alignItems: "center",
   },
 
   deliveryDay: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "800",
     color: "#EA580C",
   },
 
   deliveryTime: {
     marginTop: 6,
-    fontSize: 17,
-    fontWeight: "600",
+    fontSize: 16,
     color: "#475569",
+    fontWeight: "600",
   },
 
   billNote: {
-    marginTop: 14,
+    marginTop: 12,
     fontSize: 14,
     color: "#64748B",
     lineHeight: 22,
@@ -295,12 +303,12 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 12,
   },
 
   infoTitle: {
     marginLeft: 10,
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
   },
@@ -313,8 +321,7 @@ const styles = StyleSheet.create({
   },
 
   buttonContainer: {
-    marginTop: 12,
-    marginBottom: 24,
+    marginTop: 24,
+    marginBottom: 30,
   },
-
 });

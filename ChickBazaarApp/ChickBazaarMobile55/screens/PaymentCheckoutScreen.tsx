@@ -58,37 +58,32 @@ export default function PaymentCheckoutScreen({
 
       setProcessing(true);
 
-      const result =
-        await processAdvancePayment({
+      
+      
+  if (!retailerId) {
+  Alert.alert(
+    "Unable to Place Order",
+    "Retailer information is missing. Please login again."
+  );
+  return;
+}
 
-          retailerId:
-            retailerId ?? "RETAILER",
+const result = await processAdvancePayment({
+  retailerId,
+  amount: advanceRequired,
+  orderData: {
+    selectedShop,
+    todayRate,
+    quantity,
+    estimatedAmount,
+    deliveryDate,
+    deliverySlot,
+    orderType,
+    notes,
+  },
+});
 
-          amount: advanceRequired,
-
-          orderData: {
-
-            selectedShop,
-
-            todayRate,
-
-            quantity,
-
-            estimatedAmount,
-
-            deliveryDate,
-
-            deliverySlot,
-
-            orderType,
-
-            notes,
-
-          },
-
-        });
-
-      if (!result.success) {
+        if (!result.success) {
 
         Alert.alert(
           "Payment Failed",
@@ -100,30 +95,22 @@ export default function PaymentCheckoutScreen({
 
       }
 
-      navigation.replace(
-        "OrderSuccess",
-        {
+      navigation.replace("OrderSuccess", {
+    orderId: result.orderId,
+    orderNumber: result.orderNumber,
+    estimatedAmount,
+    deliveryDate,
+    advancePaid: advanceRequired,
+});
 
-          orderId:
-            result.orderId ??
-            "Generating...",
-
-          estimatedAmount,
-
-          deliveryDate,
-
-        }
-      );
-
-    } catch (error: any) {
-
-      Alert.alert(
-        "Something went wrong",
-        error?.message ??
-          "Please try again."
-      );
-
-    } finally {
+    } catch (error) {
+  Alert.alert(
+    "Something went wrong",
+    error instanceof Error
+      ? error.message
+      : "Please try again."
+  );
+} finally {
 
       setProcessing(false);
 
@@ -192,8 +179,10 @@ export default function PaymentCheckoutScreen({
           </Text>
 
           <Text style={styles.shopName}>
-            {selectedShop?.shopName}
-          </Text>
+  {selectedShop?.shop_name ??
+    selectedShop?.shopName ??
+    "Selected Shop"}
+</Text>
 
           <Text style={styles.shopAddress}>
             {selectedShop?.address}
@@ -210,7 +199,7 @@ export default function PaymentCheckoutScreen({
           </Text>
 
           <Row
-            label="Today's Rate"
+    label="Applicable Rate"
             value={`₹${todayRate}/kg`}
           />
 
@@ -286,8 +275,8 @@ export default function PaymentCheckoutScreen({
           </Text>
 
           <Rule
-            text="₹500 advance is collected while placing the order."
-          />
+    text={`₹${advanceRequired} advance is collected while placing the order.`}
+/>
 
           <Rule
             text="Final invoice is generated after actual delivery weight."
@@ -358,12 +347,10 @@ export default function PaymentCheckoutScreen({
           )}
 
           <Text style={styles.payButtonText}>
-
-            {processing
-              ? "Processing Payment..."
-              : `PAY ₹${advanceRequired}`}
-
-          </Text>
+  {processing
+    ? "Processing Payment..."
+    : `PAY ₹${advanceRequired.toLocaleString()}`}
+</Text>
 
         </TouchableOpacity>
 
@@ -385,7 +372,7 @@ export default function PaymentCheckoutScreen({
             </Text>
 
             <Text style={styles.processingSubtitle}>
-              Please don't close the app.
+              Please don't close or refresh the app until payment is complete.
             </Text>
 
             <Text style={styles.processingSmall}>
