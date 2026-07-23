@@ -1,5 +1,5 @@
 export const API = {
-  BASE_URL: "http://10.144.143.74:3000/api",
+  BASE_URL: "https://www.chickbazaar.com/api",
 
   AUTH: {
     LOGIN: "/mobile/login",
