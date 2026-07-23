@@ -1,21 +1,94 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-export async function GET(request: Request) {
-  const { searchParams } =
-    new URL(request.url);
+function getDisplayStatus(status: string) {
+  switch (status) {
+    case "new":
+    case "confirmed":
+      return "Order Confirmed";
 
-  const mobile =
-    searchParams.get("mobile");
+    case "allocated":
+      return "Farm Allocated";
+
+    case "preparing":
+      return "Preparing Order";
+
+    case "vehicle_assigned":
+      return "Vehicle Assigned";
+
+    case "out_for_delivery":
+      return "Out for Delivery";
+
+    case "delivered":
+      return "Delivered";
+
+    case "cancelled":
+      return "Cancelled";
+
+    default:
+      return status;
+  }
+}
+
+function getDashboardState(
+  currentDelivery: any,
+  outstanding: number,
+  repeatOrderAvailable: boolean
+) {
+  if (!currentDelivery) {
+    if (outstanding > 0) {
+      return "PAYMENT_PENDING";
+    }
+
+    if (repeatOrderAvailable) {
+      return "REVIEW_TOMORROW";
+    }
+
+    return "NO_ORDER";
+  }
+
+  switch (currentDelivery.status) {
+    case "new":
+    case "confirmed":
+      return "ORDER_CONFIRMED";
+
+    case "allocated":
+      return "FARM_ALLOCATED";
+
+    case "preparing":
+      return "PREPARING";
+
+    case "vehicle_assigned":
+      return "VEHICLE_ASSIGNED";
+
+    case "out_for_delivery":
+      return "OUT_FOR_DELIVERY";
+
+    default:
+      return "NO_ORDER";
+  }
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  const mobile = searchParams.get("mobile");
 
   if (!mobile) {
     return NextResponse.json(
-      { message: "Mobile is required." },
-      { status: 400 }
+      {
+        success: false,
+        message: "Mobile is required.",
+      },
+      {
+        status: 400,
+      }
     );
   }
 
+  // --------------------------------------------------
   // Retailer
+  // --------------------------------------------------
 
   const {
     data: retailer,
@@ -29,14 +102,18 @@ export async function GET(request: Request) {
   if (retailerError || !retailer) {
     return NextResponse.json(
       {
-        message:
-          "Retailer not found.",
+        success: false,
+        message: "Retailer not found.",
       },
-      { status: 404 }
+      {
+        status: 404,
+      }
     );
   }
 
+  // --------------------------------------------------
   // Orders
+  // --------------------------------------------------
 
   const {
     data: orders,
@@ -52,56 +129,46 @@ export async function GET(request: Request) {
   if (ordersError) {
     return NextResponse.json(
       {
-        message:
-          ordersError.message,
+        success: false,
+        message: ordersError.message,
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 
-  const pendingOrders =
-    (orders || []).filter(
-      (o: any) =>
-        ![
-          "delivered",
-          "completed",
-          "cancelled",
-        ].includes(o.status)
-    );
+  const pendingOrders = (orders || []).filter(
+    (order: any) =>
+      !["delivered", "cancelled"].includes(order.status)
+  );
 
-  // Outstanding
+  // --------------------------------------------------
+  // Ledger
+  // --------------------------------------------------
 
-  const {
-    data: ledger,
-  } = await supabase
+  const { data: ledger } = await supabase
     .from("retailer_ledger")
     .select("debit,credit")
-    .eq(
-      "retailer_id",
-      retailer.id
-    );
+    .eq("retailer_id", retailer.id);
 
-  const totalDebit =
-    (ledger || []).reduce(
-      (sum: number, row: any) =>
-        sum +
-        Number(row.debit || 0),
-      0
-    );
+  const totalDebit = (ledger || []).reduce(
+    (sum: number, row: any) => sum + Number(row.debit || 0),
+    0
+  );
 
-  const totalCredit =
-    (ledger || []).reduce(
-      (sum: number, row: any) =>
-        sum +
-        Number(row.credit || 0),
-      0
-    );
+  const totalCredit = (ledger || []).reduce(
+    (sum: number, row: any) => sum + Number(row.credit || 0),
+    0
+  );
 
-  // Today's Rate
+  const outstanding = totalDebit - totalCredit;
 
-  const {
-    data: rate,
-  } = await supabase
+  // --------------------------------------------------
+  // Live Rate
+  // --------------------------------------------------
+
+  const { data: rate } = await supabase
     .from("daily_rates")
     .select("rate")
     .order("created_at", {
@@ -110,8 +177,11 @@ export async function GET(request: Request) {
     .limit(1)
     .single();
 
-    const currentDelivery =
-  (orders || []).find((order: any) =>
+  // --------------------------------------------------
+  // Current Delivery
+  // --------------------------------------------------
+
+  const currentDelivery = (orders || []).find((order: any) =>
     [
       "new",
       "confirmed",
@@ -122,140 +192,113 @@ export async function GET(request: Request) {
     ].includes(order.status)
   );
 
-  // -------------------------------------
-// Last Delivered Order
-// -------------------------------------
+  // --------------------------------------------------
+  // Last Delivered Order
+  // --------------------------------------------------
 
-const lastDeliveredOrder =
-  (orders || []).find((order: any) =>
-    [
-      "delivered",
-      "completed",
-    ].includes(order.status)
+  const lastDeliveredOrder = (orders || []).find((order: any) =>
+    order.status === "delivered"
   );
 
-// -------------------------------------
-// Repeat Order Availability
-// -------------------------------------
+  // --------------------------------------------------
+  // Repeat Order
+  // --------------------------------------------------
 
-const today = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-today.setHours(0, 0, 0, 0);
-
-const deliveredYesterday =
-  lastDeliveredOrder?.delivered_at
-    ? new Date(
-        lastDeliveredOrder.delivered_at
-      ) < today
+  const deliveredYesterday = lastDeliveredOrder?.delivered_at
+    ? new Date(lastDeliveredOrder.delivered_at) < today
     : false;
 
-const repeatOrderAvailable =
-  !!lastDeliveredOrder &&
-  deliveredYesterday &&
-  !currentDelivery;
+  const repeatOrderAvailable =
+    !!lastDeliveredOrder &&
+    deliveredYesterday &&
+    !currentDelivery;
+
+  const dashboardState = getDashboardState(
+    currentDelivery,
+    outstanding,
+    repeatOrderAvailable
+  );
 
   return NextResponse.json({
+    success: true,
+
+    dashboardState,
+
     shopName:
       retailer.shop_name ??
       retailer.shopName ??
       "",
 
-    todayRate:
-      Number(rate?.rate || 0),
+    todayRate: Number(rate?.rate || 0),
 
-    totalOrders:
-      orders?.length || 0,
+    totalOrders: orders?.length || 0,
 
-    pendingOrders:
-      pendingOrders.length,
+    pendingOrders: pendingOrders.length,
 
-    availableCredit:
-      Number(
-        retailer.available_credit ||
-          0
-      ),
+    outstanding,
 
-    creditLimit:
-      Number(
-        retailer.credit_limit ||
-          0
-      ),
+    currentDelivery: currentDelivery
+      ? {
+          orderNumber: currentDelivery.order_number,
 
-    outstanding:
-      totalDebit -
-      totalCredit,
+          status: currentDelivery.status,
 
-      currentDelivery: currentDelivery
-  ? {
-      orderNumber:
-        currentDelivery.order_number,
+          displayStatus: getDisplayStatus(
+            currentDelivery.status
+          ),
 
-      status:
-  currentDelivery.status === "new"
-    ? "Order Confirmed"
-    : currentDelivery.status === "confirmed"
-    ? "Order Confirmed"
-    : currentDelivery.status === "allocated"
-    ? "Farm Allocated"
-    : currentDelivery.status === "preparing"
-    ? "Preparing Order"
-    : currentDelivery.status === "vehicle_assigned"
-    ? "Vehicle Assigned"
-    : currentDelivery.status === "out_for_delivery"
-    ? "Out for Delivery"
-    : currentDelivery.status,
+          captain:
+            currentDelivery.assigned_driver,
 
-      captain:
-        currentDelivery.assigned_driver,
+          vehicle:
+            currentDelivery.assigned_vehicle,
 
-      vehicle:
-        currentDelivery.assigned_vehicle,
+          eta:
+            currentDelivery.estimated_delivery_time ??
+            currentDelivery.eta ??
+            null,
 
-      eta: "Calculating...",
+          requestedWeight:
+            currentDelivery.requested_weight,
 
-      requestedWeight:
-        currentDelivery.requested_weight,
+          estimatedAmount:
+            currentDelivery.estimated_amount,
+        }
+      : null,
 
-      estimatedAmount:
-        currentDelivery.estimated_amount,
-    }
-  : null,
+    repeatOrder: repeatOrderAvailable
+      ? {
+          available: true,
 
-  repeatOrder: repeatOrderAvailable
-  ? {
-      available: true,
+          orderNumber:
+            lastDeliveredOrder.order_number,
 
-      orderNumber:
-        lastDeliveredOrder.order_number,
+          weight: Number(
+            lastDeliveredOrder.actual_weight ??
+              lastDeliveredOrder.requested_weight ??
+              0
+          ),
 
-      weight: Number(
-        lastDeliveredOrder.actual_weight ??
-        lastDeliveredOrder.requested_weight ??
-        0
-      ),
+          rate: Number(
+            lastDeliveredOrder.rate_per_kg ?? 0
+          ),
 
-      rate: Number(
-        lastDeliveredOrder.rate_per_kg ??
-        0
-      ),
+          amount: Number(
+            lastDeliveredOrder.final_amount ??
+              lastDeliveredOrder.estimated_amount ??
+              0
+          ),
 
-      amount: Number(
-        lastDeliveredOrder.final_amount ??
-        lastDeliveredOrder.estimated_amount ??
-        0
-      ),
+          deliveredAt:
+            lastDeliveredOrder.delivered_at,
+        }
+      : {
+          available: false,
+        },
 
-      deliveredAt:
-        lastDeliveredOrder.delivered_at,
-    }
-  : {
-      available: false,
-    },
-
-    recentOrders:
-      (orders || []).slice(
-        0,
-        5
-      ),
+    recentOrders: (orders || []).slice(0, 5),
   });
 }

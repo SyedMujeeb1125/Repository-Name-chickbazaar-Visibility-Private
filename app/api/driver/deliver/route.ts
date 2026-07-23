@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-
 export async function POST(
   request: Request
 ) {
   console.log("===== DRIVER DELIVER API STARTED =====");
 
   const formData: any =
-  await request.formData();
+    await request.formData();
 
   const orderId = String(
     formData.get("orderId") || ""
@@ -23,32 +22,33 @@ export async function POST(
   );
 
   const cashReceived = Number(
-  formData.get("cashReceived") || 0
-);
+    formData.get("cashReceived") || 0
+  );
 
-const upiReceived = Number(
-  formData.get("upiReceived") || 0
-);
+  const upiReceived = Number(
+    formData.get("upiReceived") || 0
+  );
 
-const paymentMode = String(
-  formData.get("paymentMode") || ""
-);
+  const paymentMode = String(
+    formData.get("paymentMode") || ""
+  );
 
-const upiTransactionId = String(
-  formData.get("upiTransactionId") || ""
-);
+  const upiTransactionId = String(
+    formData.get("upiTransactionId") || ""
+  );
+
   const podPhoto =
     formData.get("podPhoto") as File | null;
 
-    console.log("POD PHOTO:", podPhoto);
-console.log(
-  "POD SIZE:",
-  podPhoto?.size
-);
-console.log(
-  "POD NAME:",
-  podPhoto?.name
-);
+  console.log("POD PHOTO:", podPhoto);
+  console.log(
+    "POD SIZE:",
+    podPhoto?.size
+  );
+  console.log(
+    "POD NAME:",
+    podPhoto?.name
+  );
 
   let podPhotoUrl = "";
 
@@ -72,13 +72,11 @@ console.log(
         .from("pod")
         .upload(
           fileName,
-          Buffer.from(
-            arrayBuffer
-          ),
+          Buffer.from(arrayBuffer),
           {
             contentType:
               podPhoto.type,
-            upsert: true
+            upsert: true,
           }
         );
 
@@ -86,121 +84,122 @@ console.log(
       const { data } =
         supabase.storage
           .from("pod")
-          .getPublicUrl(
-            fileName
-          );
+          .getPublicUrl(fileName);
 
       podPhotoUrl =
         data.publicUrl;
     }
   }
 
-  const { data: order } = await supabase
-  .from("orders")
-  .select("*")
-  .eq("id", orderId)
-  .single();
+  const { data: order } =
+    await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .single();
 
-if (!order) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Order not found",
-    },
-    {
-      status: 404,
-    }
-  );
-}
+  if (!order) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Order not found",
+      },
+      {
+        status: 404,
+      }
+    );
+  }
 
-const rate =
-  Number(order.rate_per_kg ?? 0);
+  const rate =
+    Number(order.rate_per_kg ?? 0);
 
-const advance =
-  Number(order.advance_amount ?? 500);
+  const advance =
+    Number(order.advance_amount ?? 500);
 
-const finalBill =
-  actualWeight * rate;
+  const finalBill =
+    actualWeight * rate;
 
-const totalPaid =
-  advance +
-  cashReceived +
-  upiReceived;
+  const totalPaid =
+    advance +
+    cashReceived +
+    upiReceived;
 
-const balanceDue =
-  Math.max(
-    finalBill - totalPaid,
-    0
-  );
+  const balanceDue =
+    Math.max(
+      finalBill - totalPaid,
+      0
+    );
 
-const paymentStatus =
-  balanceDue > 0
-    ? "payment_pending"
-    : "paid";
+  const paymentStatus =
+    balanceDue > 0
+      ? "payment_pending"
+      : "paid";
 
-const orderStatus =
-  balanceDue > 0
-    ? "delivered"
-    : "completed";
+  // Delivery is complete regardless of payment.
+  // Payment status indicates whether money is still due.
+  const orderStatus = "delivered";
 
-  const { error } = await supabase
-  .from("orders")
-  .update({
+  const { error } =
+    await supabase
+      .from("orders")
+      .update({
+        status: orderStatus,
 
-  status: orderStatus,
+        actual_weight: actualWeight,
 
-  actual_weight: actualWeight,
+        final_bill_amount: finalBill,
 
-  final_bill_amount: finalBill,
+        cash_received: cashReceived,
 
-  cash_received: cashReceived,
+        upi_received: upiReceived,
 
-  upi_received: upiReceived,
+        total_paid: totalPaid,
 
-  total_paid: totalPaid,
+        balance_due: balanceDue,
 
-  balance_due: balanceDue,
+        payment_status: paymentStatus,
 
-  payment_status: paymentStatus,
+        payment_mode: paymentMode,
 
-  payment_mode: paymentMode,
+        upi_transaction_id:
+          upiTransactionId,
 
-  upi_transaction_id: upiTransactionId,
+        payment_collected_by:
+          "Driver",
 
-  payment_collected_by: "Driver",
+        payment_collected_at:
+          new Date().toISOString(),
 
-  payment_collected_at:
-    new Date().toISOString(),
+        delivery_notes:
+          deliveryNotes,
 
-  delivery_notes: deliveryNotes,
+        delivered_at:
+          new Date().toISOString(),
 
-  delivered_at:
-    new Date().toISOString(),
+        pod_photo_url:
+          podPhotoUrl,
 
-  pod_photo_url: podPhotoUrl,
+        pod_uploaded_at:
+          new Date().toISOString(),
+      })
+      .eq("id", orderId);
 
-  pod_uploaded_at:
-    new Date().toISOString(),
+  if (error) {
+    console.error(error);
 
-})
-  .eq("id", orderId);
-
-if (error) {
-  console.error(error);
-
-  return NextResponse.json(
-    {
-      success: false,
-      message: error.message,
-    },
-    {
-      status: 500,
-    }
-  );
-}
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 
   return NextResponse.redirect(
-  new URL("/driver", request.url),
-  303
-);
+    new URL("/driver", request.url),
+    303
+  );
 }

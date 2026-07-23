@@ -40,13 +40,14 @@ function formatAmount(amount: number) {
 }
 
 function formatStatus(status: string) {
-
   switch (status) {
+    case "new":
+      return "Order Received";
 
-    case "order_confirmed":
+    case "confirmed":
       return "Confirmed";
 
-    case "farm_allocated":
+    case "allocated":
       return "Farm Allocated";
 
     case "preparing":
@@ -66,9 +67,7 @@ function formatStatus(status: string) {
 
     default:
       return status;
-
   }
-
 }
 
 function formatDeliveryDate(date?: string) {

@@ -38,10 +38,11 @@ export type RetailerRecord = {
 export type OrderStatus =
   | "new"
   | "confirmed"
-  | "procured"
-  | "dispatched"
+  | "allocated"
+  | "preparing"
+  | "vehicle_assigned"
+  | "out_for_delivery"
   | "delivered"
-  | "completed"
   | "cancelled";
 
 export type PartnerStatus =

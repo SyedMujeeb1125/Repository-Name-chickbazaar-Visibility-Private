@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   StyleSheet,
   Text,
@@ -9,9 +8,21 @@ import {
 const STATUSES = [
   "new",
   "confirmed",
-  "procured",
-  "dispatched",
+  "allocated",
+  "preparing",
+  "vehicle_assigned",
+  "out_for_delivery",
   "delivered",
+] as const;
+
+const LABELS = [
+  "NEW",
+  "CONF",
+  "ALLOC",
+  "PREP",
+  "VEH",
+  "OUT",
+  "DONE",
 ];
 
 type Props = {
@@ -21,20 +32,16 @@ type Props = {
 export default function OrderProgress({
   status,
 }: Props) {
-
   const currentIndex =
-    STATUSES.indexOf(status);
+    STATUSES.indexOf(
+      status as (typeof STATUSES)[number]
+    );
 
   return (
-
     <View>
-
       <View style={styles.progressRow}>
-
         {STATUSES.map((item, index) => (
-
           <React.Fragment key={item}>
-
             <View
               style={[
                 styles.dot,
@@ -43,8 +50,7 @@ export default function OrderProgress({
               ]}
             />
 
-            {index <
-              STATUSES.length - 1 && (
+            {index < STATUSES.length - 1 && (
               <View
                 style={[
                   styles.line,
@@ -53,75 +59,63 @@ export default function OrderProgress({
                 ]}
               />
             )}
-
           </React.Fragment>
-
         ))}
-
       </View>
 
       <View style={styles.labelRow}>
-
-        {STATUSES.map((item) => (
-
+        {LABELS.map((label) => (
           <Text
-            key={item}
+            key={label}
             style={styles.label}
           >
-            {item.substring(0,3).toUpperCase()}
+            {label}
           </Text>
-
         ))}
-
       </View>
-
     </View>
-
   );
-
 }
 
 const styles = StyleSheet.create({
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
 
-progressRow:{
-flexDirection:"row",
-alignItems:"center",
-marginTop:10,
-},
+  dot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#CBD5E1",
+  },
 
-dot:{
-width:16,
-height:16,
-borderRadius:8,
-backgroundColor:"#CBD5E1",
-},
+  activeDot: {
+    backgroundColor: "#F97316",
+  },
 
-activeDot:{
-backgroundColor:"#F97316",
-},
+  line: {
+    flex: 1,
+    height: 3,
+    backgroundColor: "#CBD5E1",
+  },
 
-line:{
-flex:1,
-height:3,
-backgroundColor:"#CBD5E1",
-},
+  activeLine: {
+    backgroundColor: "#F97316",
+  },
 
-activeLine:{
-backgroundColor:"#F97316",
-},
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
 
-labelRow:{
-flexDirection:"row",
-justifyContent:"space-between",
-marginTop:10,
-},
-
-label:{
-flex:1,
-textAlign:"center",
-fontSize:11,
-color:"#64748B",
-fontWeight:"600",
-},
-
+  label: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 10,
+    color: "#64748B",
+    fontWeight: "600",
+  },
 });

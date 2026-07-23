@@ -3,7 +3,6 @@ import { DashboardState } from "./dashboard";
 export function resolveDashboardState(
   dashboard: any
 ): DashboardState {
-
   const hour = new Date().getHours();
 
   const delivery = dashboard?.currentDelivery;
@@ -12,11 +11,12 @@ export function resolveDashboardState(
     dashboard?.account?.balanceDue ?? 0
   );
 
+  // -------------------------------------
   // Active delivery lifecycle
+  // -------------------------------------
+
   if (delivery) {
-
     switch (delivery.status) {
-
       case "new":
       case "confirmed":
         return DashboardState.ORDER_CONFIRMED;
@@ -34,8 +34,6 @@ export function resolveDashboardState(
         return DashboardState.OUT_FOR_DELIVERY;
 
       case "delivered":
-      case "completed":
-
         // Delivery completed but payment still pending
         if (outstanding > 0) {
           return DashboardState.PAYMENT_PENDING;
@@ -43,12 +41,13 @@ export function resolveDashboardState(
 
         // Payment completed, retailer can place tomorrow's order
         return DashboardState.READY_FOR_TOMORROW_ORDER;
-
     }
-
   }
 
-  // Future scheduled orders (Phase 2)
+  // -------------------------------------
+  // Future scheduled orders
+  // -------------------------------------
+
   if (dashboard?.futureOrder?.confirmationPending) {
     return DashboardState.SCHEDULE_CONFIRMATION_PENDING;
   }
@@ -58,37 +57,24 @@ export function resolveDashboardState(
   }
 
   // -------------------------------------
-// Repeat Tomorrow Order
-// -------------------------------------
+  // Repeat Tomorrow Order
+  // -------------------------------------
 
-if (dashboard?.repeatOrder?.available) {
-  return DashboardState.READY_FOR_TOMORROW_ORDER;
-}
+  if (dashboard?.repeatOrder?.available) {
+    return DashboardState.READY_FOR_TOMORROW_ORDER;
+  }
 
-// -------------------------------------
-// Future scheduled orders
-// -------------------------------------
+  // -------------------------------------
+  // Booking cutoff crossed but no order
+  // -------------------------------------
 
-if (dashboard?.futureOrder?.confirmationPending) {
-  return DashboardState.SCHEDULE_CONFIRMATION_PENDING;
-}
+  if (hour >= 11 && hour < 18) {
+    return DashboardState.AFTER_CUTOFF;
+  }
 
-if (dashboard?.futureOrder?.confirmed) {
-  return DashboardState.FUTURE_ORDER_CONFIRMED;
-}
+  // -------------------------------------
+  // Default
+  // -------------------------------------
 
-// -------------------------------------
-// Booking cutoff crossed but no order
-// -------------------------------------
-
-if (hour >= 11 && hour < 18) {
-  return DashboardState.AFTER_CUTOFF;
-}
-
-// -------------------------------------
-// Default
-// -------------------------------------
-
-return DashboardState.NO_ORDER;
-
+  return DashboardState.NO_ORDER;
 }

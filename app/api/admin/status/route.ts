@@ -8,159 +8,185 @@ import {
   createInvoice,
   generateInvoiceNumber,
   invoiceExists,
-  ledgerDebitExists
+  ledgerDebitExists,
 } from "@/lib/storage";
 import type {
   OrderStatus,
-  PartnerStatus
+  PartnerStatus,
 } from "@/lib/types";
 
-const collections = ["orders", "retailers", "farmPartners"] as const;
+const collections = [
+  "orders",
+  "retailers",
+  "farmPartners",
+] as const;
+
 const statuses = [
   "new",
   "confirmed",
-  "procured",
-  "dispatched",
+  "allocated",
+  "preparing",
+  "vehicle_assigned",
+  "out_for_delivery",
   "delivered",
-  "completed",
   "cancelled",
   "approved",
   "blocked",
-  "rejected"
+  "rejected",
 ];
 
 export async function POST(request: Request) {
   if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(
+      { message: "Unauthorized." },
+      { status: 401 }
+    );
   }
 
-  const formData: any =
-  await request.formData();
-  const collection = String(formData.get("collection") || "") as (typeof collections)[number];
+  const formData: any = await request.formData();
+
+  const collection = String(
+    formData.get("collection") || ""
+  ) as (typeof collections)[number];
+
   const id = String(formData.get("id") || "");
-  const status = String(
-  formData.get("status") || ""
-) as
-  | OrderStatus
-  | PartnerStatus;
 
-  if (!collections.includes(collection) || !id || !statuses.includes(
-  status as any
-)) {
-    return NextResponse.json({ message: "Invalid status update." }, { status: 400 });
+  const status = String(
+    formData.get("status") || ""
+  ) as OrderStatus | PartnerStatus;
+
+  if (
+    !collections.includes(collection) ||
+    !id ||
+    !statuses.includes(status as any)
+  ) {
+    return NextResponse.json(
+      { message: "Invalid status update." },
+      { status: 400 }
+    );
   }
 
-  const ok = await updateRecordStatus(collection, id, status);
-  if (ok && collection === "orders") {
-  console.log(
-    "History Insert:",
+  const ok = await updateRecordStatus(
+    collection,
     id,
     status
   );
 
-  await addOrderStatusHistory(
-    id,
-    status,
-    "Status updated by admin"
-  );
+  if (!ok) {
+    return NextResponse.json(
+      { message: "Record not found." },
+      { status: 404 }
+    );
+  }
 
-  console.log(
-    "History Insert Complete"
-  );
-}
+  // -----------------------------------------
+  // Order Status History
+  // -----------------------------------------
+
+  if (collection === "orders") {
+    await addOrderStatusHistory(
+      id,
+      status,
+      "Status updated by admin"
+    );
+  }
+
+  // -----------------------------------------
+  // Auto Invoice + Ledger on Delivery
+  // -----------------------------------------
+
   if (
-  ok &&
-  collection === "orders" &&
-  status === "completed"
-) {
-  const db = await readDb();
+    collection === "orders" &&
+    status === "delivered"
+  ) {
+    const db = await readDb();
 
-  const order = db.orders.find(
-    (o: any) => o.id === id
-  );
-
-  const retailer =
-    db.retailers.find(
-      (r: any) =>
-        r.mobile ===
-        order?.mobile
+    const order = db.orders.find(
+      (o: any) => o.id === id
     );
 
-    console.log("ORDER", order);
-    console.log("RETAILER", retailer);
-    console.log("FINAL AMOUNT", order?.finalAmount);
+    const retailer = db.retailers.find(
+      (r: any) => r.mobile === order?.mobile
+    );
 
-  if (
-    order &&
-    retailer &&
-    order.finalAmount
-  )
-  
-     
-  {
-    console.log("ENTERED INVOICE BLOCK");
-    try {
-  await createInvoice({
-    invoiceNumber:
-      generateInvoiceNumber(),
+    if (
+      order &&
+      retailer &&
+      Number(order.finalAmount || 0) > 0
+    ) {
+      // Invoice
 
-    orderId: order.id,
+      const hasInvoice =
+        await invoiceExists(order.id);
 
-    retailerId: retailer.id,
+      if (!hasInvoice) {
+        try {
+          await createInvoice({
+            invoiceNumber:
+              generateInvoiceNumber(),
 
-    retailerName:
-      retailer.shopName,
+            orderId: order.id,
 
-    orderNumber:
-      order.orderNumber || order.id,
+            retailerId: retailer.id,
 
-    actualWeight:
-      Number(order.actualWeight || 0),
+            retailerName:
+              retailer.shopName,
 
-    ratePerKg:
-      Number(order.ratePerKg || 0),
+            orderNumber:
+              order.orderNumber ||
+              order.id,
 
-    amount:
-      Number(order.finalAmount || 0),
+            actualWeight: Number(
+              order.actualWeight || 0
+            ),
 
-    remarks:
-      "Auto generated on completion"
+            ratePerKg: Number(
+              order.ratePerKg || 0
+            ),
+
+            amount: Number(
+              order.finalAmount || 0
+            ),
+
+            remarks:
+              "Auto generated on delivery",
+          });
+        } catch (error) {
+          console.error(
+            "INVOICE ERROR",
+            error
+          );
+        }
+      }
+
+      // Ledger
+
+      const hasDebit =
+        await ledgerDebitExists(order.id);
+
+      if (!hasDebit) {
+        try {
+          await addLedgerEntry(
+            retailer.id,
+            order.id,
+            Number(order.finalAmount),
+            0,
+            `Order ${
+              order.orderNumber ||
+              order.id
+            }`
+          );
+        } catch (error) {
+          console.error(
+            "LEDGER ERROR",
+            error
+          );
+        }
+      }
+    }
+  }
+
+  return NextResponse.json({
+    message: "Status updated.",
   });
-
-  console.log("INVOICE CREATED");
-} catch (error) {
-  console.error(
-    "INVOICE ERROR",
-    error
-  );
-}
-    try {
-  await addLedgerEntry(
-    retailer.id,
-    order.id,
-    Number(order.finalAmount),
-    0,
-    `Order ${
-      order.orderNumber ||
-      order.id
-    }`
-  );
-
-  console.log("LEDGER CREATED");
-} catch (error) {
-  console.error(
-    "LEDGER ERROR",
-    error
-  );
-};
-  }
-}
-  if (!ok) {
-    return NextResponse.json({ message: "Record not found." }, { status: 404 });
-    
-  }
-
-  
-
-  return NextResponse.json({ message: "Status updated." });
 }

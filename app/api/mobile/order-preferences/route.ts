@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { supabase } from "@/lib/supabase";
 
 export async function GET(
   request: NextRequest
 ) {
-
   try {
-
     const mobile =
       request.nextUrl.searchParams.get(
         "mobile"
       );
 
     if (!mobile) {
-
       return NextResponse.json(
         {
           success: false,
@@ -24,7 +20,6 @@ export async function GET(
           status: 400,
         }
       );
-
     }
 
     // -------------------------------------------------
@@ -35,20 +30,15 @@ export async function GET(
       data: retailer,
       error: retailerError,
     } = await supabase
-
       .from("retailers")
-
       .select("*")
-
       .eq("mobile", mobile)
-
       .single();
 
     if (
       retailerError ||
       !retailer
     ) {
-
       return NextResponse.json(
         {
           success: false,
@@ -58,7 +48,6 @@ export async function GET(
           status: 404,
         }
       );
-
     }
 
     // -------------------------------------------------
@@ -68,47 +57,34 @@ export async function GET(
     const {
       data: preferences,
     } = await supabase
-
       .from(
         "retailer_order_preferences"
       )
-
       .select("*")
-
       .eq(
         "retailer_id",
         retailer.id
       )
-
       .maybeSingle();
-          // -------------------------------------------------
+
+    // -------------------------------------------------
     // Latest Delivered Order
     // -------------------------------------------------
 
     const {
       data: lastDeliveredOrder,
     } = await supabase
-
       .from("orders")
-
       .select("*")
-
       .eq("mobile", mobile)
-
-      .in("status", [
-        "delivered",
-        "completed",
-      ])
-
+      .eq("status", "delivered")
       .order(
         "delivered_at",
         {
           ascending: false,
         }
       )
-
       .limit(1)
-
       .maybeSingle();
 
     // -------------------------------------------------
@@ -118,13 +94,9 @@ export async function GET(
     const {
       data: activeOrder,
     } = await supabase
-
       .from("orders")
-
       .select("*")
-
       .eq("mobile", mobile)
-
       .in("status", [
         "new",
         "confirmed",
@@ -133,16 +105,13 @@ export async function GET(
         "vehicle_assigned",
         "out_for_delivery",
       ])
-
       .order(
         "created_at",
         {
           ascending: false,
         }
       )
-
       .limit(1)
-
       .maybeSingle();
 
     const repeatAvailable =
@@ -150,11 +119,9 @@ export async function GET(
       !activeOrder;
 
     return NextResponse.json({
-
       success: true,
 
       retailer: {
-
         id: retailer.id,
 
         shopName:
@@ -162,15 +129,12 @@ export async function GET(
 
         ownerName:
           retailer.owner_name,
-
       },
 
-      preferences:
-        preferences,
+      preferences,
 
       repeatOrder: repeatAvailable
         ? {
-
             available: true,
 
             orderId:
@@ -199,36 +163,23 @@ export async function GET(
             estimatedAmount:
               lastDeliveredOrder.final_amount ??
               lastDeliveredOrder.estimated_amount,
-
           }
         : {
-
             available: false,
-
           },
-
     });
-
   } catch (error) {
-
     console.error(error);
 
     return NextResponse.json(
       {
-
         success: false,
-
         message:
           "Internal Server Error.",
-
       },
       {
-
         status: 500,
-
       }
     );
-
   }
-
 }

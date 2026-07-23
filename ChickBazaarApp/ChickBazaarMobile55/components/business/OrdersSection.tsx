@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   StyleSheet,
   Text,
@@ -12,33 +11,32 @@ type Props = {
   onOrderPress: (id: string) => void;
 };
 
+function formatStatus(status?: string) {
+  if (!status) return "NEW";
+
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function OrdersSection({
   orders,
   onOrderPress,
 }: Props) {
-
   return (
-
     <View style={styles.container}>
-
       <Text style={styles.heading}>
         Recent Orders
       </Text>
 
       {orders.length === 0 ? (
-
         <View style={styles.emptyCard}>
-
           <Text style={styles.emptyText}>
             No recent orders found.
           </Text>
-
         </View>
-
       ) : (
-
         orders.slice(0, 5).map((order) => (
-
           <TouchableOpacity
             key={order.id}
             style={styles.card}
@@ -47,11 +45,8 @@ export default function OrdersSection({
               onOrderPress(order.id)
             }
           >
-
             <View style={styles.topRow}>
-
               <View>
-
                 <Text style={styles.orderNo}>
                   {order.order_number ??
                     order.orderNumber}
@@ -60,43 +55,32 @@ export default function OrdersSection({
                 <Text style={styles.date}>
                   {new Date(
                     order.created_at ??
-                    order.createdAt
+                      order.createdAt
                   ).toLocaleDateString()}
                 </Text>
-
               </View>
 
               <View style={styles.statusBadge}>
-
                 <Text style={styles.statusText}>
-                  {String(order.status)
-                    .replace("_"," ")
-                    .toUpperCase()}
+                  {formatStatus(order.status)}
                 </Text>
-
               </View>
-
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.bottomRow}>
-
               <View>
-
                 <Text style={styles.label}>
                   Quantity
                 </Text>
 
                 <Text style={styles.value}>
-                  {order.requestedWeight ??
-                    0} kg
+                  {order.requestedWeight ?? 0} kg
                 </Text>
-
               </View>
 
               <View>
-
                 <Text style={styles.label}>
                   Amount
                 </Text>
@@ -105,35 +89,26 @@ export default function OrdersSection({
                   ₹
                   {Number(
                     order.final_amount ??
-                    order.finalAmount ??
-                    order.estimated_amount ??
-                    order.estimatedAmount ??
-                    0
+                      order.finalAmount ??
+                      order.estimated_amount ??
+                      order.estimatedAmount ??
+                      0
                   ).toLocaleString()}
                 </Text>
-
               </View>
-
             </View>
 
             <Text style={styles.view}>
               View Details →
             </Text>
-
           </TouchableOpacity>
-
         ))
-
       )}
-
     </View>
-
   );
-
 }
 
 const styles = StyleSheet.create({
-
   container: {
     marginBottom: 28,
   },
@@ -147,24 +122,16 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#FFFFFF",
-
     borderRadius: 26,
-
     padding: 20,
-
     marginBottom: 16,
-
     shadowColor: "#000",
-
     shadowOpacity: 0.07,
-
     shadowRadius: 14,
-
     shadowOffset: {
       width: 0,
       height: 8,
     },
-
     elevation: 5,
   },
 
@@ -189,9 +156,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-
     borderRadius: 18,
-
     backgroundColor: "#FFF4E8",
   },
 
@@ -240,24 +205,16 @@ const styles = StyleSheet.create({
 
   emptyCard: {
     backgroundColor: "#FFFFFF",
-
     borderRadius: 26,
-
     paddingVertical: 42,
-
     alignItems: "center",
-
     shadowColor: "#000",
-
     shadowOpacity: 0.05,
-
     shadowRadius: 12,
-
     shadowOffset: {
       width: 0,
       height: 6,
     },
-
     elevation: 3,
   },
 
@@ -265,5 +222,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#94A3B8",
   },
-
 });

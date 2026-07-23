@@ -235,29 +235,28 @@ export default function OrderDetailsScreen({
 
                 {showDeliveryProgress && (
           <DeliveryStatusCard
-            status={status}
-            eta="Calculating..."
-          />
+  status={status}
+/>
         )}
 
         {showTimeline && (
           <OrderTimelineCard
-            status={status}
-          />
+  status={status}
+/>
         )}
 
         <PaymentSummaryCard
           ratePerKg={order.ratePerKg}
           quantity={order.requestedWeight}
           estimatedAmount={order.estimatedAmount}
-          paidAmount={order.paidAmount ?? 0}
+          paidAmount={order.paymentAmount ?? 0}
         />
 
         {showDriver && (
           <DeliveryPartnerCard
-            driverName={order.assignedDriver?.name}
-            driverPhone={order.assignedDriver?.phone}
-            vehicleNumber={order.assignedVehicle?.vehicleNumber}
+            driverName={order.assignedDriver}
+driverPhone=""
+            vehicleNumber={order.assignedVehicle}
           />
         )}
 
@@ -266,8 +265,8 @@ export default function OrderDetailsScreen({
             status={status}
             driverName={order.assignedDriver?.name}
             vehicleNumber={order.assignedVehicle?.vehicleNumber}
-            latitude={order.driverLatitude}
-            longitude={order.driverLongitude}
+            latitude={order.latitude}
+longitude={order.longitude}
           />
         )}
 
@@ -282,7 +281,7 @@ export default function OrderDetailsScreen({
             paymentStatus={order.paymentStatus}
             estimatedAmount={order.estimatedAmount}
             finalAmount={order.finalAmount}
-            paidAmount={order.totalPaid}
+            paidAmount={order.paymentAmount ?? 0}
             actualWeight={order.actualWeight}
           />
         )}
