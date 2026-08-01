@@ -5,33 +5,20 @@ import {
 } from "@react-navigation/native-stack";
 
 import MyOrdersScreen from "../screens/MyOrdersScreen";
-import OrderDetailsScreen from "../screens/OrderDetailsScreen";
 
-const Stack =
-  createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function OrdersStack() {
-
   return (
-
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
       }}
     >
-
       <Stack.Screen
         name="MyOrders"
         component={MyOrdersScreen}
       />
-
-      <Stack.Screen
-        name="OrderDetails"
-        component={OrderDetailsScreen}
-      />
-
     </Stack.Navigator>
-
   );
-
 }

@@ -1,10 +1,12 @@
 import React from "react";
 
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
+  View,
 } from "react-native";
+
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import Card from "../ui/Card";
 
@@ -22,41 +24,90 @@ export default function TransactionCard({
   type,
 }: Props) {
 
+  const isCredit =
+    type === "credit";
+
   return (
 
     <Card>
 
-      <View style={styles.row}>
+      <View style={styles.container}>
 
-        <View>
+        <View style={styles.leftSection}>
 
-          <Text style={styles.title}>
-            {title}
-          </Text>
+          <View
+            style={[
+              styles.iconContainer,
+              {
+                backgroundColor: isCredit
+                  ? "#ECFDF5"
+                  : "#FEF2F2",
+              },
+            ]}
+          >
 
-          <Text style={styles.date}>
-            {date}
-          </Text>
+            <MaterialCommunityIcons
+              name={
+                isCredit
+                  ? "arrow-down-bold-circle"
+                  : "arrow-up-bold-circle"
+              }
+              size={24}
+              color={
+                isCredit
+                  ? "#16A34A"
+                  : "#EF4444"
+              }
+            />
+
+          </View>
+
+          <View style={styles.textContainer}>
+
+            <Text style={styles.title}>
+              {title}
+            </Text>
+
+            <Text style={styles.date}>
+              {date}
+            </Text>
+
+          </View>
 
         </View>
 
-        <Text
-          style={[
-            styles.amount,
-            {
-              color:
-                type === "credit"
+        <View style={styles.rightSection}>
+
+          <Text
+            style={[
+              styles.amount,
+              {
+                color: isCredit
                   ? "#16A34A"
                   : "#EF4444",
-            },
-          ]}
-        >
-          {type === "credit"
-            ? "+"
-            : "-"}
-          ₹
-          {amount.toLocaleString()}
-        </Text>
+              },
+            ]}
+          >
+            {isCredit ? "+" : "-"}₹
+            {amount.toLocaleString()}
+          </Text>
+
+          <Text
+            style={[
+              styles.status,
+              {
+                color: isCredit
+                  ? "#16A34A"
+                  : "#EF4444",
+              },
+            ]}
+          >
+            {isCredit
+              ? "Received"
+              : "Paid"}
+          </Text>
+
+        </View>
 
       </View>
 
@@ -68,25 +119,56 @@ export default function TransactionCard({
 
 const styles = StyleSheet.create({
 
-row:{
-flexDirection:"row",
-justifyContent:"space-between",
-alignItems:"center",
-},
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 
-title:{
-fontWeight:"700",
-fontSize:16,
-},
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
 
-date:{
-marginTop:6,
-color:"#64748B",
-},
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
-amount:{
-fontWeight:"700",
-fontSize:20,
-},
+  textContainer: {
+    marginLeft: 14,
+    flex: 1,
+  },
+
+  title: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+
+  date: {
+    marginTop: 5,
+    fontSize: 13,
+    color: "#64748B",
+  },
+
+  rightSection: {
+    alignItems: "flex-end",
+  },
+
+  amount: {
+    fontSize: 20,
+    fontWeight: "800",
+  },
+
+  status: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "600",
+  },
 
 });

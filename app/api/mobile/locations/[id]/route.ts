@@ -12,81 +12,216 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  try {
 
-  const location = await getLocationById(id);
+    const { id } = await params;
 
-  if (!location) {
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Location ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const location =
+      await getLocationById(id);
+
+    if (!location) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Location not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    return NextResponse.json(location);
+
+  } catch (error) {
+
+    console.error(
+      "[LOCATION][GET]",
+      error
+    );
+
     return NextResponse.json(
-      { message: "Location not found." },
-      { status: 404 }
+      {
+        success: false,
+        message:
+          "Internal Server Error.",
+      },
+      {
+        status: 500,
+      }
     );
   }
-
-  return NextResponse.json(location);
 }
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  try {
 
-  const body = await request.json();
+    const { id } = await params;
 
-  if (
-    body.latitude !== undefined &&
-    body.longitude !== undefined &&
-    !validateCoordinates(
-      Number(body.latitude),
-      Number(body.longitude)
-    )
-  ) {
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Location ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const body =
+      await request.json();
+
+    if (
+      body.latitude !== undefined &&
+      body.longitude !== undefined &&
+      !validateCoordinates(
+        Number(body.latitude),
+        Number(body.longitude)
+      )
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Invalid coordinates.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      body.pincode !== undefined &&
+      !validatePincode(body.pincode)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Invalid pincode.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const updated =
+      await updateLocation(
+        id,
+        body
+      );
+
+    if (!updated) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Unable to update location.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    return NextResponse.json(updated);
+
+  } catch (error) {
+
+    console.error(
+      "[LOCATION][PATCH]",
+      error
+    );
+
     return NextResponse.json(
-      { message: "Invalid coordinates." },
-      { status: 400 }
+      {
+        success: false,
+        message:
+          "Internal Server Error.",
+      },
+      {
+        status: 500,
+      }
     );
   }
-
-  if (!validatePincode(body.pincode)) {
-    return NextResponse.json(
-      { message: "Invalid pincode." },
-      { status: 400 }
-    );
-  }
-
-  const updated = await updateLocation(
-    id,
-    body
-  );
-
-  if (!updated) {
-    return NextResponse.json(
-      { message: "Unable to update location." },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json(updated);
 }
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  try {
 
-  const success =
-    await deleteLocation(id);
+    const { id } = await params;
 
-  if (!success) {
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Location ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const success =
+      await deleteLocation(id);
+
+    if (!success) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Unable to delete location.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[LOCATION][DELETE]",
+      error
+    );
+
     return NextResponse.json(
-      { message: "Unable to delete location." },
-      { status: 500 }
+      {
+        success: false,
+        message:
+          "Internal Server Error.",
+      },
+      {
+        status: 500,
+      }
     );
   }
-
-  return NextResponse.json({
-    success: true,
-  });
 }

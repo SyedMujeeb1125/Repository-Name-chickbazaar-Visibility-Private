@@ -1,46 +1,127 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 
 import { supabase } from "@/lib/supabase";
-import { createId } from "@/lib/storage";
 
 export async function POST(
   request: Request
 ) {
-  const body = await request.json();
+  try {
 
-  const { error } = await supabase
-    .from("retailer_locations")
-    .insert({
-      id: createId("shop"),
+    const body =
+      await request.json();
 
-      retailer_mobile:
-        body.mobile,
+    const {
+      mobile,
+      shopName,
+      ownerName,
+      address,
+      latitude,
+      longitude,
+    } = body;
 
-      shop_name:
-        body.shopName,
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Mobile number is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-      contact_person:
-        body.ownerName,
+    if (!shopName) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Shop name is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-      mobile:
-        body.mobile,
+    if (!address) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Address is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-      address:
-        body.address,
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("retailer_locations")
+      .insert({
+        id:
+          crypto.randomUUID(),
 
-      latitude:
-        body.latitude,
+        retailer_mobile:
+          mobile,
 
-      longitude:
-        body.longitude,
+        shop_name:
+          shopName,
 
-      created_at:
-        new Date().toISOString(),
+        contact_person:
+          ownerName ?? null,
+
+        mobile,
+
+        address,
+
+        latitude:
+          latitude ?? null,
+
+        longitude:
+          longitude ?? null,
+
+        created_at:
+          new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+
+      console.error(
+        "[SHOP][CREATE]",
+        error
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Unable to add shop.",
+        },
+        {
+          status: 500,
+        }
+      );
+
+    }
+
+    return NextResponse.json({
+      success: true,
+      shop: data,
     });
 
-  if (error) {
+  } catch (error) {
+
     console.error(
-      "Add shop error:",
+      "[SHOP][CREATE]",
       error
     );
 
@@ -48,15 +129,11 @@ export async function POST(
       {
         success: false,
         message:
-          "Unable to add shop.",
+          "Internal Server Error.",
       },
       {
         status: 500,
       }
     );
   }
-
-  return NextResponse.json({
-    success: true,
-  });
 }

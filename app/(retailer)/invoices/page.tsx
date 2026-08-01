@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
+
 import { getLoggedInRetailerMobile } from "@/lib/retailer";
-import { getInvoices, readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default async function RetailerInvoicesPage() {
   const mobile =
@@ -10,24 +11,63 @@ export default async function RetailerInvoicesPage() {
     redirect("/login");
   }
 
-  const db = await readDb();
+  // ---------------------------------
+  // Retailer
+  // ---------------------------------
 
-  const retailer =
-    db.retailers.find(
-      (r: any) =>
-        r.mobile === mobile
+  const {
+    data: retailer,
+    error: retailerError,
+  } = await supabase
+    .from("retailers")
+    .select("id")
+    .eq("mobile", mobile)
+    .maybeSingle();
+
+  if (retailerError) {
+    console.error(
+      "[INVOICES][RETAILER]",
+      retailerError
     );
+  }
 
-  const invoices =
-    await getInvoices();
+  if (!retailer) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <div className="rounded-lg border bg-white p-5">
+          Retailer not found.
+        </div>
+      </div>
+    );
+  }
 
+  // ---------------------------------
+  // Invoices
+  // ---------------------------------
+
+  const {
+    data: invoices,
+    error: invoicesError,
+  } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq(
+      "retailer_id",
+      retailer.id
+    )
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (invoicesError) {
+    console.error(
+      "[INVOICES]",
+      invoicesError
+    );
+  }
 
   const myInvoices =
-  invoices.filter(
-    (invoice: any) =>
-      invoice.retailer_id ===
-      retailer?.id
-  );
+    invoices ?? [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -69,9 +109,7 @@ export default async function RetailerInvoicesPage() {
                   <strong>
                     Amount:
                   </strong>{" "}
-                  INR {
-                    invoice.amount
-                  }
+                  INR {invoice.amount}
                 </p>
 
                 <a

@@ -1,13 +1,11 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+
+const ADVANCE_AMOUNT = 500;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    console.log("================================");
-    console.log("MOBILE PAYMENT CREATE");
-    console.log(body);
-    console.log("================================");
 
     const {
       retailerId,
@@ -15,7 +13,7 @@ export async function POST(request: NextRequest) {
       orderData,
     } = body;
 
-    if (!retailerId) {
+    if (!retailerId || typeof retailerId !== "string") {
       return NextResponse.json(
         {
           success: false,
@@ -25,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!amount || amount <= 0) {
+    if (typeof amount !== "number" || amount <= 0) {
       return NextResponse.json(
         {
           success: false,
@@ -35,29 +33,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // During mock mode we only accept the configured advance amount.
+    if (amount !== ADVANCE_AMOUNT) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Advance amount must be ₹${ADVANCE_AMOUNT}.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const paymentReference = `PAYREQ_${crypto.randomUUID()}`;
+
+    console.info(
+      `[PAYMENT] Payment request created: ${paymentReference}`
+    );
+
     return NextResponse.json({
       success: true,
-      paymentReference:
-        "PAYREQ_" + Date.now(),
+      paymentReference,
       retailerId,
       amount,
       orderData,
-      message: "Payment request created.",
+      gateway: "mock",
+      status: "created",
+      message: "Payment request created successfully.",
     });
-
-  } catch (error: any) {
-
-    console.error(error);
+  } catch (error) {
+    console.error("[PAYMENT][CREATE]", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          error?.message ??
-          "Unable to create payment.",
+        message: "Unable to create payment request.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
-
   }
 }

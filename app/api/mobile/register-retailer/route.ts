@@ -1,17 +1,100 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
-
 import { supabase } from "@/lib/supabase";
-import { createId } from "@/lib/storage";
 
-export async function POST(
-  request: Request
-) {
-  const body = await request.json();
-
-  const retailerId = createId("retailer");
-
+export async function POST(request: Request) {
   try {
-    // Create retailer
+    const body = await request.json();
+
+    const {
+      shopName,
+      ownerName,
+      mobile,
+      email,
+      address,
+      latitude,
+      longitude,
+    } = body;
+
+    // -------------------------
+    // Validation
+    // -------------------------
+
+    if (!shopName?.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Shop name is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!ownerName?.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Owner name is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!mobile?.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Mobile number is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!address?.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Address is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // -------------------------
+    // Duplicate Mobile Check
+    // -------------------------
+
+    const { data: existingRetailer } = await supabase
+      .from("retailers")
+      .select("id")
+      .eq("mobile", mobile)
+      .maybeSingle();
+
+    if (existingRetailer) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Retailer already registered.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    const retailerId = crypto.randomUUID();
+
+    // -------------------------
+    // Create Retailer
+    // -------------------------
 
     const { error: retailerError } =
       await supabase
@@ -19,109 +102,92 @@ export async function POST(
         .insert({
           id: retailerId,
 
-          created_at:
-            new Date().toISOString(),
+          created_at: new Date().toISOString(),
 
           status: "new",
 
           credit_category: "new",
 
-          shop_name:
-            body.shopName,
+          shop_name: shopName,
 
-          owner_name:
-            body.ownerName,
+          owner_name: ownerName,
 
-          mobile:
-            body.mobile,
+          mobile,
 
-          email:
-            body.email || "",
+          email: email ?? "",
 
-          address:
-            body.address,
+          address,
 
           gst: "",
 
-          latitude:
-            body.latitude,
+          latitude: latitude ?? null,
 
-          longitude:
-            body.longitude,
+          longitude: longitude ?? null,
         });
 
     if (retailerError) {
       throw retailerError;
     }
 
-    // Check if primary shop exists
+    // -------------------------
+    // Create Primary Shop
+    // -------------------------
 
     const {
       data: existingShop,
-      error: shopError,
+      error: shopLookupError,
     } = await supabase
       .from("retailer_locations")
       .select("id")
-      .eq(
-        "retailer_mobile",
-        body.mobile
-      )
-      .limit(1)
+      .eq("retailer_mobile", mobile)
       .maybeSingle();
 
-    if (shopError) {
-      throw shopError;
+    if (shopLookupError) {
+      throw shopLookupError;
     }
 
-    // Create primary shop
-
     if (!existingShop) {
-      const {
-        error: locationError,
-      } = await supabase
-        .from(
-          "retailer_locations"
-        )
-        .insert({
-          id: createId("shop"),
+      const { error: locationError } =
+        await supabase
+          .from("retailer_locations")
+          .insert({
+            id: crypto.randomUUID(),
 
-          retailer_mobile:
-            body.mobile,
+            retailer_mobile: mobile,
 
-          shop_name:
-            body.shopName,
+            shop_name: shopName,
 
-          contact_person:
-            body.ownerName,
+            contact_person: ownerName,
 
-          mobile:
-            body.mobile,
+            mobile,
 
-          address:
-            body.address,
+            address,
 
-          latitude:
-            body.latitude,
+            latitude: latitude ?? null,
 
-          longitude:
-            body.longitude,
+            longitude: longitude ?? null,
 
-          created_at:
-            new Date().toISOString(),
-        });
+            created_at: new Date().toISOString(),
+          });
 
       if (locationError) {
         throw locationError;
       }
     }
 
+    console.info(
+      `[RETAILER] Registered ${mobile}`
+    );
+
     return NextResponse.json({
       success: true,
       retailerId,
     });
+
   } catch (error: any) {
+
     console.error(
-      "Retailer registration error:",
+      "[RETAILER_REGISTER]",
       error
     );
 

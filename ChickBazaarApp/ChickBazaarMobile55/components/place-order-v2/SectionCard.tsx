@@ -1,8 +1,8 @@
 import React from "react";
 import {
-    StyleSheet,
-    View,
-    ViewStyle,
+  StyleSheet,
+  View,
+  ViewStyle,
 } from "react-native";
 
 type Props = {
@@ -28,29 +28,29 @@ export default function SectionCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+  backgroundColor: "#FFFFFF",
 
-    borderRadius: 24,
+  borderRadius: 20,
 
-    padding: 20,
+  padding: 16,
 
-    marginBottom: 18,
+  marginBottom: 14,
 
-    borderWidth: 1,
+  borderWidth: 1,
 
-    borderColor: "#EEF2F7",
+  borderColor: "#EEF2F7",
 
-    shadowColor: "#000",
+  shadowColor: "#000",
 
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-
-    shadowOpacity: 0.05,
-
-    shadowRadius: 18,
-
-    elevation: 4,
+  shadowOffset: {
+    width: 0,
+    height: 6,
   },
+
+  shadowOpacity: 0.05,
+
+  shadowRadius: 12,
+
+  elevation: 3,
+},
 });

@@ -3,7 +3,9 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 type Props = {
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  icon: React.ComponentProps<
+    typeof MaterialCommunityIcons
+  >["name"];
   label: string;
   value: string;
 };
@@ -19,22 +21,22 @@ export default function DashboardInfoRow({
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons
             name={icon}
-            size={18}
+            size={17}
             color="#64748B"
           />
         </View>
 
         <Text
-          style={styles.label}
           numberOfLines={1}
+          style={styles.label}
         >
           {label}
         </Text>
       </View>
 
       <Text
-        style={styles.value}
         numberOfLines={1}
+        style={styles.value}
       >
         {value}
       </Text>
@@ -44,7 +46,7 @@ export default function DashboardInfoRow({
 
 const styles = StyleSheet.create({
   container: {
-    height: 48,
+    height: 36,
 
     flexDirection: "row",
 
@@ -60,19 +62,19 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    marginRight: 16,
+    marginRight: 10,
   },
 
   iconContainer: {
-    width: 28,
+    width: 22,
 
     alignItems: "center",
   },
 
   label: {
-    marginLeft: 10,
+    marginLeft: 6,
 
-    fontSize: 14,
+    fontSize: 13,
 
     fontWeight: "500",
 
@@ -80,7 +82,7 @@ const styles = StyleSheet.create({
   },
 
   value: {
-    fontSize: 15,
+    fontSize: 14,
 
     fontWeight: "700",
 
@@ -88,6 +90,6 @@ const styles = StyleSheet.create({
 
     textAlign: "right",
 
-    maxWidth: "45%",
+    maxWidth: "48%",
   },
 });

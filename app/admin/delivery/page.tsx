@@ -1,22 +1,83 @@
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default async function DeliveryPage() {
-  const db = await readDb();
+  // ---------------------------------
+  // Drivers
+  // ---------------------------------
 
-  const deliveryUsers =
-    db.users.filter(
-      (u: any) =>
-        u.role === "delivery"
-    );
+  const {
+    data: deliveryUsers,
+    error: usersError,
+  } = await supabase
+    .from("users")
+    .select(`
+      id,
+      name,
+      role
+    `)
+    .eq("role", "delivery")
+    .order("name");
 
-  const deliveryOrders =
-    db.orders.filter(
-      (o: any) =>
-        o.status ===
-          "dispatched" ||
-        o.status ===
-          "delivered"
+  if (usersError) {
+    console.error(
+      "[DELIVERY][USERS]",
+      usersError
     );
+  }
+
+  // ---------------------------------
+  // Vehicles
+  // ---------------------------------
+
+  const {
+    data: vehicles,
+    error: vehiclesError,
+  } = await supabase
+    .from("vehicles")
+    .select(`
+      id,
+      vehicle_number,
+      zone,
+      assigned_driver
+    `);
+
+  if (vehiclesError) {
+    console.error(
+      "[DELIVERY][VEHICLES]",
+      vehiclesError
+    );
+  }
+
+  // ---------------------------------
+  // Orders
+  // ---------------------------------
+
+  const {
+    data: deliveryOrders,
+    error: ordersError,
+  } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      order_number,
+      shop_name,
+      status,
+      assigned_driver
+    `)
+    .in("status", [
+      "dispatched",
+      "delivered",
+    ])
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (ordersError) {
+    console.error(
+      "[DELIVERY][ORDERS]",
+      ordersError
+    );
+  }
 
   return (
     <div>
@@ -25,82 +86,91 @@ export default async function DeliveryPage() {
       </h1>
 
       <div className="space-y-6">
-        {deliveryUsers.map(
-          (driver: any) => {
-            const assignedVehicle =
-              db.vehicles.find(
-                (v: any) =>
-                  v.assignedDriver ===
-                  driver.name
-              );
 
-            return (
-              <div
-                key={driver.id}
-                className="rounded-xl border bg-white p-6"
-              >
-                <h2 className="text-xl font-bold">
-                  {driver.name}
-                </h2>
+        {(deliveryUsers ?? []).length === 0 ? (
+          <div className="rounded-xl border bg-white p-6 text-center text-slate-500">
+            No delivery staff found.
+          </div>
+        ) : (
+          (deliveryUsers ?? []).map(
+            (driver: any) => {
 
-                <p>
-                  Vehicle:
-                  {" "}
-                  {assignedVehicle
-                    ?.vehicleNumber ||
-                    "Not Assigned"}
-                </p>
+              const assignedVehicle =
+                (vehicles ?? []).find(
+                  (vehicle: any) =>
+                    vehicle.assigned_driver ===
+                    driver.name
+                );
 
-                <p>
-                  Zone:
-                  {" "}
-                  {assignedVehicle
-                    ?.zone ||
-                    "-"}
-                </p>
+              const driverOrders =
+                (deliveryOrders ?? [])
+                  .filter(
+                    (order: any) =>
+                      order.assigned_driver ===
+                      driver.name
+                  )
+                  .slice(0, 10);
 
-                <div className="mt-4">
-                  <h3 className="font-semibold">
-                    Orders
-                  </h3>
+              return (
+                <div
+                  key={driver.id}
+                  className="rounded-xl border bg-white p-6"
+                >
+                  <h2 className="text-xl font-bold">
+                    {driver.name}
+                  </h2>
 
-                  {deliveryOrders
-                    .slice(0, 10)
-                    .map(
-                      (
-                        order: any
-                      ) => (
-                        <div
-                          key={
-                            order.id
-                          }
-                          className="border-b py-2"
-                        >
-                          <p>
-                            {
-                              order.orderNumber
-                            }
-                          </p>
+                  <p>
+                    Vehicle:{" "}
+                    {assignedVehicle?.vehicle_number ??
+                      "Not Assigned"}
+                  </p>
 
-                          <p>
-                            {
-                              order.shopName
-                            }
-                          </p>
+                  <p>
+                    Zone:{" "}
+                    {assignedVehicle?.zone ??
+                      "-"}
+                  </p>
 
-                          <p>
-                            {
-                              order.status
-                            }
-                          </p>
-                        </div>
+                  <div className="mt-4">
+                    <h3 className="font-semibold">
+                      Orders
+                    </h3>
+
+                    {driverOrders.length === 0 ? (
+                      <p className="mt-2 text-slate-500">
+                        No assigned orders.
+                      </p>
+                    ) : (
+                      driverOrders.map(
+                        (order: any) => (
+                          <div
+                            key={order.id}
+                            className="border-b py-2"
+                          >
+                            <p>
+                              {order.order_number}
+                            </p>
+
+                            <p>
+                              {order.shop_name}
+                            </p>
+
+                            <p className="capitalize">
+                              {order.status}
+                            </p>
+                          </div>
+                        )
                       )
                     )}
+
+                  </div>
                 </div>
-              </div>
-            );
-          }
+              );
+            }
+          )
         )}
+
       </div>
     </div>
   );

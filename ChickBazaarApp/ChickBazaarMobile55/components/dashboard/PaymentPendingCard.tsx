@@ -6,18 +6,29 @@ import DashboardInfoRow from "./DashboardInfoRow";
 
 type Props = {
   outstandingAmount?: number;
+
   dueDate?: string;
+
   paymentMethod?: string;
+
   lastOrderNumber?: string;
+
+  orderLabel?: string;
 
   onMakePayment: () => void;
 };
 
 export default function PaymentPendingCard({
-  outstandingAmount,
-  dueDate,
-  paymentMethod,
+  outstandingAmount = 0,
+
+  dueDate = "Pay Today",
+
+  paymentMethod = "UPI / Bank Transfer",
+
   lastOrderNumber,
+
+  orderLabel = "Today's Order",
+
   onMakePayment,
 }: Props) {
   return (
@@ -26,11 +37,11 @@ export default function PaymentPendingCard({
       badgeColor="#DC2626"
       icon="cash-clock"
       iconBackground="#DC2626"
-      title="Payment Pending"
-      subtitle="Please clear your outstanding balance to continue placing new orders."
+      title="Outstanding Payment"
+      subtitle={`Please clear the outstanding amount for your ${orderLabel.toLowerCase()} to continue ordering.`}
       footer={
         <PrimaryButton
-          title="MAKE PAYMENT"
+          title="PAY NOW"
           onPress={onMakePayment}
         />
       }
@@ -38,28 +49,24 @@ export default function PaymentPendingCard({
       <DashboardInfoRow
         icon="currency-inr"
         label="Outstanding Amount"
-        value={
-          outstandingAmount != null
-            ? `₹${outstandingAmount.toLocaleString()}`
-            : "--"
-        }
+        value={`₹${outstandingAmount.toLocaleString()}`}
       />
 
       <DashboardInfoRow
         icon="calendar-outline"
-        label="Due Date"
-        value={dueDate ?? "--"}
+        label="Due"
+        value={dueDate}
       />
 
       <DashboardInfoRow
         icon="credit-card-outline"
         label="Payment Method"
-        value={paymentMethod ?? "UPI / Bank Transfer"}
+        value={paymentMethod}
       />
 
       <DashboardInfoRow
         icon="clipboard-text-outline"
-        label="Last Order"
+        label="Order Number"
         value={lastOrderNumber ?? "--"}
       />
     </DashboardActionCard>

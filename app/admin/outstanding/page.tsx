@@ -1,164 +1,265 @@
-import {
-  readDb,
-  getRetailerLedger
-} from "@/lib/storage";
+export const dynamic = "force-dynamic";
+
+import { supabase } from "@/lib/supabase";
 
 export default async function OutstandingPage() {
-  const db = await readDb();
+  // ---------------------------------
+  // Retailers
+  // ---------------------------------
 
-  const ledger =
-    await getRetailerLedger();
+  const {
+    data: retailers,
+    error: retailersError,
+  } = await supabase
+    .from("retailers")
+    .select(`
+      id,
+      shop_name,
+      mobile
+    `)
+    .order("shop_name");
 
-  const retailers =
-  db.retailers
-    .map((retailer: any) => {
-      const entries =
-        ledger.filter(
-          (l: any) =>
-            l.retailer_id ===
-            retailer.id
-        );
-
-      const debit =
-        entries.reduce(
-          (
-            sum: number,
-            row: any
-          ) =>
-            sum +
-            Number(
-              row.debit || 0
-            ),
-          0
-        );
-
-      const credit =
-        entries.reduce(
-          (
-            sum: number,
-            row: any
-          ) =>
-            sum +
-            Number(
-              row.credit || 0
-            ),
-          0
-        );
-
-      return {
-        retailer,
-        debit,
-        credit,
-        outstanding:
-          debit - credit,
-      };
-    })
-    .sort(
-      (a: any, b: any) =>
-        b.outstanding -
-        a.outstanding
+  if (retailersError) {
+    console.error(
+      "[OUTSTANDING][RETAILERS]",
+      retailersError
     );
-    const totalDebit =
-  retailers.reduce(
-    (sum: number, r: any) =>
-      sum + r.debit,
-    0
-  );
+  }
 
-const totalCredit =
-  retailers.reduce(
-    (sum: number, r: any) =>
-      sum + r.credit,
-    0
-  );
+  // ---------------------------------
+  // Ledger
+  // ---------------------------------
 
-const totalOutstanding =
-  retailers.reduce(
-    (sum: number, r: any) =>
-      sum + r.outstanding,
-    0
-  );
+  const {
+    data: ledger,
+    error: ledgerError,
+  } = await supabase
+    .from("retailer_ledger")
+    .select(`
+      retailer_id,
+      debit,
+      credit
+    `);
+
+  if (ledgerError) {
+    console.error(
+      "[OUTSTANDING][LEDGER]",
+      ledgerError
+    );
+  }
+
+  const report =
+    (retailers ?? [])
+      .map((retailer: any) => {
+
+        const entries =
+          (ledger ?? []).filter(
+            (entry: any) =>
+              entry.retailer_id ===
+              retailer.id
+          );
+
+        const debit =
+          entries.reduce(
+            (
+              total: number,
+              entry: any
+            ) =>
+              total +
+              Number(
+                entry.debit ?? 0
+              ),
+            0
+          );
+
+        const credit =
+          entries.reduce(
+            (
+              total: number,
+              entry: any
+            ) =>
+              total +
+              Number(
+                entry.credit ?? 0
+              ),
+            0
+          );
+
+        return {
+
+          retailer,
+
+          debit,
+
+          credit,
+
+          outstanding:
+            debit - credit,
+
+        };
+
+      })
+      .sort(
+        (
+          a: any,
+          b: any
+        ) =>
+          b.outstanding -
+          a.outstanding
+      );
+
+  const totalDebit =
+    report.reduce(
+      (
+        total: number,
+        row: any
+      ) =>
+        total +
+        row.debit,
+      0
+    );
+
+  const totalCredit =
+    report.reduce(
+      (
+        total: number,
+        row: any
+      ) =>
+        total +
+        row.credit,
+      0
+    );
+
+  const totalOutstanding =
+    report.reduce(
+      (
+        total: number,
+        row: any
+      ) =>
+        total +
+        row.outstanding,
+      0
+    );
 
   return (
     <div>
+
       <h1 className="mb-6 text-3xl font-bold">
         Outstanding Dashboard
       </h1>
+
       <div className="mb-6 grid gap-4 md:grid-cols-4">
 
-  <div className="rounded-lg bg-orange p-5 text-white">
-    <p>Retailers</p>
-    <p className="text-3xl font-bold">
-      {retailers.length}
-    </p>
-  </div>
+        <div className="rounded-lg bg-orange p-5 text-white">
+          <p>Retailers</p>
 
-  <div className="rounded-lg bg-blue-600 p-5 text-white">
-    <p>Total Debit</p>
-    <p className="text-3xl font-bold">
-      ₹{totalDebit}
-    </p>
-  </div>
+          <p className="text-3xl font-bold">
+            {report.length}
+          </p>
+        </div>
 
-  <div className="rounded-lg bg-green-600 p-5 text-white">
-    <p>Total Credit</p>
-    <p className="text-3xl font-bold">
-      ₹{totalCredit}
-    </p>
-  </div>
+        <div className="rounded-lg bg-blue-600 p-5 text-white">
+          <p>Total Debit</p>
 
-  <div className="rounded-lg bg-red-600 p-5 text-white">
-    <p>Total Outstanding</p>
-    <p className="text-3xl font-bold">
-      ₹{totalOutstanding}
-    </p>
-  </div>
+          <p className="text-3xl font-bold">
+            ₹
+            {totalDebit.toLocaleString(
+              "en-IN"
+            )}
+          </p>
+        </div>
 
-</div>
+        <div className="rounded-lg bg-green-600 p-5 text-white">
+          <p>Total Credit</p>
+
+          <p className="text-3xl font-bold">
+            ₹
+            {totalCredit.toLocaleString(
+              "en-IN"
+            )}
+          </p>
+        </div>
+
+        <div className="rounded-lg bg-red-600 p-5 text-white">
+          <p>Total Outstanding</p>
+
+          <p className="text-3xl font-bold">
+            ₹
+            {totalOutstanding.toLocaleString(
+              "en-IN"
+            )}
+          </p>
+        </div>
+
+      </div>
 
       <div className="space-y-4">
-        {retailers.map(
-          ({
-            retailer,
-            debit,
-            credit,
-            outstanding,
-          }: any) => (
-            <div
-  key={retailer.id}
-  className="rounded-lg border bg-white p-5"
->
-  <h3 className="text-lg font-bold">
-    {retailer.shopName || "Unknown Shop"}
-  </h3>
 
-  <p className="text-sm text-slate-500">
-    {retailer.mobile}
-  </p>
+        {report.length === 0 ? (
 
-  <p>
-    Debit: ₹{debit}
-  </p>
+          <div className="rounded-lg border bg-white p-5 text-center text-slate-500">
+            No retailer data found.
+          </div>
 
-  <p>
-    Credit: ₹{credit}
-  </p>
+        ) : (
 
-  <p
-    className={`font-bold ${
-      outstanding > 0
-        ? "text-red-600"
-        : outstanding < 0
-        ? "text-blue-600"
-        : "text-green-600"
-    }`}
-  >
-    Outstanding: ₹{outstanding}
-  </p>
-</div>
+          report.map(
+            ({
+              retailer,
+              debit,
+              credit,
+              outstanding,
+            }: any) => (
+              <div
+                key={retailer.id}
+                className="rounded-lg border bg-white p-5"
+              >
+                <h3 className="text-lg font-bold">
+                  {retailer.shop_name ??
+                    "Unknown Shop"}
+                </h3>
+
+                <p className="text-sm text-slate-500">
+                  {retailer.mobile}
+                </p>
+
+                <p>
+                  Debit: ₹
+                  {debit.toLocaleString(
+                    "en-IN"
+                  )}
+                </p>
+
+                <p>
+                  Credit: ₹
+                  {credit.toLocaleString(
+                    "en-IN"
+                  )}
+                </p>
+
+                <p
+                  className={`font-bold ${
+                    outstanding > 0
+                      ? "text-red-600"
+                      : outstanding < 0
+                      ? "text-blue-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  Outstanding: ₹
+                  {outstanding.toLocaleString(
+                    "en-IN"
+                  )}
+                </p>
+
+              </div>
+            )
           )
+
         )}
+
       </div>
+
     </div>
   );
 }

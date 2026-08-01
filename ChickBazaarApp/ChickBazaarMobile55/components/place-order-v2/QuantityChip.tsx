@@ -1,8 +1,8 @@
 import React from "react";
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 
 type Props = {
@@ -39,12 +39,13 @@ export default function QuantityChip({
 
 const styles = StyleSheet.create({
   chip: {
-    height: 52,
-    minWidth: 86,
+    height: 44,
 
-    paddingHorizontal: 22,
+    minWidth: 72,
 
-    borderRadius: 16,
+    paddingHorizontal: 16,
+
+    borderRadius: 12,
 
     backgroundColor: "#F8FAFC",
 
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 16,
+    fontSize: 14,
 
     fontWeight: "700",
 

@@ -1,18 +1,38 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
-import { getPlanningRuns } from "@/lib/planning/planning-runs";
+import { supabase } from "@/lib/supabase";
 
 export default async function PlanningHistoryPage() {
+  const {
+    data: runs,
+    error,
+  } = await supabase
+    .from("planning_runs")
+    .select(`
+      id,
+      delivery_date,
+      total_orders,
+      birds_required,
+      weight_required,
+      estimated_vehicles,
+      status
+    `)
+    .order("delivery_date", {
+      ascending: false,
+    });
 
-  const runs =
-    await getPlanningRuns();
+  if (error) {
+    console.error(
+      "[PLANNING_HISTORY]",
+      error
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-
       <div className="flex items-center justify-between">
-
         <div>
-
           <h1 className="text-4xl font-extrabold">
             Planning History
           </h1>
@@ -20,26 +40,20 @@ export default async function PlanningHistoryPage() {
           <p className="mt-2 text-slate-500">
             Previously generated operational plans.
           </p>
-
         </div>
 
         <Link
           href="/admin/planning"
-          className="rounded-lg bg-orange px-5 py-3 font-bold text-white"
+          className="rounded-lg bg-orange px-5 py-3 font-bold text-white transition hover:opacity-90"
         >
           Back
         </Link>
-
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border bg-white">
-
         <table className="min-w-full">
-
           <thead className="bg-slate-100">
-
             <tr>
-
               <th className="p-4 text-left">
                 Delivery Date
               </th>
@@ -63,82 +77,86 @@ export default async function PlanningHistoryPage() {
               <th className="p-4 text-left">
                 Status
               </th>
-
             </tr>
-
           </thead>
 
           <tbody>
-
-            {runs.length === 0 ? (
-
+            {(runs ?? []).length === 0 ? (
               <tr>
-
                 <td
                   colSpan={6}
                   className="p-8 text-center text-slate-500"
                 >
                   No planning runs found.
                 </td>
-
               </tr>
-
             ) : (
+              (runs ?? []).map(
+                (run: any) => (
+                  <tr
+                    key={run.id}
+                    className="border-t hover:bg-slate-50"
+                  >
+                    <td className="p-4">
+                      <Link
+                        href={`/admin/planning/history/${run.id}`}
+                        className="font-semibold text-blue-600 hover:underline"
+                      >
+                        {run.delivery_date
+                          ? new Date(
+                              run.delivery_date
+                            ).toLocaleDateString(
+                              "en-IN"
+                            )
+                          : "-"}
+                      </Link>
+                    </td>
 
-              runs.map((run: any) => (
+                    <td className="p-4">
+                      {Number(
+                        run.total_orders ?? 0
+                      ).toLocaleString(
+                        "en-IN"
+                      )}
+                    </td>
 
-                <tr
-                  key={run.id}
-                  className="border-t"
-                >
+                    <td className="p-4">
+                      {Number(
+                        run.birds_required ?? 0
+                      ).toLocaleString(
+                        "en-IN"
+                      )}
+                    </td>
 
-                  <td className="p-4">
+                    <td className="p-4">
+                      {Number(
+                        run.weight_required ?? 0
+                      ).toLocaleString(
+                        "en-IN"
+                      )}
+                    </td>
 
-  <Link
-    href={`/admin/planning/history/${run.id}`}
-    className="font-semibold text-blue-600 hover:underline"
-  >
-    {run.delivery_date}
-  </Link>
+                    <td className="p-4">
+                      {Number(
+                        run.estimated_vehicles ??
+                          0
+                      ).toLocaleString(
+                        "en-IN"
+                      )}
+                    </td>
 
-</td>
-
-                  <td className="p-4">
-                    {run.total_orders}
-                  </td>
-
-                  <td className="p-4">
-                    {run.birds_required}
-                  </td>
-
-                  <td className="p-4">
-                    {run.weight_required}
-                  </td>
-
-                  <td className="p-4">
-                    {run.estimated_vehicles}
-                  </td>
-
-                  <td className="p-4">
-
-                    <span className="rounded bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
-                      {run.status}
-                    </span>
-
-                  </td>
-
-                </tr>
-
-              ))
-
+                    <td className="p-4">
+                      <span className="rounded bg-blue-100 px-3 py-1 text-sm font-semibold capitalize text-blue-700">
+                        {run.status}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              )
             )}
-
           </tbody>
-
         </table>
-
       </div>
-
     </div>
   );
 }

@@ -3,7 +3,26 @@ import { NextResponse } from "next/server";
 import { adminCookieName } from "@/lib/auth";
 
 export async function POST() {
-  const cookieStore = await cookies();
-  cookieStore.delete(adminCookieName);
-  return NextResponse.json({ message: "Logged out." });
+  try {
+    const cookieStore = await cookies();
+
+    cookieStore.delete(adminCookieName);
+
+    return NextResponse.json({
+      success: true,
+      message: "Logged out successfully.",
+    });
+  } catch (error) {
+    console.error("[ADMIN_LOGOUT]", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

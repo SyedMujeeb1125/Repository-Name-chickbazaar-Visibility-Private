@@ -44,30 +44,7 @@ export default function ReviewOrderScreen({
           subtitle="Please verify everything before placing your order."
         />
 
-        {/* Order Status */}
-
-        <CBCard>
-          <View style={styles.statusRow}>
-            <MaterialCommunityIcons
-              name="clipboard-check-outline"
-              size={28}
-              color="#F97316"
-            />
-
-            <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>
-                Almost Done!
-              </Text>
-
-              <Text style={styles.statusSubtitle}>
-                Review your order details carefully.
-                Once confirmed, we'll immediately
-                start processing your order.
-              </Text>
-            </View>
-          </View>
-        </CBCard>
-
+        
         {/* Delivery Shop */}
 
         <CBCard>
@@ -86,13 +63,19 @@ export default function ReviewOrderScreen({
 
           </View>
 
-          <Text style={styles.shopName}>
+          <Text
+  numberOfLines={1}
+  style={styles.shopName}
+>
             {selectedShop?.shop_name}
           </Text>
 
-          <Text style={styles.shopAddress}>
-            {selectedShop?.address}
-          </Text>
+          <Text
+  numberOfLines={2}
+  style={styles.shopAddress}
+>
+  {selectedShop?.address}
+</Text>
 
         </CBCard>
 
@@ -117,30 +100,18 @@ export default function ReviewOrderScreen({
   <View style={styles.row}>
 
     <Text style={styles.label}>
-      Order Window
+      Delivery
     </Text>
 
     <Text style={styles.valueSmall}>
   {deliveryPriority === "tomorrow"
-    ? "📅 Tomorrow Delivery"
-    : "🚚 Today's Delivery"}
+    ? "Tomorrow Morning"
+    : "Today"}
 </Text>
 
   </View>
 
-  <View style={styles.row}>
-
-    <Text style={styles.label}>
-      Order By
-    </Text>
-
-    <Text style={styles.valueSmall}>
-      {orderType === "birds"
-        ? "Bird Count"
-        : "Weight"}
-    </Text>
-
-  </View>
+  
 
   <View style={styles.row}>
 
@@ -149,9 +120,9 @@ export default function ReviewOrderScreen({
     </Text>
 
     <Text style={styles.valueSmall}>
-      {orderType === "birds"
-        ? `${quantity} Birds`
-        : `${quantity} KG`}
+      <Text style={styles.valueSmall}>
+  {quantity} Kg
+</Text>
     </Text>
 
   </View>
@@ -225,79 +196,9 @@ export default function ReviewOrderScreen({
 
   </View>
 
-  <View style={styles.divider} />
-
-  <View style={styles.row}>
-
-    <Text style={styles.balanceLabel}>
-      Balance After Delivery
-    </Text>
-
-    <CBAmount
-      amount={
-        Math.max(
-          estimatedAmount - 500,
-          0
-        )
-      }
-      size={26}
-    />
-
-  </View>
-
-  <Text style={styles.balanceNote}>
-    *Final invoice will be generated
-    using the actual delivered weight.
-  </Text>
 
 </CBCard>
-{/* Delivery Details */}
-<CBCard>
 
-          <View style={styles.sectionHeader}>
-            <MaterialCommunityIcons
-              name="truck-delivery-outline"
-              size={20}
-              color="#F97316"
-            />
-
-            <Text style={styles.sectionTitle}>
-              Delivery Details
-            </Text>
-          </View>
-
-          
-          <View style={styles.row}>
-            <Text style={styles.label}>
-              Priority
-            </Text>
-
-            <Text style={styles.valueSmall}>
-              {deliveryPriority || "Standard"}
-            </Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>
-              Fulfilment
-            </Text>
-
-            <Text style={styles.valueSmall}>
-              {fulfilmentPreference || "Closest Farm"}
-            </Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>
-              Estimated Arrival
-            </Text>
-
-            <Text style={styles.valueSmall}>
-  Will be shared after farm allocation
-</Text>
-          </View>
-
-        </CBCard>
 
         {!!notes && (
 
@@ -325,113 +226,38 @@ export default function ReviewOrderScreen({
 
         )}
 
-        {/* Bill-to-Bill Settlement */}
+        
 
-<CBCard>
+        <View style={styles.buttonContainer}>
 
-  <View style={styles.sectionHeader}>
+  <CBButton
+    title={`PAY ₹${advanceRequired} & PLACE ORDER`}
+    onPress={() =>
+      navigation.navigate("PaymentCheckout", {
+        retailerId: route.params.retailerId,
+        selectedShop,
+        todayRate,
+        quantity,
+        estimatedAmount,
+        advanceRequired,
+        deliveryDate,
+        notes,
+        orderType,
+        deliveryPriority,
+        fulfilmentPreference,
+      })
+    }
+  />
 
-    <MaterialCommunityIcons
-      name="cash-check"
-      size={20}
-      color="#F97316"
-    />
+  <View style={{ height: 12 }} />
 
-    <Text style={styles.sectionTitle}>
-      Bill-to-Bill Settlement
-    </Text>
+  <CBButton
+  title="MODIFY ORDER"
+  variant="outline"
+  onPress={() => navigation.goBack()}
+/>
 
-  </View>
-
-  <View style={styles.ruleRow}>
-
-    <MaterialCommunityIcons
-      name="check-circle"
-      size={18}
-      color="#16A34A"
-    />
-
-    <Text style={styles.ruleText}>
-      ₹500 advance will be collected now.
-    </Text>
-
-  </View>
-
-  <View style={styles.ruleRow}>
-
-    <MaterialCommunityIcons
-      name="check-circle"
-      size={18}
-      color="#16A34A"
-    />
-
-    <Text style={styles.ruleText}>
-      Remaining amount is payable after delivery based on actual weight.
-    </Text>
-
-  </View>
-
-  <View style={styles.ruleRow}>
-
-    <MaterialCommunityIcons
-      name="check-circle"
-      size={18}
-      color="#16A34A"
-    />
-
-    <Text style={styles.ruleText}>
-      Previous invoice must be settled before placing the next order.
-    </Text>
-
-  </View>
-
-  <View style={styles.ruleRow}>
-
-    <MaterialCommunityIcons
-      name="shield-check"
-      size={18}
-      color="#16A34A"
-    />
-
-    <Text style={styles.ruleText}>
-      Secure online payment powered by Razorpay.
-    </Text>
-
-  </View>
-
-</CBCard>
-
-        <View style={styles.buttonRow}>
-
-          <View style={styles.backButton}>
-            <CBButton
-              title="Modify Order"
-              onPress={() => navigation.goBack()}
-            />
-          </View>
-
-          <View style={styles.nextButton}>
-            <CBButton
-              title={`PAY ₹${advanceRequired} & PLACE ORDER`}
-              onPress={() =>
-  navigation.navigate("PaymentCheckout", {
-    retailerId: route.params.retailerId,
-    selectedShop,
-    todayRate,
-    quantity,
-    estimatedAmount,
-    advanceRequired,
-    deliveryDate,
-    notes,
-    orderType,
-    deliveryPriority,
-    fulfilmentPreference,
-  })
-              }
-            />
-          </View>
-
-        </View>
+</View>
 
       </ScrollView>
 
@@ -448,9 +274,9 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
+  padding: 16,
+  paddingBottom: 24,
+},
 
   statusRow: {
     flexDirection: "row",
@@ -478,7 +304,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 10,
   },
 
   sectionTitle: {
@@ -489,13 +315,13 @@ const styles = StyleSheet.create({
   },
 
   shopName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
   },
 
   shopAddress: {
-    marginTop: 6,
+    marginTop: 2,
     fontSize: 15,
     color: "#64748B",
     lineHeight: 22,
@@ -505,7 +331,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 10,
   },
 
   label: {
@@ -563,20 +389,10 @@ const styles = StyleSheet.create({
     color: "#9A3412",
   },
 
-  buttonRow: {
-    flexDirection: "row",
-    marginTop: 10,
-    marginBottom: 20,
-  },
-
-  backButton: {
-    flex: 1,
-    marginRight: 10,
-  },
-
-  nextButton: {
-    flex: 2,
-  },
+  buttonContainer: {
+  marginTop: 8,
+  marginBottom: 12,
+},
 
   advanceText: {
 

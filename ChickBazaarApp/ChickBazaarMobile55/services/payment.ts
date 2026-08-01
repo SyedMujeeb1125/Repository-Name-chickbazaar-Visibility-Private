@@ -12,7 +12,7 @@ export interface PaymentResult {
   message?: string;
 }
 
-const API_BASE = "http://10.144.143.74:3000/api/mobile";
+const API_BASE = "https://www.chickbazaar.com/api/mobile";
 
 const JSON_HEADERS = {
   "Content-Type": "application/json",

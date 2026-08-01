@@ -5,19 +5,30 @@ import DashboardActionCard from "./DashboardActionCard";
 import DashboardInfoRow from "./DashboardInfoRow";
 
 type Props = {
+  orderLabel?: string;
+
   driverName?: string;
+
   driverPhone?: string;
-  eta?: string;
+
   vehicleNumber?: string;
+
+  eta?: string;
 
   onTrackLive: () => void;
 };
 
 export default function OutForDeliveryCard({
+  orderLabel = "Today's Order",
+
   driverName,
+
   driverPhone,
-  eta,
+
   vehicleNumber,
+
+  eta,
+
   onTrackLive,
 }: Props) {
   return (
@@ -27,17 +38,17 @@ export default function OutForDeliveryCard({
       icon="truck-fast"
       iconBackground="#9333EA"
       title="Out for Delivery"
-      subtitle="Your order is on the way and will arrive shortly."
+      subtitle="Your healthy live broiler chicken is on the way."
       footer={
         <PrimaryButton
-          title="TRACK LIVE"
+          title={`TRACK ${orderLabel.toUpperCase()}`}
           onPress={onTrackLive}
         />
       }
     >
       <DashboardInfoRow
         icon="account-outline"
-        label="Driver Name"
+        label="Driver"
         value={driverName ?? "--"}
       />
 
@@ -48,15 +59,15 @@ export default function OutForDeliveryCard({
       />
 
       <DashboardInfoRow
-        icon="clock-fast"
-        label="Estimated Arrival"
-        value={eta ?? "--"}
+        icon="truck-outline"
+        label="Vehicle"
+        value={vehicleNumber ?? "--"}
       />
 
       <DashboardInfoRow
-        icon="truck-outline"
-        label="Vehicle Number"
-        value={vehicleNumber ?? "--"}
+        icon="clock-fast"
+        label="Estimated Arrival"
+        value={eta ?? "--"}
       />
     </DashboardActionCard>
   );

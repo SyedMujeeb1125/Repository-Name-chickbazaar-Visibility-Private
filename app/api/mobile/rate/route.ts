@@ -1,18 +1,42 @@
 import { NextResponse } from "next/server";
-import { getTodayRate } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const rate = await getTodayRate();
+    const { data: rate, error } = await supabase
+      .from("daily_rates")
+      .select("rate, created_at")
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[LIVE_RATE]", error);
+
+      return NextResponse.json(
+        {
+          rate: 0,
+          date: null,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
 
     return NextResponse.json({
-      rate: Number(rate?.rate || 0),
-      date: rate?.created_at || null,
+      rate: Number(rate?.rate ?? 0),
+      date: rate?.created_at ?? null,
     });
   } catch (error) {
+    console.error("[LIVE_RATE]", error);
+
     return NextResponse.json(
       {
         rate: 0,
+        date: null,
       },
       {
         status: 500,

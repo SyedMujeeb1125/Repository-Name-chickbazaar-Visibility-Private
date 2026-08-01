@@ -1,21 +1,26 @@
-import { createId, addUser } from "@/lib/storage";
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 async function createUser(formData: FormData) {
   "use server";
 
-  await addUser({
-    id: createId("USR"),
-    createdAt: new Date().toISOString(),
+  const { error } = await supabase
+    .from("users")
+    .insert({
+      name: String(formData.get("name")),
+      mobile: String(formData.get("mobile")),
+      email: String(formData.get("email")),
+      role: String(formData.get("role")),
+      active: true,
+      created_at: new Date().toISOString(),
+    });
 
-    name: String(formData.get("name")),
-    mobile: String(formData.get("mobile")),
-    email: String(formData.get("email")),
-
-    role: formData.get("role") as any,
-
-    active: true,
-  });
+  if (error) {
+    console.error("[CREATE USER]", error);
+    throw new Error("Failed to create user.");
+  }
 
   redirect("/admin/users");
 }
@@ -47,6 +52,7 @@ export default function AddUserPage() {
 
         <input
           name="email"
+          type="email"
           placeholder="Email"
           required
           className="w-full rounded border p-3"
@@ -55,6 +61,7 @@ export default function AddUserPage() {
         <select
           name="role"
           className="w-full rounded border p-3"
+          defaultValue="operations"
         >
           <option value="operations">
             Operations
@@ -74,6 +81,7 @@ export default function AddUserPage() {
         </select>
 
         <button
+          type="submit"
           className="rounded bg-green-600 px-5 py-3 text-white"
         >
           Save User

@@ -139,36 +139,7 @@ const result = await processAdvancePayment({
           Powered securely by Razorpay
         </Text>
 
-        {/* Security Banner */}
-
-        <View style={styles.banner}>
-
-          <MaterialCommunityIcons
-            name="shield-check"
-            size={42}
-            color="#16A34A"
-          />
-
-          <View
-            style={{
-              marginLeft: 16,
-              flex: 1,
-            }}
-          >
-
-            <Text style={styles.bannerTitle}>
-              Secure Checkout
-            </Text>
-
-            <Text style={styles.bannerText}>
-              Your payment is encrypted
-              and processed securely
-              through Razorpay.
-            </Text>
-
-          </View>
-
-        </View>
+        
 
         {/* Delivery Shop */}
 
@@ -178,13 +149,19 @@ const result = await processAdvancePayment({
             Delivery Shop
           </Text>
 
-          <Text style={styles.shopName}>
+          <Text
+  numberOfLines={1}
+  style={styles.shopName}
+>
   {selectedShop?.shop_name ??
     selectedShop?.shopName ??
     "Selected Shop"}
 </Text>
 
-          <Text style={styles.shopAddress}>
+          <Text
+  numberOfLines={2}
+  style={styles.shopAddress}
+>
             {selectedShop?.address}
           </Text>
 
@@ -199,31 +176,16 @@ const result = await processAdvancePayment({
           </Text>
 
           <Row
-    label="Applicable Rate"
-            value={`₹${todayRate}/kg`}
-          />
+    label="Today's Rate"
+    value={`₹${todayRate}/Kg`}
+/>
 
           <Row
             label="Quantity"
-            value={
-              orderType === "birds"
-                ? `${quantity} Birds`
-                : `${quantity} KG`
-            }
+            value={`${quantity} Kg`}
           />
 
-          <Row
-            label="Delivery Date"
-            value={deliveryDate}
-          />
-
-          <Row
-            label="Delivery Slot"
-            value={
-              deliverySlot ??
-              "Next Available"
-            }
-          />
+          
 
           <View style={styles.divider} />
 
@@ -249,12 +211,12 @@ const result = await processAdvancePayment({
             <View style={{ marginLeft: 14 }}>
 
               <Text style={styles.advanceTitle}>
-                Advance Payment
-              </Text>
+    Pay Now
+</Text>
 
-              <Text style={styles.advanceSubtitle}>
-                Pay now to confirm your order
-              </Text>
+<Text style={styles.advanceSubtitle}>
+    Confirm your order with the advance payment.
+</Text>
 
             </View>
 
@@ -266,53 +228,9 @@ const result = await processAdvancePayment({
 
         </View>
 
-        {/* Bill to Bill Settlement */}
+        
 
-        <View style={styles.card}>
-
-          <Text style={styles.cardTitle}>
-            Bill-to-Bill Settlement
-          </Text>
-
-          <Rule
-    text={`₹${advanceRequired} advance is collected while placing the order.`}
-/>
-
-          <Rule
-            text="Final invoice is generated after actual delivery weight."
-          />
-
-          <Rule
-            text="Remaining balance is payable after delivery."
-          />
-
-          <Rule
-            text="Previous invoice must be cleared before placing the next order."
-          />
-
-        </View>
-
-        {/* Payment Security */}
-
-        <View style={styles.card}>
-
-          <Text style={styles.cardTitle}>
-            Payment Security
-          </Text>
-
-          <Rule
-            text="256-bit SSL encrypted payment."
-          />
-
-          <Rule
-            text="Powered securely by Razorpay."
-          />
-
-          <Rule
-            text="Your banking details are never stored on ChickBazaar."
-          />
-
-        </View>
+        
 
         <TouchableOpacity
 
@@ -349,7 +267,7 @@ const result = await processAdvancePayment({
           <Text style={styles.payButtonText}>
   {processing
     ? "Processing Payment..."
-    : `PAY ₹${advanceRequired.toLocaleString()}`}
+    : `PAY ₹${advanceRequired.toLocaleString()} & CONFIRM ORDER`}
 </Text>
 
         </TouchableOpacity>
@@ -471,8 +389,8 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: 16,
+    paddingBottom: 20,
   },
 
   title: {
@@ -513,8 +431,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
-    padding: 20,
-    marginBottom: 20,
+    padding: 14,
+    marginBottom: 12,
 
     shadowColor: "#000",
     shadowOpacity: 0.06,
@@ -528,20 +446,20 @@ const styles = StyleSheet.create({
   },
 
   cardTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0F172A",
-    marginBottom: 18,
-  },
+  fontSize: 18,
+  fontWeight: "800",
+  color: "#0F172A",
+  marginBottom: 10,
+},
 
   shopName: {
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: "800",
     color: "#0F172A",
   },
 
   shopAddress: {
-    marginTop: 6,
+    marginTop: 2,
     fontSize: 15,
     color: "#64748B",
     lineHeight: 22,
@@ -551,7 +469,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 8,
   },
 
   label: {
@@ -567,10 +485,10 @@ const styles = StyleSheet.create({
   },
 
   highlight: {
-    color: "#F97316",
-    fontSize: 20,
-    fontWeight: "900",
-  },
+  color: "#16A34A",
+  fontSize: 24,
+  fontWeight: "900",
+},
 
   divider: {
     height: 1,
@@ -603,8 +521,8 @@ const styles = StyleSheet.create({
   },
 
   advanceAmount: {
-    marginTop: 18,
-    fontSize: 42,
+    marginTop: 14,
+    fontSize: 38,
     fontWeight: "900",
     color: "#16A34A",
     textAlign: "center",

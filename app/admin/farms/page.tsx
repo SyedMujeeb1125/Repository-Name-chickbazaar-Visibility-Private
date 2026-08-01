@@ -1,8 +1,23 @@
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 import { AdminFarmsList } from "@/components/admin-farms-list";
 
 export default async function FarmsPage() {
-  const db = await readDb();
+  const {
+    data: farms,
+    error,
+  } = await supabase
+    .from("farm_partners")
+    .select("*")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    console.error(
+      "[ADMIN_FARMS]",
+      error
+    );
+  }
 
   return (
     <div>
@@ -11,7 +26,7 @@ export default async function FarmsPage() {
       </h1>
 
       <AdminFarmsList
-        farms={db.farmPartners}
+        farms={farms ?? []}
       />
     </div>
   );

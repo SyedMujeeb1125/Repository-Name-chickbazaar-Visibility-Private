@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -10,13 +11,16 @@ import {
 } from "react-native-safe-area-context";
 
 import {
-  View,
-  Text,
   FlatList,
   StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
 export default function PaymentsScreen() {
+
   const [payments, setPayments] =
     useState<any[]>([]);
 
@@ -25,216 +29,494 @@ export default function PaymentsScreen() {
   }, []);
 
   async function loadPayments() {
-    const mobile =
-      await AsyncStorage.getItem(
-        "retailerMobile"
+
+    try {
+
+      const mobile =
+        await AsyncStorage.getItem(
+          "retailerMobile"
+        );
+
+      const response =
+        await fetch(
+          `https://www.chickbazaar.com/api/mobile/payments?mobile=${mobile}`
+        );
+
+      const data =
+        await response.json();
+
+      setPayments(
+        Array.isArray(data)
+          ? data
+          : []
       );
 
-    const response =
-      await fetch(
-        `https://www.chickbazaar.com/api/mobile/payments?mobile=${mobile}`
-      );
+    } catch (error) {
 
-    const data =
-      await response.json();
+      console.log(error);
 
-    setPayments(data);
+      setPayments([]);
+
+    }
+
   }
 
+  const totalPaid =
+    useMemo(() => {
+
+      return payments.reduce(
+        (
+          total,
+          payment
+        ) =>
+          total +
+          Number(
+            payment.credit || 0
+          ),
+        0
+      );
+
+    }, [payments]);
+
   return (
+
     <SafeAreaView
-      style={styles.safeArea}
-    >
+  style={styles.safeArea}
+  edges={["top"]}
+>
+
       <View
         style={styles.container}
       >
-        <Text style={styles.title}>
-          Payment History
+
+        <Text
+          style={styles.title}
+        >
+          Payments
         </Text>
 
-        <FlatList
-          data={payments}
-          showsVerticalScrollIndicator={
-            false
-          }
-          keyExtractor={(item) =>
-            item.id
-          }
-          ListEmptyComponent={
+        <Text
+          style={styles.subtitle}
+        >
+          View all payments received
+          and transaction history.
+        </Text>
+
+        <View
+          style={styles.summaryCard}
+        >
+
+          <View
+            style={styles.summaryLeft}
+          >
+
             <View
+              style={styles.summaryIcon}
+            >
+
+              <MaterialCommunityIcons
+                name="cash-check"
+                size={26}
+                color="#F97316"
+              />
+
+            </View>
+
+            <View>
+
+              <Text
+                style={
+                  styles.summaryLabel
+                }
+              >
+                Total Payments
+              </Text>
+
+              <Text
+                style={
+                  styles.summaryAmount
+                }
+              >
+                ₹
+                {totalPaid.toLocaleString()}
+              </Text>
+
+            </View>
+
+          </View>
+
+          <View
+            style={
+              styles.summaryRight
+            }
+          >
+
+            <Text
               style={
-                styles.emptyCard
+                styles.summaryCount
               }
             >
-              <Text
-                style={
-                  styles.emptyText
-                }
-              >
-                No payments found
-              </Text>
-            </View>
-          }
-          renderItem={({
-            item,
-          }) => (
-            <View
-              style={styles.card}
+              {payments.length}
+            </Text>
+
+            <Text
+              style={
+                styles.summaryCountLabel
+              }
             >
-              <View
-                style={
-                  styles.headerRow
-                }
-              >
-                <Text
-                  style={
-                    styles.amount
-                  }
-                >
-                  ₹
-                  {Number(
-                    item.credit || 0
-                  ).toLocaleString()}
-                </Text>
+              Transactions
+            </Text>
 
-                <View
-                  style={
-                    styles.modeBadge
-                  }
-                >
-                  <Text
-                    style={
-                      styles.modeText
-                    }
-                  >
-                    {item.payment_mode ||
-                      "N/A"}
-                  </Text>
-                </View>
-              </View>
+          </View>
 
-              <Text
-                style={
-                  styles.date
-                }
-              >
-                📅{" "}
-                {new Date(
-                  item.created_at
-                ).toLocaleString()}
-              </Text>
+        </View>
 
-              <Text
-                style={
-                  styles.reference
-                }
-              >
-                🔖 Ref:
-                {" "}
-                {item.reference_number ||
-                  "-"}
-              </Text>
+        <FlatList
+  data={payments}
+  showsVerticalScrollIndicator={false}
+  keyExtractor={(item, index) =>
+  String(item.id ?? index)
+}
+  contentContainerStyle={styles.listContent}
+  ListEmptyComponent={
 
-              <Text
-                style={
-                  styles.remarks
-                }
-              >
-                📝{" "}
-                {item.remarks ||
-                  "No remarks"}
-              </Text>
-            </View>
-          )}
+    <View style={styles.emptyCard}>
+
+      <View style={styles.emptyIcon}>
+
+        <MaterialCommunityIcons
+          name="cash-remove"
+          size={42}
+          color="#CBD5E1"
         />
+
       </View>
+
+      <Text style={styles.emptyTitle}>
+        No Payments Yet
+      </Text>
+
+      <Text style={styles.emptyText}>
+        Your payment history will appear
+        here once your first payment is
+        recorded.
+      </Text>
+
+    </View>
+
+  }
+  renderItem={({ item }) => (
+
+    <View style={styles.card}>
+
+      <View style={styles.headerRow}>
+
+        <View style={styles.leftSection}>
+
+          <View style={styles.iconCircle}>
+
+            <MaterialCommunityIcons
+              name="cash-check"
+              size={24}
+              color="#16A34A"
+            />
+
+          </View>
+
+          <View>
+
+            <Text style={styles.amount}>
+              ₹
+              {Number(
+                item.credit || 0
+              ).toLocaleString("en-IN")}
+            </Text>
+
+            <Text style={styles.date}>
+              item.created_at
+  ? new Date(item.created_at).toLocaleString()
+  : "-"
+            </Text>
+
+          </View>
+
+        </View>
+
+        <View style={styles.modeBadge}>
+
+          <Text style={styles.modeText}>
+            {(item.payment_mode ||
+              "N/A").toUpperCase()}
+          </Text>
+
+        </View>
+
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.infoRow}>
+
+        <MaterialCommunityIcons
+          name="barcode"
+          size={18}
+          color="#64748B"
+        />
+
+        <Text style={styles.infoText}>
+          Ref:{" "}
+          {item.reference_number ||
+            "-"}
+        </Text>
+
+      </View>
+
+      <View style={styles.infoRow}>
+
+        <MaterialCommunityIcons
+          name="text-box-outline"
+          size={18}
+          color="#64748B"
+        />
+
+        <Text style={styles.infoText}>
+          {item.remarks ||
+            "No remarks available"}
+        </Text>
+
+      </View>
+
+    </View>
+
+  )}
+/>
+
+</View>
+
     </SafeAreaView>
+
   );
+
 }
 
-const styles =
-  StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor:
-        "#F8FAFC",
+const styles = StyleSheet.create({
+
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+  },
+
+  title: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+
+  subtitle: {
+    marginTop: 6,
+    marginBottom: 24,
+    fontSize: 16,
+    color: "#64748B",
+    lineHeight: 24,
+  },
+
+  summaryCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 22,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
 
-    container: {
-      flex: 1,
-      padding: 20,
+    elevation: 4,
+  },
+
+  summaryLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  summaryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FFF7ED",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+
+  summaryLabel: {
+    fontSize: 14,
+    color: "#64748B",
+  },
+
+  summaryAmount: {
+    marginTop: 4,
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#16A34A",
+  },
+
+  summaryRight: {
+    alignItems: "center",
+  },
+
+  summaryCount: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+
+  summaryCountLabel: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#64748B",
+  },
+
+  listContent: {
+    paddingBottom: 24,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 14,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
 
-    title: {
-      fontSize: 30,
-      fontWeight: "700",
-      color: "#0F172A",
-      marginBottom: 20,
+    elevation: 4,
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  iconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#ECFDF5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+
+  amount: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#16A34A",
+  },
+
+  date: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#64748B",
+  },
+
+  modeBadge: {
+    backgroundColor: "#FFF7ED",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+
+  modeText: {
+    color: "#EA580C",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginVertical: 16,
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  infoText: {
+    marginLeft: 10,
+    flex: 1,
+    fontSize: 14,
+    color: "#475569",
+  },
+
+  emptyCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    paddingVertical: 44,
+    paddingHorizontal: 24,
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
 
-    card: {
-      backgroundColor:
-        "#FFFFFF",
-      borderRadius: 18,
-      padding: 18,
-      marginBottom: 14,
-      elevation: 2,
-    },
+    elevation: 4,
+  },
 
-    headerRow: {
-      flexDirection: "row",
-      justifyContent:
-        "space-between",
-      alignItems:
-        "center",
-      marginBottom: 10,
-    },
+  emptyIcon: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 18,
+  },
 
-    amount: {
-      fontSize: 28,
-      fontWeight: "700",
-      color: "#16A34A",
-    },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#334155",
+  },
 
-    modeBadge: {
-      backgroundColor:
-        "#F97316",
-      borderRadius: 20,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-    },
+  emptyText: {
+    marginTop: 10,
+    textAlign: "center",
+    fontSize: 15,
+    color: "#94A3B8",
+    lineHeight: 22,
+  },
 
-    modeText: {
-      color: "#FFF",
-      fontWeight: "700",
-      fontSize: 12,
-    },
-
-    date: {
-      color: "#475569",
-      marginBottom: 6,
-    },
-
-    reference: {
-      color: "#475569",
-      marginBottom: 6,
-    },
-
-    remarks: {
-      color: "#334155",
-    },
-
-    emptyCard: {
-      backgroundColor:
-        "#FFFFFF",
-      padding: 30,
-      borderRadius: 18,
-      alignItems:
-        "center",
-    },
-
-    emptyText: {
-      color: "#64748B",
-      fontSize: 16,
-    },
-  });
+});

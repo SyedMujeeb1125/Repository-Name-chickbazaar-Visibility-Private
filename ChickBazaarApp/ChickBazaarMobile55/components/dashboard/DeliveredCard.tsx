@@ -6,19 +6,34 @@ import DashboardInfoRow from "./DashboardInfoRow";
 
 type Props = {
   deliveredOn?: string;
+
   orderWeight?: number;
+
   totalBill?: number;
+
   paymentStatus?: string;
 
-  onPlaceTomorrowOrder: () => void;
+  orderLabel?: string;
+
+  nextActionLabel?: string;
+
+  onNextAction: () => void;
 };
 
 export default function DeliveredCard({
   deliveredOn,
+
   orderWeight,
+
   totalBill,
-  paymentStatus,
-  onPlaceTomorrowOrder,
+
+  paymentStatus = "Paid",
+
+  orderLabel = "Today's Order",
+
+  nextActionLabel = "BOOK TOMORROW'S ORDER",
+
+  onNextAction,
 }: Props) {
   return (
     <DashboardActionCard
@@ -26,12 +41,12 @@ export default function DeliveredCard({
       badgeColor="#16A34A"
       icon="check-circle"
       iconBackground="#16A34A"
-      title="Order Delivered"
-      subtitle="Your order has been successfully delivered. Thank you for choosing ChickBazaar."
+      title={`${orderLabel} Delivered`}
+      subtitle="Your healthy live broiler chicken has been delivered successfully."
       footer={
         <PrimaryButton
-          title="PLACE TOMORROW'S ORDER"
-          onPress={onPlaceTomorrowOrder}
+          title={nextActionLabel}
+          onPress={onNextAction}
         />
       }
     >
@@ -43,7 +58,7 @@ export default function DeliveredCard({
 
       <DashboardInfoRow
         icon="weight-kilogram"
-        label="Order Weight"
+        label="Delivered Weight"
         value={
           orderWeight != null
             ? `${orderWeight} Kg`
@@ -53,7 +68,7 @@ export default function DeliveredCard({
 
       <DashboardInfoRow
         icon="cash-multiple"
-        label="Total Bill"
+        label="Final Amount"
         value={
           totalBill != null
             ? `₹${totalBill.toLocaleString()}`
@@ -64,7 +79,7 @@ export default function DeliveredCard({
       <DashboardInfoRow
         icon="check-decagram"
         label="Payment Status"
-        value={paymentStatus ?? "Pending"}
+        value={paymentStatus}
       />
     </DashboardActionCard>
   );

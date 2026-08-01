@@ -1,10 +1,10 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { PAYMENT_CONFIG } from "@/lib/payment-config";
 
 export async function POST(request: NextRequest) {
-
   try {
-
     const body = await request.json();
 
     const {
@@ -12,18 +12,37 @@ export async function POST(request: NextRequest) {
       weight,
     } = body;
 
-    if (!mobile || !weight) {
+    // -------------------------
+    // Validation
+    // -------------------------
 
+    if (!mobile || typeof mobile !== "string") {
       return NextResponse.json(
         {
-          message: "Missing required fields.",
+          success: false,
+          message: "Mobile number is required.",
         },
         {
           status: 400,
         }
       );
-
     }
+
+    if (!weight || Number(weight) <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid order weight.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // -------------------------
+    // Retailer
+    // -------------------------
 
     const {
       data: retailer,
@@ -32,23 +51,27 @@ export async function POST(request: NextRequest) {
       .from("retailers")
       .select("*")
       .eq("mobile", mobile)
-      .single();
+      .maybeSingle();
 
     if (retailerError || !retailer) {
-
       return NextResponse.json(
         {
+          success: false,
           message: "Retailer not found.",
         },
         {
           status: 404,
         }
       );
-
     }
+
+    // -------------------------
+    // Today's Rate
+    // -------------------------
 
     const {
       data: rate,
+      error: rateError,
     } = await supabase
       .from("daily_rates")
       .select("rate")
@@ -56,16 +79,47 @@ export async function POST(request: NextRequest) {
         ascending: false,
       })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    const todayRate =
-      Number(rate?.rate || 0);
+    if (rateError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to fetch today's rate.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
 
-    const estimatedAmount =
-      todayRate * Number(weight);
+    const todayRate = Number(rate?.rate ?? 0);
+
+    if (todayRate <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Today's rate is not available.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const requestedWeight = Number(weight);
+    const estimatedAmount = requestedWeight * todayRate;
+
+    const advanceAmount = PAYMENT_CONFIG.ADVANCE_AMOUNT;
 
     const orderNumber =
-      `CB-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+      `CB-${new Date().getFullYear()}-${Math.floor(
+        100000 + Math.random() * 900000
+      )}`;
+
+    // -------------------------
+    // Create Order
+    // -------------------------
 
     const {
       data,
@@ -73,83 +127,98 @@ export async function POST(request: NextRequest) {
     } = await supabase
       .from("orders")
       .insert({
+        id: crypto.randomUUID(),
 
-  id: `order_${Date.now()}_${Math.random()
-    .toString(36)
-    .substring(2, 10)}`,
+        order_number: orderNumber,
 
-  order_number: orderNumber,
+        created_at: new Date().toISOString(),
 
-  created_at: new Date().toISOString(),
+        status: "new",
 
-  status: "new",
+        shop_name: retailer.shop_name,
 
-  shop_name: retailer.shop_name,
+        owner_name: retailer.owner_name,
 
-  owner_name: retailer.owner_name,
+        mobile: retailer.mobile,
 
-  mobile: retailer.mobile,
+        email: retailer.email,
 
-  email: retailer.email,
+        address: retailer.address,
 
-  address: retailer.address,
+        birds: "0",
 
-  birds: "0",
+        average_weight: "",
 
-  average_weight: "",
+        delivery_date:
+          new Date().toISOString().split("T")[0],
 
-  delivery_date: new Date().toISOString().split("T")[0],
+        notes: "",
 
-  notes: "",
+        payment_status: "pending",
 
-  payment_status: "pending",
+        payment_amount: 0,
 
-  payment_amount: 0,
+        payment_type: "advance",
 
-  requested_weight: Number(weight),
+        requested_weight: requestedWeight,
 
-  rate_per_kg: todayRate,
+        rate_per_kg: todayRate,
 
-  estimated_amount: estimatedAmount,
+        estimated_amount: estimatedAmount,
 
-  payment_type: "advance",
+        advance_amount: advanceAmount,
 
-})
+        advance_required: advanceAmount,
+
+        advance_percentage:
+          PAYMENT_CONFIG.ADVANCE_PERCENTAGE,
+
+        balance_due: Math.max(
+          estimatedAmount - advanceAmount,
+          0
+        ),
+      })
       .select()
       .single();
 
     if (error) {
+      console.error("[QUICK_ORDER]", error);
 
       return NextResponse.json(
         {
+          success: false,
           message: error.message,
         },
         {
           status: 500,
         }
       );
-
     }
 
+    console.info(
+      `[QUICK_ORDER] ${orderNumber} created`
+    );
+
     return NextResponse.json({
-
       success: true,
-
       order: data,
-
     });
 
   } catch (error) {
 
+    console.error(
+      "[QUICK_ORDER]",
+      error
+    );
+
     return NextResponse.json(
       {
+        success: false,
         message: "Something went wrong.",
       },
       {
         status: 500,
       }
     );
-
   }
-
 }

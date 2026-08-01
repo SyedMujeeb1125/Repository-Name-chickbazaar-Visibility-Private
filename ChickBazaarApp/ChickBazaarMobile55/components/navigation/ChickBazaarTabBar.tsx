@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   StyleSheet,
   Text,
@@ -7,17 +6,9 @@ import {
   View,
 } from "react-native";
 
-import {
-  BottomTabBarProps,
-} from "@react-navigation/bottom-tabs";
-
-import {
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-
-import {
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const ORANGE = "#F97316";
 const GREY = "#64748B";
@@ -26,300 +17,207 @@ export default function ChickBazaarTabBar({
   state,
   navigation,
 }: BottomTabBarProps) {
-
-  function getIcon(routeName: string) {
-
+  const getIcon = (
+    routeName: string,
+    focused: boolean
+  ): keyof typeof MaterialCommunityIcons.glyphMap => {
     switch (routeName) {
-
       case "Home":
-        return "home";
+        return focused ? "home" : "home-outline";
 
       case "Orders":
-        return "clipboard-list";
+        return focused
+          ? "clipboard-text"
+          : "clipboard-text-outline";
 
-      case "Order":
-        return "cart-outline";
+      case "PlaceOrder":
+        return focused ? "cart" : "cart-outline";
 
       case "Business":
-        return "finance";
+  return focused
+    ? "briefcase"
+    : "briefcase-outline";
 
       case "Profile":
-        return "account-circle";
+        return focused
+          ? "account-circle"
+          : "account-circle-outline";
 
       default:
-        return "circle";
-
+        return "circle-outline";
     }
-
-  }
+  };
 
   return (
+    <View style={styles.safeArea}>
+      <SafeAreaView
+        edges={["bottom"]}
+        style={styles.safeContainer}
+      >
+        <View style={styles.container}>
+          {state.routes.map((route, index) => {
+            const focused = state.index === index;
 
-    <SafeAreaView
-      edges={["bottom"]}
-      style={styles.safeArea}
-    >
-
-      <View style={styles.container}>
-
-        {state.routes.map((route, index) => {
-
-          const focused =
-            state.index === index;
-
-          const icon =
-            getIcon(route.name);
-
-          const onPress = () => {
-
-            const event =
-              navigation.emit({
-
+            const onPress = () => {
+              const event = navigation.emit({
                 type: "tabPress",
-
                 target: route.key,
-
                 canPreventDefault: true,
-
               });
 
-            if (
-              !focused &&
-              !event.defaultPrevented
-            ) {
+              if (!focused && !event.defaultPrevented) {
+                navigation.navigate(route.name as never);
+              }
+            };
 
-              navigation.navigate(
-                route.name as never
+            if (route.name === "PlaceOrder") {
+              return (
+                <TouchableOpacity
+                  key={route.key}
+                  activeOpacity={0.85}
+                  style={styles.placeOrderTab}
+                  onPress={onPress}
+                >
+                  <View style={styles.placeOrderIcon}>
+                    <MaterialCommunityIcons
+                      name={focused ? "cart" : "cart-outline"}
+                      size={22}
+                      color="#FFFFFF"
+                    />
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.placeOrderLabel,
+                      focused && styles.activeLabel,
+                    ]}
+                  >
+                    Place Order
+                  </Text>
+                </TouchableOpacity>
               );
-
             }
 
-          };
-
-          if (route.name === "Order") {
-
             return (
-
               <TouchableOpacity
                 key={route.key}
-                activeOpacity={0.9}
+                style={styles.tab}
+                activeOpacity={0.8}
                 onPress={onPress}
-                style={styles.orderButtonWrapper}
               >
-
-                <View style={styles.orderButton}>
-
-                  <MaterialCommunityIcons
-                    name="cart-outline"
-                    size={32}
-                    color="#FFFFFF"
-                  />
-
-                  <Text style={styles.orderText}>
-                    PLACE{"\n"}ORDER
-                  </Text>
-
-                </View>
-
-              </TouchableOpacity>
-
-            );
-
-          }
-
-          return (
-
-            <TouchableOpacity
-              key={route.key}
-              style={styles.tab}
-              activeOpacity={0.85}
-              onPress={onPress}
-            >
-
-              <MaterialCommunityIcons
-                name={icon as any}
-                size={24}
-                color={
-                  focused
-                    ? ORANGE
-                    : GREY
-                }
-              />
-
-              <Text
-                style={[
-                  styles.label,
-                  focused &&
-                    styles.activeLabel,
-                ]}
-              >
-                {route.name}
-              </Text>
-
-              {focused && (
-                <View
-                  style={styles.activeLine}
+                <MaterialCommunityIcons
+                  name={getIcon(route.name, focused)}
+                  size={24}
+                  color={focused ? ORANGE : GREY}
                 />
-              )}
 
-            </TouchableOpacity>
-
-          );
-
-        })}
-
-      </View>
-
-    </SafeAreaView>
-
+                <Text
+                  style={[
+                    styles.label,
+                    focused && styles.activeLabel,
+                  ]}
+                >
+                  {route.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </SafeAreaView>
+    </View>
   );
-
 }
-
 const styles = StyleSheet.create({
-
   safeArea: {
-  
+  backgroundColor: "#FFFFFF",
 },
 
-  container: {
-
-    marginHorizontal: 14,
-
-    marginBottom: 8,
-
-    height: 82,
-
-    borderRadius: 30,
-
-    backgroundColor: "#FFFFFF",
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "space-evenly",
-
-    shadowColor: "#000",
-
-    shadowOpacity: 0.12,
-
-    shadowRadius: 18,
-
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-
-    elevation: 18,
-
+  safeContainer: {
+    backgroundColor: "transparent",
   },
+
+  container: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+
+  height: 68,
+
+  paddingHorizontal: 8,
+
+  backgroundColor: "#FFFFFF",
+
+  borderTopWidth: 1,
+  borderTopColor: "#E5E7EB",
+
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  shadowOffset: {
+    width: 0,
+    height: -2,
+  },
+
+  elevation: 8,
+},
 
   tab: {
-
     flex: 1,
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
     height: "100%",
 
-  },
-
-  orderButtonWrapper: {
-
-    marginTop: -8,
-
-    width: 92,
-
     alignItems: "center",
-
     justifyContent: "center",
-
-  },
-
-  orderButton: {
-
-    width: 88,
-
-    height: 88,
-
-    borderRadius: 44,
-
-    backgroundColor: ORANGE,
-
-    borderWidth: 5,
-
-    borderColor: "#FFFFFF",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    shadowColor: ORANGE,
-
-    shadowOpacity: 0.35,
-
-    shadowRadius: 14,
-
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-
-    elevation: 18,
-
-  },
-
-  orderText: {
-
-    color: "#FFFFFF",
-
-    fontSize: 10,
-
-    fontWeight: "800",
-
-    textAlign: "center",
-
-    marginTop: 3,
-
-    letterSpacing: 0.3,
-
   },
 
   label: {
-
-    marginTop: 5,
+    marginTop: 3,
 
     fontSize: 11,
 
     fontWeight: "600",
 
     color: GREY,
-
   },
 
   activeLabel: {
-
     color: ORANGE,
 
-    fontWeight: "800",
-
+    fontWeight: "700",
   },
 
-  activeLine: {
+  placeOrderTab: {
+    flex: 1.2,
 
-    marginTop: 5,
+    height: "100%",
 
-    width: 22,
+    alignItems: "center",
 
-    height: 3,
+    justifyContent: "center",
+  },
 
-    borderRadius: 2,
+  placeOrderIcon: {
+    width: 42,
+
+    height: 42,
+
+    borderRadius: 21,
 
     backgroundColor: ORANGE,
 
+    alignItems: "center",
+
+    justifyContent: "center",
   },
 
+  placeOrderLabel: {
+    marginTop: 4,
+
+    fontSize: 11,
+
+    fontWeight: "700",
+
+    color: ORANGE,
+
+    textAlign: "center",
+  },
 });

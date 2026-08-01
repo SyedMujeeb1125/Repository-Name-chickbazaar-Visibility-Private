@@ -1,16 +1,20 @@
 import React, {
-    useState,
+  useState,
 } from "react";
 
 import {
-    SafeAreaView,
+  SafeAreaView,
 } from "react-native-safe-area-context";
 
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import ProfileCard from "../components/profile/ProfileCard";
 import ProfileHeader from "../components/profile/ProfileHeader";
@@ -23,92 +27,132 @@ export default function AddAddressScreen({
   navigation,
 }: any) {
 
-  const [saving, setSaving] =
-    useState(false);
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
 
-  const [name, setName] =
-    useState("");
+  const [
+    name,
+    setName,
+  ] = useState("");
 
-  const [contactPerson, setContactPerson] =
-    useState("");
+  const [
+    contactPerson,
+    setContactPerson,
+  ] = useState("");
 
-  const [mobile, setMobile] =
-    useState("");
+  const [
+    mobile,
+    setMobile,
+  ] = useState("");
 
-  const [address, setAddress] =
-    useState("");
+  const [
+    address,
+    setAddress,
+  ] = useState("");
 
-  const [landmark, setLandmark] =
-    useState("");
+  const [
+    landmark,
+    setLandmark,
+  ] = useState("");
 
-  const [city, setCity] =
-    useState("");
+  const [
+    city,
+    setCity,
+  ] = useState("");
 
-  const [state, setState] =
-    useState("Karnataka");
+  const [
+    state,
+    setState,
+  ] = useState("Karnataka");
 
-  const [pincode, setPincode] =
-    useState("");
+  const [
+    pincode,
+    setPincode,
+  ] = useState("");
 
-  const [isDefault] =
-    useState(false);
+  const [
+    isDefault,
+  ] = useState(false);
 
   function validate() {
 
     if (!name.trim()) {
+
       Alert.alert(
         "Validation",
         "Please enter address name."
       );
+
       return false;
+
     }
 
     if (!contactPerson.trim()) {
+
       Alert.alert(
         "Validation",
         "Please enter contact person."
       );
+
       return false;
+
     }
 
     if (mobile.length !== 10) {
+
       Alert.alert(
         "Validation",
         "Please enter a valid mobile number."
       );
+
       return false;
+
     }
 
     if (!address.trim()) {
+
       Alert.alert(
         "Validation",
         "Please enter address."
       );
+
       return false;
+
     }
 
     if (!city.trim()) {
+
       Alert.alert(
         "Validation",
         "Please enter city."
       );
+
       return false;
+
     }
 
     if (!state.trim()) {
+
       Alert.alert(
         "Validation",
         "Please enter state."
       );
+
       return false;
+
     }
 
     if (pincode.length !== 6) {
+
       Alert.alert(
         "Validation",
         "Please enter a valid pincode."
       );
+
       return false;
+
     }
 
     return true;
@@ -190,14 +234,61 @@ export default function AddAddressScreen({
       >
 
         <ProfileHeader
-          title="Add Address"
-          subtitle="Create a new delivery address."
+          title="Add Delivery Address"
+          subtitle="Create a delivery location for orders."
           onBack={() =>
             navigation.goBack()
           }
         />
 
+        <View
+          style={styles.heroCard}
+        >
+
+          <View
+            style={styles.heroIcon}
+          >
+
+            <MaterialCommunityIcons
+              name="map-marker-plus"
+              size={34}
+              color="#F97316"
+            />
+
+          </View>
+
+          <View
+            style={styles.heroContent}
+          >
+
+            <Text
+              style={styles.heroTitle}
+            >
+              New Address
+            </Text>
+
+            <Text
+              style={styles.heroSubtitle}
+            >
+              Add your shop,
+              warehouse or home
+              address for faster
+              deliveries.
+            </Text>
+
+          </View>
+
+        </View>
+
         <ProfileCard>
+
+          <Text style={styles.sectionTitle}>
+  Address Details
+</Text>
+
+<Text style={styles.helperText}>
+  Enter the delivery location details below. This address will be used for order deliveries.
+</Text>
 
           <ProfileInput
             label="Address Name"
@@ -226,15 +317,16 @@ export default function AddAddressScreen({
             label="Complete Address"
             value={address}
             onChangeText={setAddress}
-            placeholder="Enter full address"
+            placeholder="Enter complete delivery address"
             multiline
             textAlignVertical="top"
             style={{
-              height: 110,
+              height: 120,
               paddingTop: 14,
             }}
           />
-                    <ProfileInput
+
+          <ProfileInput
             label="Landmark"
             value={landmark}
             onChangeText={setLandmark}
@@ -264,11 +356,15 @@ export default function AddAddressScreen({
             maxLength={6}
           />
 
-          <ProfileSaveButton
-            loading={saving}
-            title="SAVE ADDRESS"
-            onPress={saveAddress}
-          />
+          <View style={styles.saveContainer}>
+
+  <ProfileSaveButton
+    loading={saving}
+    title="SAVE ADDRESS"
+    onPress={saveAddress}
+  />
+
+</View>
 
         </ProfileCard>
 
@@ -288,8 +384,77 @@ const styles = StyleSheet.create({
   },
 
   container: {
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 140,
+  },
+
+  heroCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
     padding: 20,
-    paddingBottom: 40,
+    marginBottom: 22,
+
+    flexDirection: "row",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 4,
+  },
+
+  heroIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#FFF7ED",
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    marginRight: 18,
+  },
+
+  heroContent: {
+    flex: 1,
+  },
+
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+
+  heroSubtitle: {
+    marginTop: 6,
+    fontSize: 15,
+    color: "#64748B",
+    lineHeight: 22,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginBottom: 16,
+  },
+
+  helperText: {
+    marginTop: -8,
+    marginBottom: 18,
+    fontSize: 14,
+    color: "#64748B",
+    lineHeight: 22,
+  },
+
+  saveContainer: {
+    marginTop: 12,
   },
 
 });

@@ -9,7 +9,7 @@ type Props = {
   icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
   iconBackground?: string;
 
-  title: string;
+  title?: string;
   subtitle?: string;
 
   children: React.ReactNode;
@@ -72,27 +72,32 @@ export default function DashboardActionCard({
         >
           <MaterialCommunityIcons
             name={icon}
-            size={24}
+            size={22}
             color="#FFFFFF"
           />
         </View>
 
         <View style={styles.headerContent}>
-          <Text
-            numberOfLines={1}
-            style={styles.title}
-          >
-            {title}
-          </Text>
+          {!!title && (
+  <Text
+    numberOfLines={1}
+    style={styles.title}
+  >
+    {title}
+  </Text>
+)}
 
           {!!subtitle && (
-            <Text
-              numberOfLines={2}
-              style={styles.subtitle}
-            >
-              {subtitle}
-            </Text>
-          )}
+  <Text
+    numberOfLines={2}
+    style={[
+      styles.subtitle,
+      !title && { marginTop: 0 },
+    ]}
+  >
+    {subtitle}
+  </Text>
+)}
         </View>
       </View>
 
@@ -117,24 +122,24 @@ export default function DashboardActionCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+  backgroundColor: "#FFFFFF",
 
-    borderRadius: 24,
+  borderRadius: 22,
 
-    padding: 24,
+  paddingHorizontal: 18,
+  paddingTop: 20,
+  paddingBottom: 20,
 
-    minHeight: 280,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 14,
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-
-    elevation: 5,
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
+  shadowOffset: {
+    width: 0,
+    height: 5,
   },
+
+  elevation: 4,
+},
 
   badge: {
     alignSelf: "flex-start",
@@ -142,18 +147,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
 
     borderRadius: 999,
 
-    marginBottom: 18,
+    marginBottom: 12,
   },
 
   badgeText: {
     marginLeft: 6,
 
-    fontSize: 11,
+    fontSize: 10,
 
     fontWeight: "700",
 
@@ -169,10 +174,10 @@ const styles = StyleSheet.create({
   },
 
   statusCircle: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
 
-    borderRadius: 24,
+    borderRadius: 20,
 
     justifyContent: "center",
 
@@ -182,23 +187,23 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
 
-    marginLeft: 16,
+    marginLeft: 12,
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 18,
 
-    fontWeight: "700",
+    fontWeight: "800",
 
     color: "#111827",
   },
 
   subtitle: {
-    marginTop: 4,
+    marginTop: 2,
 
-    fontSize: 14,
+    fontSize: 13,
 
-    lineHeight: 20,
+    lineHeight: 18,
 
     color: "#6B7280",
   },
@@ -208,14 +213,14 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#F1F5F9",
 
-    marginVertical: 20,
+    marginVertical: 0,
   },
 
   content: {
-    flex: 1,
+    gap: 2,
   },
 
   footer: {
-    marginTop: "auto",
+    marginTop: 16,
   },
 });

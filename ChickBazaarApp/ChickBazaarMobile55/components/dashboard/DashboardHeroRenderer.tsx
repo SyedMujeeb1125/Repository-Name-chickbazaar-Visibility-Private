@@ -1,5 +1,7 @@
 import React from "react";
 
+import { DashboardState } from "../../utils/dashboard";
+
 import AdditionalStockCard from "./AdditionalStockCard";
 import DeliveredCard from "./DeliveredCard";
 import OrderCard from "./OrderCard";
@@ -9,35 +11,27 @@ import ReviewTomorrowCard from "./ReviewTomorrowCard";
 import TrackingCard from "./TrackingCard";
 import VehicleAssignedCard from "./VehicleAssignedCard";
 
-export type BusinessStatus =
-  | "NO_ORDER"
-  | "BOOK_TOMORROW"
-  | "ORDER_IN_PROGRESS"
-  | "TRACK_ORDER"
-  | "PAYMENT_PENDING"
-  | "ADDITIONAL_STOCK"
-  | "WAITING_FOR_RATE"
-  | "REVIEW_TOMORROW"
-  | "DELIVERED";
-
 type Props = {
-  state?: BusinessStatus;
+  state?: DashboardState;
+
+  orderLabel?: string;
 
   account?: {
-    currentBill?: number;
-    amountPaid?: number;
     balanceDue?: number;
   };
 
   deliveryStatus?: string;
 
   orderWeight?: number;
+
   rate?: number;
+
   estimatedAmount?: number;
 
   deliveryWindow?: string;
 
   driverName?: string;
+
   driverPhone?: string;
 
   vehicleNumber?: string;
@@ -52,50 +46,33 @@ type Props = {
   };
 
   onPlaceOrder: () => void;
+
   onTrackOrder: () => void;
 
   onRepeatOrder?: () => void;
-  onChangeQuantity?: () => void;
 
-  placingRepeatOrder?: boolean;
+  onMakePayment?: () => void;
 };
 
-function getTrackingState(
-  deliveryStatus?: string
-):
-  | "ORDER"
-  | "VEHICLE"
-  | "LIVE" {
-  const status = (deliveryStatus ?? "")
-    .toLowerCase()
-    .replace(/\s+/g, "_");
-
-  switch (status) {
-    case "vehicle_assigned":
-      return "VEHICLE";
-
-    case "out_for_delivery":
-      return "LIVE";
-
-    default:
-      return "ORDER";
-  }
-}
-
 export default function DashboardHeroRenderer({
-  state,
+  state = DashboardState.NO_ORDER,
+
+  orderLabel = "Today's Order",
 
   account,
 
   deliveryStatus,
 
   orderWeight,
+
   rate,
+
   estimatedAmount,
 
   deliveryWindow,
 
   driverName,
+
   driverPhone,
 
   vehicleNumber,
@@ -105,50 +82,32 @@ export default function DashboardHeroRenderer({
   repeatOrder,
 
   onPlaceOrder,
+
   onTrackOrder,
 
   onRepeatOrder,
+
+  onMakePayment,
 }: Props) {
   switch (state) {
-    case "BOOK_TOMORROW":
-    case "NO_ORDER":
+    case DashboardState.NO_ORDER:
+    case DashboardState.READY_FOR_TOMORROW_ORDER:
       return (
         <OrderCard
+          orderLabel={orderLabel}
+          deliveryWindow={deliveryWindow}
+          liveRate={rate}
           onPlaceOrder={onPlaceOrder}
         />
       );
 
-    case "TRACK_ORDER":
-    case "ORDER_IN_PROGRESS": {
-      const trackingState =
-        getTrackingState(deliveryStatus);
-
-      if (trackingState === "VEHICLE") {
-        return (
-          <VehicleAssignedCard
-            vehicleNumber={vehicleNumber}
-            driverName={driverName}
-            driverPhone={driverPhone}
-            deliveryWindow={deliveryWindow}
-            onTrackOrder={onTrackOrder}
-          />
-        );
-      }
-
-      if (trackingState === "LIVE") {
-        return (
-          <OutForDeliveryCard
-            driverName={driverName}
-            driverPhone={driverPhone}
-            eta={eta}
-            vehicleNumber={vehicleNumber}
-            onTrackLive={onTrackOrder}
-          />
-        );
-      }
-
+    case DashboardState.ORDER_CONFIRMED:
+    case DashboardState.FARM_ALLOCATED:
+    case DashboardState.PREPARING:
       return (
         <TrackingCard
+          orderLabel={orderLabel}
+          statusTitle={deliveryStatus ?? "Order Confirmed"}
           orderWeight={orderWeight}
           rate={rate}
           estimatedAmount={estimatedAmount}
@@ -156,37 +115,64 @@ export default function DashboardHeroRenderer({
           onTrackOrder={onTrackOrder}
         />
       );
-    }
 
-    case "PAYMENT_PENDING":
+    case DashboardState.VEHICLE_ASSIGNED:
       return (
-        <PaymentPendingCard
-          outstandingAmount={
-            account?.balanceDue
-          }
-          paymentMethod="UPI / Bank Transfer"
-          dueDate="Pay Today"
-          lastOrderNumber="Latest Order"
-          onMakePayment={() => {}}
+        <VehicleAssignedCard
+          orderLabel={orderLabel}
+          vehicleNumber={vehicleNumber}
+          driverName={driverName}
+          driverPhone={driverPhone}
+          deliveryWindow={deliveryWindow}
+          eta={eta}
+          onTrackOrder={onTrackOrder}
         />
       );
 
-    case "ADDITIONAL_STOCK":
+    case DashboardState.OUT_FOR_DELIVERY:
+      return (
+        <OutForDeliveryCard
+          orderLabel={orderLabel}
+          driverName={driverName}
+          driverPhone={driverPhone}
+          vehicleNumber={vehicleNumber}
+          eta={eta}
+          onTrackLive={onTrackOrder}
+        />
+      );
+
+    case DashboardState.PAYMENT_PENDING:
+      return (
+        <PaymentPendingCard
+          orderLabel={orderLabel}
+          outstandingAmount={account?.balanceDue}
+          lastOrderNumber="Latest Order"
+          onMakePayment={
+            onMakePayment ?? (() => {})
+          }
+        />
+      );
+
+    case DashboardState.ADDITIONAL_ORDER:
       return (
         <AdditionalStockCard
           onRequest={onPlaceOrder}
         />
       );
 
-    case "REVIEW_TOMORROW":
+    case DashboardState.SCHEDULE_CONFIRMATION_PENDING:
+    case DashboardState.FUTURE_ORDER_CONFIRMED:
       return (
         <ReviewTomorrowCard
-          rate={repeatOrder?.rate ?? 0}
+          orderLabel={orderLabel}
+          rate={repeatOrder?.rate ?? rate ?? 0}
           suggestedWeight={
             repeatOrder?.weight ?? 0
           }
           estimatedAmount={
-            repeatOrder?.amount ?? 0
+            repeatOrder?.amount ??
+            estimatedAmount ??
+            0
           }
           onReview={
             onRepeatOrder ?? (() => {})
@@ -194,9 +180,11 @@ export default function DashboardHeroRenderer({
         />
       );
 
-    case "DELIVERED":
+    case DashboardState.DELIVERED:
+    case DashboardState.INVOICE_READY:
       return (
         <DeliveredCard
+          orderLabel={orderLabel}
           deliveredOn={
             repeatOrder?.deliveredAt
           }
@@ -207,36 +195,29 @@ export default function DashboardHeroRenderer({
             repeatOrder?.amount
           }
           paymentStatus={
-            account?.balanceDue && account.balanceDue > 0
+            account?.balanceDue &&
+            account.balanceDue > 0
               ? "Pending"
               : "Paid"
           }
-          onPlaceTomorrowOrder={
-            onPlaceOrder
-          }
-        />
-      );
-
-    case "WAITING_FOR_RATE":
-      return (
-        <ReviewTomorrowCard
-          rate={0}
-          suggestedWeight={0}
-          estimatedAmount={0}
-          onReview={() => {}}
+          nextActionLabel="BOOK TOMORROW'S ORDER"
+          onNextAction={onPlaceOrder}
         />
       );
 
     default:
       if (__DEV__) {
         console.warn(
-          "Unknown DashboardHeroRenderer state:",
+          "Unknown DashboardState:",
           state
         );
       }
 
       return (
         <OrderCard
+          orderLabel={orderLabel}
+          deliveryWindow={deliveryWindow}
+          liveRate={rate}
           onPlaceOrder={onPlaceOrder}
         />
       );

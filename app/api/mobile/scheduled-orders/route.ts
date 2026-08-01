@@ -1,171 +1,144 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-
 import { supabase } from "@/lib/supabase";
-
-import { createId } from "@/lib/storage";
 
 export async function GET(
   request: NextRequest
 ) {
-
   try {
-
     const mobile =
-      request.nextUrl.searchParams.get(
-        "mobile"
-      );
+      request.nextUrl.searchParams.get("mobile");
 
     if (!mobile) {
-
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Mobile number is required.",
+          message: "Mobile number is required.",
         },
         {
           status: 400,
         }
       );
-
     }
 
     const {
       data: retailer,
       error: retailerError,
     } = await supabase
-
       .from("retailers")
-
       .select("id")
-
       .eq("mobile", mobile)
+      .maybeSingle();
 
-      .single();
-
-    if (
-      retailerError ||
-      !retailer
-    ) {
+    if (retailerError) {
+      console.error(
+        "[SCHEDULE][GET][RETAILER]",
+        retailerError
+      );
 
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Retailer not found.",
+          message: "Unable to fetch retailer.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    if (!retailer) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Retailer not found.",
         },
         {
           status: 404,
         }
       );
-
     }
 
     const {
       data: schedules,
       error,
     } = await supabase
-
       .from("scheduled_orders")
-
       .select("*")
-
-      .eq(
-        "retailer_id",
-        retailer.id
-      )
-
-      .eq(
-        "is_active",
-        true
-      )
-
-      .order(
-        "created_at",
-        {
-          ascending: true,
-        }
-      );
+      .eq("retailer_id", retailer.id)
+      .eq("is_active", true)
+      .order("created_at", {
+        ascending: true,
+      });
 
     if (error) {
+      console.error(
+        "[SCHEDULE][GET]",
+        error
+      );
 
       return NextResponse.json(
         {
           success: false,
-          message:
-            error.message,
+          message: error.message,
         },
         {
           status: 500,
         }
       );
-
     }
 
     const schedulesWithDays =
       await Promise.all(
-
         (schedules ?? []).map(
-          async (
-            schedule: any
-          ) => {
-
+          async (schedule: any) => {
             const {
               data: days,
+              error: daysError,
             } = await supabase
-
               .from(
                 "scheduled_order_days"
               )
-
-              .select(
-                "weekday"
-              )
-
+              .select("weekday")
               .eq(
                 "schedule_id",
                 schedule.id
               )
+              .order("weekday", {
+                ascending: true,
+              });
 
-              .order(
-                "weekday",
-                {
-                  ascending:
-                    true,
-                }
+            if (daysError) {
+              console.error(
+                "[SCHEDULE][DAYS]",
+                daysError
               );
+            }
 
             return {
-
               ...schedule,
-
               weekdays:
                 (days ?? []).map(
-                  (
-                    d: any
-                  ) =>
+                  (d: any) =>
                     d.weekday
                 ),
-
             };
-
           }
         )
-
       );
 
     return NextResponse.json({
-
       success: true,
-
       schedules:
         schedulesWithDays,
-
     });
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "[SCHEDULE][GET]",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -177,16 +150,13 @@ export async function GET(
         status: 500,
       }
     );
-
   }
-
 }
 
 export async function POST(
   request: NextRequest
 ) {
-
-    try {
+  try {
 
     const body =
       await request.json();
@@ -207,43 +177,61 @@ export async function POST(
 
     } = body;
 
-    if (
-      !mobile ||
-      !frequency ||
-      !quantityKg
-    ) {
-
+    if (!mobile) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Missing required fields.",
+            "Mobile number is required.",
         },
         {
           status: 400,
         }
       );
+    }
 
+    if (!frequency) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Frequency is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      !quantityKg ||
+      Number(quantityKg) <= 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Invalid quantity.",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
     const {
       data: retailer,
       error: retailerError,
     } = await supabase
-
       .from("retailers")
-
       .select("id")
-
       .eq("mobile", mobile)
-
-      .single();
+      .maybeSingle();
 
     if (
       retailerError ||
       !retailer
     ) {
-
       return NextResponse.json(
         {
           success: false,
@@ -254,22 +242,20 @@ export async function POST(
           status: 404,
         }
       );
-
     }
+
+    const scheduleId =
+      crypto.randomUUID();
 
     const {
       data,
       error,
     } = await supabase
-
       .from(
         "scheduled_orders"
       )
-
       .insert({
-
-        id:
-          createId("schedule"),
+        id: scheduleId,
 
         retailer_id:
           retailer.id,
@@ -282,10 +268,10 @@ export async function POST(
           dayOfMonth ?? null,
 
         quantity_kg:
-          quantityKg,
+          Number(quantityKg),
 
         auto_confirm:
-          autoConfirm ?? false,
+          Boolean(autoConfirm),
 
         is_active: true,
 
@@ -296,12 +282,14 @@ export async function POST(
           new Date().toISOString(),
 
       })
-
       .select()
-
       .single();
 
     if (error) {
+      console.error(
+        "[SCHEDULE][CREATE]",
+        error
+      );
 
       return NextResponse.json(
         {
@@ -313,56 +301,45 @@ export async function POST(
           status: 500,
         }
       );
-
     }
 
-    // -------------------------------------
+    // ===== CONTINUE WITH PART 2 =====
+
+        // ----------------------------------
     // Save weekdays
-    // -------------------------------------
+    // ----------------------------------
 
     if (
-      Array.isArray(
-        weekdays
-      ) &&
+      Array.isArray(weekdays) &&
       weekdays.length > 0
     ) {
+      const rows = weekdays.map(
+        (day: number) => ({
+          id: crypto.randomUUID(),
 
-      const rows =
-        weekdays.map(
-          (
-            day: number
-          ) => ({
+          schedule_id:
+            scheduleId,
 
-            id:
-              createId(
-                "schedule-day"
-              ),
+          weekday: day,
 
-            schedule_id:
-              data.id,
-
-            weekday:
-              day,
-
-            created_at:
-              new Date().toISOString(),
-
-          })
-        );
+          created_at:
+            new Date().toISOString(),
+        })
+      );
 
       const {
         error: weekdayError,
       } = await supabase
-
         .from(
           "scheduled_order_days"
         )
-
         .insert(rows);
 
-      if (
-        weekdayError
-      ) {
+      if (weekdayError) {
+        console.error(
+          "[SCHEDULE][CREATE][DAYS]",
+          weekdayError
+        );
 
         return NextResponse.json(
           {
@@ -374,22 +351,20 @@ export async function POST(
             status: 500,
           }
         );
-
       }
-
     }
 
     return NextResponse.json({
-
       success: true,
-
       schedule: data,
-
     });
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "[SCHEDULE][CREATE]",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -401,42 +376,72 @@ export async function POST(
         status: 500,
       }
     );
-
   }
-
 }
 
 export async function PUT(
   request: NextRequest
 ) {
-
-    try {
+  try {
 
     const body =
       await request.json();
 
     const {
-
       id,
-
       frequency,
-
       weekdays,
-
       dayOfMonth,
-
       quantityKg,
-
       autoConfirm,
-
     } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Schedule ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!frequency) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Frequency is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      !quantityKg ||
+      Number(quantityKg) <= 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Invalid quantity.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     const {
       error,
     } = await supabase
-
       .from("scheduled_orders")
-
       .update({
 
         frequency,
@@ -447,19 +452,22 @@ export async function PUT(
           dayOfMonth ?? null,
 
         quantity_kg:
-          quantityKg,
+          Number(quantityKg),
 
         auto_confirm:
-          autoConfirm ?? false,
+          Boolean(autoConfirm),
 
         updated_at:
           new Date().toISOString(),
 
       })
-
       .eq("id", id);
 
     if (error) {
+      console.error(
+        "[SCHEDULE][UPDATE]",
+        error
+      );
 
       return NextResponse.json(
         {
@@ -471,39 +479,38 @@ export async function PUT(
           status: 500,
         }
       );
-
     }
 
-    await supabase
-
+    const {
+      error: deleteError,
+    } = await supabase
       .from(
         "scheduled_order_days"
       )
-
       .delete()
-
       .eq(
         "schedule_id",
         id
       );
 
+    if (deleteError) {
+      console.error(
+        "[SCHEDULE][UPDATE][DELETE_DAYS]",
+        deleteError
+      );
+    }
+
     if (
-      Array.isArray(
-        weekdays
-      ) &&
+      Array.isArray(weekdays) &&
       weekdays.length > 0
     ) {
-
       const rows =
         weekdays.map(
           (
             day: number
           ) => ({
-
             id:
-              createId(
-                "schedule-day"
-              ),
+              crypto.randomUUID(),
 
             schedule_id:
               id,
@@ -513,29 +520,46 @@ export async function PUT(
 
             created_at:
               new Date().toISOString(),
-
           })
         );
 
-      await supabase
-
+      const {
+        error: insertError,
+      } = await supabase
         .from(
           "scheduled_order_days"
         )
-
         .insert(rows);
 
+      if (insertError) {
+        console.error(
+          "[SCHEDULE][UPDATE][INSERT_DAYS]",
+          insertError
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              insertError.message,
+          },
+          {
+            status: 500,
+          }
+        );
+      }
     }
 
     return NextResponse.json({
-
       success: true,
-
     });
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "[SCHEDULE][UPDATE]",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -547,31 +571,38 @@ export async function PUT(
         status: 500,
       }
     );
-
   }
-
 }
 
 export async function DELETE(
   request: NextRequest
 ) {
-
   try {
 
     const body =
       await request.json();
 
-    const { id } =
-      body;
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Schedule ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     const {
       error,
     } = await supabase
-
       .from(
         "scheduled_orders"
       )
-
       .update({
 
         is_active: false,
@@ -580,10 +611,13 @@ export async function DELETE(
           new Date().toISOString(),
 
       })
-
       .eq("id", id);
 
     if (error) {
+      console.error(
+        "[SCHEDULE][DELETE]",
+        error
+      );
 
       return NextResponse.json(
         {
@@ -595,18 +629,18 @@ export async function DELETE(
           status: 500,
         }
       );
-
     }
 
     return NextResponse.json({
-
       success: true,
-
     });
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "[SCHEDULE][DELETE]",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -618,7 +652,5 @@ export async function DELETE(
         status: 500,
       }
     );
-
   }
-
 }

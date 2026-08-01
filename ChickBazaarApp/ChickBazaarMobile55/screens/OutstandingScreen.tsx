@@ -89,18 +89,38 @@ export default function OutstandingScreen({
 
   }
 
-  const creditLimit =
-    Number(retailer.creditLimit || 0);
-
-  const availableCredit =
-    Number(retailer.availableCredit || 0);
-
   const outstanding =
     Number(retailer.outstanding || 0);
 
+  const totalOrders =
+    Number(
+      retailer.totalOrders ??
+      retailer.orders ??
+      retailer.orderCount ??
+      0
+    );
+
+  const purchasedKg =
+    Number(
+      retailer.totalKg ??
+      retailer.purchasedKg ??
+      retailer.totalQuantity ??
+      0
+    );
+
+  const totalPaid =
+    Number(
+      retailer.totalPaid ??
+      retailer.amountPaid ??
+      0
+    );
+
   return (
 
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+  style={styles.safeArea}
+  edges={["top"]}
+>
 
       <ScrollView
         contentContainerStyle={styles.container}
@@ -108,97 +128,116 @@ export default function OutstandingScreen({
       >
 
         <Text style={styles.title}>
-          Business
+          Business Overview
         </Text>
 
         <Text style={styles.subtitle}>
-          Manage your credit, payments and
-          business account.
+          Track your outstanding balance,
+          payments and purchase history.
         </Text>
 
         <OutstandingCard
           outstanding={outstanding}
-          creditLimit={creditLimit}
+          creditLimit={outstanding}
         />
 
-        {/* Credit Overview */}
+        <View style={styles.kpiGrid}>
 
-        <View style={styles.card}>
+          <View style={styles.kpiCard}>
 
-          <View style={styles.sectionHeader}>
+            <View style={styles.iconCircle}>
 
-            <MaterialCommunityIcons
-              name="credit-card-outline"
-              size={22}
-              color="#F97316"
-            />
+              <MaterialCommunityIcons
+                name="currency-inr"
+                size={24}
+                color="#F97316"
+              />
 
-            <Text style={styles.sectionTitle}>
-              Credit Overview
+            </View>
+
+            <Text style={styles.kpiValue}>
+              ₹{outstanding.toLocaleString()}
+            </Text>
+
+            <Text style={styles.kpiLabel}>
+              Outstanding
             </Text>
 
           </View>
 
-          <View style={styles.summaryRow}>
+          <View style={styles.kpiCard}>
 
-            <View style={styles.summaryItem}>
+            <View style={styles.iconCircle}>
 
-              <Text style={styles.summaryLabel}>
-                Available Credit
-              </Text>
-
-              <Text
-                style={[
-                  styles.summaryValue,
-                  {
-                    color: "#16A34A",
-                  },
-                ]}
-              >
-                ₹{availableCredit.toLocaleString()}
-              </Text>
+              <MaterialCommunityIcons
+                name="basket-check"
+                size={24}
+                color="#2563EB"
+              />
 
             </View>
 
-            <View style={styles.summaryDivider} />
-
-            <View style={styles.summaryItem}>
-
-              <Text style={styles.summaryLabel}>
-                Credit Limit
-              </Text>
-
-              <Text style={styles.summaryValue}>
-                ₹{creditLimit.toLocaleString()}
-              </Text>
-
-            </View>
-
-          </View>
-
-          <View style={styles.categoryBox}>
-
-            <MaterialCommunityIcons
-              name="shield-check"
-              size={20}
-              color="#F97316"
-            />
-
-            <Text style={styles.categoryText}>
-              Credit Category :
+            <Text style={styles.kpiValue}>
+              {totalOrders}
             </Text>
 
-            <Text style={styles.categoryValue}>
-              {(retailer.creditCategory || "NEW").toUpperCase()}
+            <Text style={styles.kpiLabel}>
+              Orders
             </Text>
 
           </View>
 
         </View>
 
-        {/* Quick Actions */}
+        <View style={styles.kpiGrid}>
 
-        <Text style={styles.sectionHeading}>
+          <View style={styles.kpiCard}>
+
+            <View style={styles.iconCircle}>
+
+              <MaterialCommunityIcons
+                name="food-drumstick"
+                size={24}
+                color="#16A34A"
+              />
+
+            </View>
+
+            <Text style={styles.kpiValue}>
+              {purchasedKg.toLocaleString()} kg
+            </Text>
+
+            <Text style={styles.kpiLabel}>
+              Purchased
+            </Text>
+
+          </View>
+
+          <View style={styles.kpiCard}>
+
+            <View style={styles.iconCircle}>
+
+              <MaterialCommunityIcons
+                name="cash-check"
+                size={24}
+                color="#7C3AED"
+              />
+
+            </View>
+
+            <Text style={styles.kpiValue}>
+              ₹{totalPaid.toLocaleString()}
+            </Text>
+
+            <Text style={styles.kpiLabel}>
+              Total Paid
+            </Text>
+
+          </View>
+
+        </View>
+
+                <Text style={styles.sectionHeading}>
           Quick Actions
         </Text>
 
@@ -211,14 +250,29 @@ export default function OutstandingScreen({
             }
           >
 
-            <MaterialCommunityIcons
-              name="cash-multiple"
-              size={34}
-              color="#F97316"
-            />
+            <View
+              style={[
+                styles.actionIcon,
+                {
+                  backgroundColor: "#FFF7ED",
+                },
+              ]}
+            >
+
+              <MaterialCommunityIcons
+                name="cash-multiple"
+                size={28}
+                color="#F97316"
+              />
+
+            </View>
 
             <Text style={styles.actionTitle}>
               Payments
+            </Text>
+
+            <Text style={styles.actionSubtitle}>
+              View payment history
             </Text>
 
           </TouchableOpacity>
@@ -230,14 +284,29 @@ export default function OutstandingScreen({
             }
           >
 
-            <MaterialCommunityIcons
-              name="history"
-              size={34}
-              color="#2563EB"
-            />
+            <View
+              style={[
+                styles.actionIcon,
+                {
+                  backgroundColor: "#EFF6FF",
+                },
+              ]}
+            >
+
+              <MaterialCommunityIcons
+                name="history"
+                size={28}
+                color="#2563EB"
+              />
+
+            </View>
 
             <Text style={styles.actionTitle}>
               Activity
+            </Text>
+
+            <Text style={styles.actionSubtitle}>
+              Orders & invoices
             </Text>
 
           </TouchableOpacity>
@@ -268,19 +337,26 @@ export default function OutstandingScreen({
 
           <View style={styles.emptyCard}>
 
-            <MaterialCommunityIcons
-              name="file-document-outline"
-              size={42}
-              color="#CBD5E1"
-            />
+            <View style={styles.emptyIcon}>
+
+              <MaterialCommunityIcons
+                name="file-document-outline"
+                size={46}
+                color="#CBD5E1"
+              />
+
+            </View>
 
             <Text style={styles.emptyTitle}>
-              No Transactions Yet
+              No Business Activity Yet
             </Text>
 
             <Text style={styles.emptyText}>
-              Your payment and invoice
-              history will appear here.
+              Your invoices, payments and
+              transaction history will
+              automatically appear here as
+              you start ordering from
+              ChickBazaar.
             </Text>
 
           </View>
@@ -293,7 +369,9 @@ export default function OutstandingScreen({
 
   );
 
-} const styles = StyleSheet.create({
+}
+
+const styles = StyleSheet.create({
 
   safeArea: {
     flex: 1,
@@ -325,8 +403,8 @@ export default function OutstandingScreen({
 
   container: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 40,
+    paddingTop: 18,
+    paddingBottom: 160,
   },
 
   title: {
@@ -343,103 +421,71 @@ export default function OutstandingScreen({
     lineHeight: 24,
   },
 
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 22,
-    marginBottom: 22,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-
-    elevation: 5,
-  },
-
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-
-  sectionTitle: {
-    marginLeft: 10,
-    fontSize: 19,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-
-  summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  summaryItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-
-  summaryDivider: {
-    width: 1,
-    height: 60,
-    backgroundColor: "#E2E8F0",
-    marginHorizontal: 10,
-  },
-
-  summaryLabel: {
-    color: "#64748B",
-    fontSize: 14,
-  },
-
-  summaryValue: {
-    marginTop: 10,
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-
-  categoryBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF7ED",
-    borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-
-  categoryText: {
-    marginLeft: 10,
-    color: "#7C2D12",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
-  categoryValue: {
-    marginLeft: 6,
-    color: "#EA580C",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-
   sectionHeading: {
     fontSize: 22,
     fontWeight: "800",
     color: "#0F172A",
+    marginTop: 8,
     marginBottom: 14,
+  },
+
+  kpiGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+
+  kpiCard: {
+    width: "48%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 4,
+  },
+
+  iconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+
+  kpiValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
+    textAlign: "center",
+  },
+
+  kpiLabel: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#64748B",
+    textAlign: "center",
   },
 
   actionRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 26,
   },
 
   actionCard: {
-    flex: 1,
+    width: "48%",
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
     paddingVertical: 24,
@@ -456,17 +502,33 @@ export default function OutstandingScreen({
     elevation: 4,
   },
 
+  actionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
   actionTitle: {
-    marginTop: 12,
     fontSize: 16,
     fontWeight: "700",
     color: "#0F172A",
   },
 
+  actionSubtitle: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+    paddingHorizontal: 10,
+  },
+
   emptyCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    paddingVertical: 40,
+    paddingVertical: 42,
     paddingHorizontal: 24,
     alignItems: "center",
 
@@ -481,11 +543,21 @@ export default function OutstandingScreen({
     elevation: 4,
   },
 
+  emptyIcon: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 18,
+  },
+
   emptyTitle: {
-    marginTop: 16,
     fontSize: 20,
     fontWeight: "700",
     color: "#334155",
+    textAlign: "center",
   },
 
   emptyText: {

@@ -1,37 +1,32 @@
 import { NextResponse } from "next/server";
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
-export async function GET(
-  request: Request
-) {
-  const { searchParams } =
-    new URL(request.url);
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
 
-  const mobile =
-    searchParams.get("mobile");
+    const mobile = searchParams.get("mobile");
 
-  if (!mobile) {
+    if (!mobile) {
+      return NextResponse.json([]);
+    }
+
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("mobile", mobile)
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      console.error("[MY_ORDERS]", error);
+      return NextResponse.json([]);
+    }
+
+    return NextResponse.json(orders ?? []);
+  } catch (error) {
+    console.error("[MY_ORDERS]", error);
     return NextResponse.json([]);
   }
-
-  const db = await readDb();
-
-  const orders = db.orders
-    .filter(
-      (o: any) =>
-        o.mobile === mobile
-    )
-    .sort(
-      (a: any, b: any) =>
-        new Date(
-          b.createdAt
-        ).getTime() -
-        new Date(
-          a.createdAt
-        ).getTime()
-    );
-
-  return NextResponse.json(
-    orders
-  );
 }

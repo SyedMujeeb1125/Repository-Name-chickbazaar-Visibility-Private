@@ -17,6 +17,8 @@ import {
   View,
 } from "react-native";
 
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
 import NotificationCard from "../components/notifications/NotificationCard";
 
 type ActivityItem = {
@@ -60,7 +62,11 @@ export default function ActivityScreen() {
       const data =
         await response.json();
 
-      setActivities(data);
+      setActivities(
+        Array.isArray(data)
+          ? data
+          : []
+      );
 
     } catch (error) {
 
@@ -112,118 +118,189 @@ export default function ActivityScreen() {
         style={styles.container}
       >
 
-        <View style={styles.header}>
+        <View
+          style={styles.header}
+        >
 
-  <View style={styles.headerLeft}>
+          <View
+            style={styles.headerLeft}
+          >
 
-  <Text style={styles.title}>
-    Activity
-  </Text>
+            <Text
+              style={styles.title}
+            >
+              Activity
+            </Text>
 
-  <Text style={styles.subtitle}>
-    Orders • Payments • Rates • Offers
-  </Text>
+            <Text
+              style={styles.subtitle}
+            >
+              Orders • Payments •
+              Rates • Offers
+            </Text>
 
-</View>
+          </View>
 
-  <View style={styles.activityBadge}>
+          <View
+            style={styles.activityBadge}
+          >
 
-  <Text style={styles.activityBadgeText}>
-    {activities.length}
-  </Text>
+            <Text
+              style={
+                styles.activityBadgeCount
+              }
+            >
+              {activities.length}
+            </Text>
 
-</View>
+            <Text
+              style={
+                styles.activityBadgeLabel
+              }
+            >
+              NEW
+            </Text>
 
-</View>
+          </View>
 
-<View style={styles.filterRow}>
+        </View>
 
-  <TouchableOpacity style={styles.activeChip}>
-    <Text style={styles.activeChipText}>
-      All
-    </Text>
-  </TouchableOpacity>
+        <View
+          style={styles.filterRow}
+        >
 
-  <TouchableOpacity style={styles.chip}>
-    <Text style={styles.chipText}>
-      Orders
-    </Text>
-  </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.activeChip}
+          >
 
-  <TouchableOpacity style={styles.chip}>
-    <Text style={styles.chipText}>
-      Payments
-    </Text>
-  </TouchableOpacity>
+            <Text
+              style={
+                styles.activeChipText
+              }
+            >
+              All
+            </Text>
 
-  <TouchableOpacity style={styles.chip}>
-    <Text style={styles.chipText}>
-      Rates
-    </Text>
-  </TouchableOpacity>
+          </TouchableOpacity>
 
-</View>
+          <TouchableOpacity
+            style={styles.chip}
+          >
+
+            <Text
+              style={styles.chipText}
+            >
+              Orders
+            </Text>
+
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.chip}
+          >
+
+            <Text
+              style={styles.chipText}
+            >
+              Payments
+            </Text>
+
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.chip}
+          >
+
+            <Text
+              style={styles.chipText}
+            >
+              Rates
+            </Text>
+
+          </TouchableOpacity>
+
+        </View>
 
         <FlatList
 
-        
-
           data={activities}
 
-          keyExtractor={(item) =>
-            item.id
+          keyExtractor={(
+            item,
+            index,
+          ) =>
+            String(
+              item.id ??
+              index
+            )
           }
-          
+
+          contentContainerStyle={
+            styles.listContent
+          }
 
           refreshControl={
+
             <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
+              refreshing={
+                refreshing
+              }
+              onRefresh={
+                onRefresh
+              }
             />
-            
+
           }
 
           ListEmptyComponent={
 
             <View
-              style={styles.emptyContainer}
+              style={
+                styles.emptyContainer
+              }
             >
 
               <View
-  style={styles.emptyIcon}
->
+                style={
+                  styles.emptyIcon
+                }
+              >
 
-  <Text
-    style={{
-      fontSize: 60,
-    }}
-  >
-    🔔
-  </Text>
+                <MaterialCommunityIcons
+                  name="bell-outline"
+                  size={56}
+                  color="#CBD5E1"
+                />
 
-</View>
+              </View>
 
-<Text
-  style={styles.emptyTitle}
->
-  No Notifications Yet
-</Text>
+              <Text
+                style={
+                  styles.emptyTitle
+                }
+              >
+                No Notifications Yet
+              </Text>
 
-<Text
-  style={styles.emptyText}
->
-
-  We'll notify you about
-  orders, payments,
-  live rates and deliveries.
-
-</Text>
+              <Text
+                style={
+                  styles.emptyText
+                }
+              >
+                We'll notify you
+                about orders,
+                payments, live
+                rates, offers and
+                deliveries here.
+              </Text>
 
             </View>
 
           }
 
-          renderItem={({ item }) => (
+          renderItem={({
+            item,
+          }) => (
 
             <NotificationCard
 
@@ -247,130 +324,171 @@ export default function ActivityScreen() {
 
       </View>
 
-      
-
     </SafeAreaView>
 
   );
 
 }
 
+const styles = StyleSheet.create({
 
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
 
-const styles =
-  StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+  },
 
-    header: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 20,
-},
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+  },
 
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 22,
+  },
 
-    safeArea: {
-      flex: 1,
-      backgroundColor: "#F8FAFC",
+  headerLeft: {
+    flex: 1,
+  },
+
+  title: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+
+  subtitle: {
+    marginTop: 6,
+    fontSize: 16,
+    color: "#64748B",
+    lineHeight: 22,
+  },
+
+  activityBadge: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: "#F97316",
+    justifyContent: "center",
+    alignItems: "center",
+
+    shadowColor: "#F97316",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 5,
     },
 
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#F8FAFC",
+    elevation: 5,
+  },
+
+  activityBadgeCount: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+
+  activityBadgeLabel: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
+
+  filterRow: {
+    flexDirection: "row",
+    marginBottom: 18,
+  },
+
+  activeChip: {
+    backgroundColor: "#F97316",
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    marginRight: 10,
+  },
+
+  activeChipText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+
+  chip: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    marginRight: 10,
+
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  chipText: {
+    color: "#475569",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
+  listContent: {
+    paddingBottom: 140,
+    flexGrow: 1,
+  },
+
+  emptyContainer: {
+    marginTop: 70,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    paddingVertical: 44,
+    paddingHorizontal: 24,
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
 
-    container: {
-      flex: 1,
-      padding: 20,
-    },
+    elevation: 4,
+  },
 
-    title: {
-  fontSize:28,
-  fontWeight:"800",
-      color: "#0F172A",
-      marginBottom: 20,
-    },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 18,
+  },
 
-    emptyContainer: {
-      marginTop: 80,
-      alignItems: "center",
-    },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 10,
+  },
 
-    emptyText:{
-  fontSize:15,
-  color:"#64748B",
-  textAlign:"center",
-  lineHeight:24,
-  paddingHorizontal:40,
-},
+  emptyText: {
+    textAlign: "center",
+    color: "#64748B",
+    fontSize: 15,
+    lineHeight: 24,
+    paddingHorizontal: 12,
+  },
 
-    emptyIcon: {
-  marginBottom: 18,
-},
-
-emptyTitle: {
-  fontSize: 22,
-  fontWeight: "800",
-  color: "#0F172A",
-  marginBottom: 10,
-},
-
-headerLeft: {
-  flex: 1,
-},
-
-subtitle: {
-  marginTop: 4,
-  fontSize: 14,
-  color: "#64748B",
-},
-
-activityBadge: {
-  width: 40,
-  height: 40,
-  borderRadius: 20,
-  backgroundColor: "#F97316",
-
-  justifyContent: "center",
-  alignItems: "center",
-},
-
-activityBadgeText: {
-  color: "#FFFFFF",
-  fontWeight: "800",
-  fontSize: 16,
-},
-
-filterRow: {
-  flexDirection: "row",
-  marginBottom: 18,
-},
-
-activeChip: {
-  backgroundColor: "#F97316",
-  borderRadius: 18,
-  paddingHorizontal: 16,
-  paddingVertical: 8,
-  marginRight: 8,
-},
-
-activeChipText: {
-  color: "#FFFFFF",
-  fontWeight: "700",
-},
-
-chip: {
-  backgroundColor: "#FFFFFF",
-  borderRadius: 18,
-  paddingHorizontal: 16,
-  paddingVertical: 8,
-  marginRight: 8,
-},
-
-chipText: {
-  color: "#64748B",
-  fontWeight: "600",
-},
-
-  });
+});

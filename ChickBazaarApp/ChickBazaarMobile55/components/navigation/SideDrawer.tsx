@@ -1,11 +1,9 @@
-import React, {
-  useEffect,
-  useRef,
-} from "react";
+import React, { useEffect, useRef } from "react";
 
 import {
   Animated,
   Dimensions,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,16 +12,16 @@ import {
   View,
 } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-const DRAWER_WIDTH =
-  Dimensions.get("window").width * 0.82;
+const DRAWER_WIDTH = Dimensions.get("window").width * 0.82;
 
 type Props = {
   visible: boolean;
 
   shopName: string;
-
   retailerId: string;
 
   onClose: () => void;
@@ -56,262 +54,272 @@ export default function SideDrawer({
   onSettings,
   onLogout,
 }: Props) {
-
-  const slide =
-    useRef(
-      new Animated.Value(
-        -DRAWER_WIDTH
-      )
-    ).current;
-
-  const overlay =
-    useRef(
-      new Animated.Value(0)
-    ).current;
+  const slide = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+  const overlay = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (visible) {
+      slide.setValue(-DRAWER_WIDTH);
+      overlay.setValue(0);
 
-    Animated.parallel([
-
-      Animated.timing(
-        slide,
-        {
-          toValue: visible
-            ? 0
-            : -DRAWER_WIDTH,
-          duration: 260,
+      Animated.parallel([
+        Animated.timing(slide, {
+          toValue: 0,
+          duration: 250,
           useNativeDriver: true,
-        }
-      ),
-
-      Animated.timing(
-        overlay,
-        {
-          toValue: visible
-            ? 1
-            : 0,
-          duration: 260,
+        }),
+        Animated.timing(overlay, {
+          toValue: 1,
+          duration: 250,
           useNativeDriver: true,
-        }
-      ),
-
-    ]).start();
-
+        }),
+      ]).start();
+    }
   }, [visible]);
+
+  const closeDrawer = () => {
+    Animated.parallel([
+      Animated.timing(slide, {
+        toValue: -DRAWER_WIDTH,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlay, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onClose();
+    });
+  };
 
   if (!visible) {
     return null;
   }
 
   return (
-
-    <View
-      style={StyleSheet.absoluteFill}
-      pointerEvents="box-none"
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={closeDrawer}
     >
+      <View style={styles.modalRoot}>
+        <Animated.View
+          style={[
+            styles.overlay,
+            {
+              opacity: overlay,
+            },
+          ]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeDrawer}
+          />
+        </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.overlay,
-          {
-            opacity: overlay,
-          },
-        ]}
-      >
+        <Animated.View
+          style={[
+            styles.drawer,
+            {
+              transform: [
+                {
+                  translateX: slide,
+                },
+              ],
+            },
+          ]}
+        >
+          <SafeAreaView
+            edges={["top"]}
+            style={styles.safeArea}
+          >
+            <View style={styles.header}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {shopName?.charAt(0)?.toUpperCase()}
+                </Text>
+              </View>
 
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={onClose}
-        />
+              <View style={{ flex: 1 }}>
+                <Text
+                  numberOfLines={1}
+                  style={styles.shopName}
+                >
+                  {shopName}
+                </Text>
 
-      </Animated.View>
+                <Text style={styles.id}>
+                  Retailer ID
+                </Text>
 
-      <Animated.View
-        style={[
-          styles.drawer,
-          {
-            transform: [
-              {
-                translateX: slide,
-              },
-            ],
-          },
-        ]}
-      >
+                <Text style={styles.idValue}>
+                  {retailerId}
+                </Text>
 
-        <View style={styles.header}>
+                <View style={styles.verified}>
+                  <MaterialCommunityIcons
+                    name="check-decagram"
+                    size={14}
+                    color="#16A34A"
+                  />
 
-          <View style={styles.avatar}>
+                  <Text style={styles.verifiedText}>
+                    Verified Retailer
+                  </Text>
+                </View>
+              </View>
 
-            <Text style={styles.avatarText}>
-              {shopName
-                ?.charAt(0)
-                ?.toUpperCase()}
-            </Text>
-
-          </View>
-
-          <View style={{ flex: 1 }}>
-
-            <Text
-              numberOfLines={1}
-              style={styles.shopName}
-            >
-              {shopName}
-            </Text>
-
-            <Text style={styles.id}>
-              Retailer ID
-            </Text>
-
-            <Text style={styles.idValue}>
-              {retailerId}
-            </Text>
-
-            <View style={styles.verified}>
-
-              <MaterialCommunityIcons
-                name="check-decagram"
-                size={14}
-                color="#16A34A"
-              />
-
-              <Text
-                style={styles.verifiedText}
+              <TouchableOpacity
+                onPress={closeDrawer}
               >
-                Verified Retailer
-              </Text>
-
+                <MaterialCommunityIcons
+                  name="close"
+                  size={26}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
             </View>
 
-          </View>
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.menuContent}
+              showsVerticalScrollIndicator
+              bounces
+            >
+                            <MenuItem
+                icon="view-dashboard-outline"
+                title="Dashboard"
+                onPress={() => {
+                  closeDrawer();
+                  onDashboard();
+                }}
+              />
 
-          <TouchableOpacity
-            onPress={onClose}
-          >
+              <MenuItem
+                icon="store-outline"
+                title="My Shops"
+                onPress={() => {
+                  closeDrawer();
+                  onShops();
+                }}
+              />
 
-            <MaterialCommunityIcons
-              name="close"
-              size={26}
-              color="#FFFFFF"
-            />
+              <MenuItem
+                icon="clipboard-list-outline"
+                title="Orders"
+                onPress={() => {
+                  closeDrawer();
+                  onOrders();
+                }}
+              />
 
-          </TouchableOpacity>
+              <MenuItem
+                icon="finance"
+                title="Business"
+                onPress={() => {
+                  closeDrawer();
+                  onBusiness();
+                }}
+              />
 
-        </View>
+              <MenuItem
+                icon="credit-card-outline"
+                title="Payments"
+                onPress={() => {
+                  closeDrawer();
+                  onPayments();
+                }}
+              />
 
-        <ScrollView
-  style={{ flex: 1 }}
-  contentContainerStyle={styles.menuContent}
-  showsVerticalScrollIndicator={false}
->
+              <MenuItem
+                icon="bell-outline"
+                title="Notifications"
+                onPress={() => {
+                  closeDrawer();
+                  onNotifications();
+                }}
+              />
 
-  <MenuItem
-    icon="view-dashboard-outline"
-    title="Dashboard"
-    onPress={onDashboard}
-  />
+              <MenuItem
+                icon="account-circle-outline"
+                title="Profile"
+                onPress={() => {
+                  closeDrawer();
+                  onProfile();
+                }}
+              />
 
-          <MenuItem
-            icon="store-outline"
-            title="My Shops"
-            onPress={onShops}
-          />
+              <MenuItem
+                icon="help-circle-outline"
+                title="Help & Support"
+                onPress={() => {
+                  closeDrawer();
+                  onHelp();
+                }}
+              />
 
-          <MenuItem
-            icon="clipboard-list-outline"
-            title="Orders"
-            onPress={onOrders}
-          />
+              <MenuItem
+                icon="cog-outline"
+                title="Settings"
+                onPress={() => {
+                  closeDrawer();
+                  onSettings();
+                }}
+              />
 
-          <MenuItem
-            icon="finance"
-            title="Business"
-            onPress={onBusiness}
-          />
+              <View style={styles.divider} />
 
-          <MenuItem
-            icon="credit-card-outline"
-            title="Payments"
-            onPress={onPayments}
-          />
+              <MenuItem
+                icon="logout"
+                title="Logout"
+                color="#DC2626"
+                onPress={() => {
+                  closeDrawer();
+                  onLogout();
+                }}
+              />
 
-          <MenuItem
-            icon="bell-outline"
-            title="Notifications"
-            onPress={onNotifications}
-          />
+              <View style={styles.footer}>
+                <Text style={styles.version}>
+                  ChickBazaar Retailer App
+                </Text>
 
-          <MenuItem
-            icon="account-circle-outline"
-            title="Profile"
-            onPress={onProfile}
-          />
+                <Text style={styles.versionNo}>
+                  Version 1.0.0
+                </Text>
 
-          <MenuItem
-            icon="help-circle-outline"
-            title="Help & Support"
-            onPress={onHelp}
-          />
-
-          <MenuItem
-            icon="cog-outline"
-            title="Settings"
-            onPress={onSettings}
-          />
-
-          <View style={styles.divider} />
-
-          <MenuItem
-            icon="logout"
-            title="Logout"
-            color="#DC2626"
-            onPress={onLogout}
-          />
-
-          <View style={styles.footer}>
-
-  <Text style={styles.version}>
-    ChickBazaar Retailer App
-  </Text>
-
-  <Text style={styles.versionNo}>
-    Version 1.0.0
-  </Text>
-
-  <Text style={styles.powered}>
-    Made with ❤️ in India
-  </Text>
-
-</View>
-
-          
-
-        </ScrollView>
-
-      </Animated.View>
-
-    </View>
-
+                <Text style={styles.powered}>
+                  Made with ❤️ in India
+                </Text>
+              </View>
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </View>
+    </Modal>
   );
-
 }
-
 function MenuItem({
   icon,
   title,
   color = "#0F172A",
   onPress,
-}: any) {
-
+}: {
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  title: string;
+  color?: string;
+  onPress: () => void;
+}) {
   return (
-
     <TouchableOpacity
       activeOpacity={0.75}
       style={styles.item}
       onPress={onPress}
     >
-
       <MaterialCommunityIcons
         name={icon}
         size={22}
@@ -328,18 +336,18 @@ function MenuItem({
       >
         {title}
       </Text>
-
     </TouchableOpacity>
-
   );
-
 }
 
 const styles = StyleSheet.create({
+  modalRoot: {
+    flex: 1,
+  },
 
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#000000",
+    backgroundColor: "rgba(15,23,42,0.42)",
   },
 
   drawer: {
@@ -356,6 +364,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
 
+    overflow: "hidden",
+
     shadowColor: "#000",
     shadowOpacity: 0.18,
     shadowRadius: 18,
@@ -367,17 +377,26 @@ const styles = StyleSheet.create({
     elevation: 24,
   },
 
+  safeArea: {
+    flex: 1,
+  },
+
+  scroll: {
+    flex: 1,
+  },
+
   menuContent: {
-  paddingTop: 10,
-  paddingBottom: 120,
-},
+    paddingTop: 10,
+    paddingBottom: 40,
+    flexGrow: 1,
+  },
 
   header: {
     backgroundColor: "#F97316",
 
-    paddingTop: 58,
-    paddingBottom: 24,
     paddingHorizontal: 20,
+    paddingBottom: 24,
+    paddingTop: 16,
 
     flexDirection: "row",
     alignItems: "flex-start",
@@ -455,7 +474,6 @@ const styles = StyleSheet.create({
     marginLeft: 18,
     fontSize: 16,
     fontWeight: "600",
-    color: "#0F172A",
   },
 
   divider: {
@@ -469,28 +487,27 @@ const styles = StyleSheet.create({
   },
 
   footer: {
-  alignItems: "center",
-  marginTop: 28,
-  marginBottom: 40,
-},
+    alignItems: "center",
 
-version: {
-  color: "#334155",
-  fontSize: 13,
-  fontWeight: "700",
-},
+    marginTop: 28,
+    marginBottom: 40,
+  },
 
-versionNo: {
-  marginTop: 2,
-  color: "#64748B",
-  fontSize: 12,
-},
+  version: {
+    color: "#334155",
+    fontSize: 13,
+    fontWeight: "700",
+  },
 
-powered: {
-  marginTop: 8,
-  color: "#94A3B8",
-  fontSize: 12,
-},
+  versionNo: {
+    marginTop: 2,
+    color: "#64748B",
+    fontSize: 12,
+  },
 
-  
+  powered: {
+    marginTop: 8,
+    color: "#94A3B8",
+    fontSize: 12,
+  },
 });

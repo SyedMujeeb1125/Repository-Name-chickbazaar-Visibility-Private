@@ -6,6 +6,8 @@ import React, {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { openOrderTracking } from "../utils/navigation/openOrderTracking";
+
 import {
   SafeAreaView,
 } from "react-native-safe-area-context";
@@ -184,7 +186,10 @@ export default function MyOrdersScreen({
 
   return (
 
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+  style={styles.safeArea}
+  edges={["top"]}
+>
 
       <View style={styles.container}>
 
@@ -282,12 +287,18 @@ export default function MyOrdersScreen({
 </View>
 
         <FlatList
-
-          data={filteredOrders}
-
-          keyExtractor={(item) => item.id}
-
-          showsVerticalScrollIndicator={false}
+  data={filteredOrders}
+  style={{
+    flex: 1,
+    marginBottom: -2,
+  }}
+  keyExtractor={(item) => item.id}
+  showsVerticalScrollIndicator={false}
+  contentInsetAdjustmentBehavior="never"
+  contentContainerStyle={{
+    flexGrow: 1,
+    paddingBottom: 8,
+  }}
 
           ListEmptyComponent={
 
@@ -320,13 +331,8 @@ delivery from here.
   activeOpacity={0.9}
   style={styles.card}
   onPress={() =>
-    navigation.navigate(
-      "OrderDetails",
-      {
-        orderId: item.id,
-      }
-    )
-  }
+  openOrderTracking(navigation, item)
+}
 >
 
   {/* Header */}
@@ -405,7 +411,8 @@ delivery from here.
     Estimated Invoice
   </Text>
 
-  {item.status === "delivered" ? (
+  {item.status === "delivered" ||
+item.status === "cancelled" ? (
 
   <View style={styles.balanceBadge}>
 
@@ -551,60 +558,37 @@ delivery from here.
 
 <View style={styles.actionRow}>
 
-  {item.status === "delivered" ? (
+  {item.status === "delivered" ||
+item.status === "cancelled" ? (
 
-    <>
-      <TouchableOpacity
-        activeOpacity={0.9}
-        style={styles.secondaryButton}
-        onPress={() =>
-          navigation.navigate("InvoiceDetails", {
-            orderId: item.id,
-          })
-        }
-      >
-        <MaterialCommunityIcons
-          name="file-document-outline"
-          size={18}
-          color="#F97316"
-        />
+<TouchableOpacity
+  activeOpacity={0.9}
+  style={styles.trackButton}
+  onPress={() =>
+  navigation.navigate("OrderDetails", {
+    orderId: item.id,
+  })
+}
+>
+  <MaterialCommunityIcons
+    name="file-document-outline"
+    size={20}
+    color="#FFFFFF"
+  />
 
-        <Text style={styles.secondaryButtonText}>
-          INVOICE
-        </Text>
-      </TouchableOpacity>
+  <Text style={styles.trackButtonText}>
+    VIEW ORDER DETAILS
+  </Text>
+</TouchableOpacity>
 
-      <TouchableOpacity
-        activeOpacity={0.9}
-        style={styles.trackButton}
-        onPress={() =>
-          navigation.navigate("PlaceOrder", {
-            repeatOrder: item.id,
-          })
-        }
-      >
-        <MaterialCommunityIcons
-          name="reload"
-          size={18}
-          color="#FFFFFF"
-        />
-
-        <Text style={styles.trackButtonText}>
-          REPEAT ORDER
-        </Text>
-      </TouchableOpacity>
-    </>
-
-  ) : (
+) : (
 
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.trackButton}
       onPress={() =>
-        navigation.navigate("OrderTracking", {
-          orderId: item.id,
-        })
-      }
+  openOrderTracking(navigation, item)
+}
     >
       <MaterialCommunityIcons
         name="truck-fast-outline"
@@ -647,9 +631,11 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
-    padding: 20,
-  },
+  flex: 1,
+  paddingTop: 20,
+  paddingHorizontal: 20,
+  paddingBottom: 0,
+},
 
   title:{
     fontSize:26,
@@ -917,6 +903,7 @@ summaryLabel: {
 },
 
 trackButton: {
+  flex: 1,
 
   height: 48,
 
@@ -931,7 +918,6 @@ trackButton: {
   justifyContent: "center",
 
   alignItems: "center",
-
 },
 
 trackButtonText: {

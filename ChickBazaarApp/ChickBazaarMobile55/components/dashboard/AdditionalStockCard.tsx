@@ -11,10 +11,18 @@ import {
 import PrimaryButton from "../ui/PrimaryButton";
 
 type Props = {
+  availableUntil?: string;
+
+  message?: string;
+
   onRequest: () => void;
 };
 
 export default function AdditionalStockCard({
+  availableUntil = "5:00 PM",
+
+  message = "Additional stock is subject to farm inventory, vehicle availability and delivery scheduling.",
+
   onRequest,
 }: Props) {
   return (
@@ -27,7 +35,7 @@ export default function AdditionalStockCard({
         />
 
         <Text style={styles.badgeText}>
-          ADDITIONAL STOCK
+          ADDITIONAL ORDER
         </Text>
       </View>
 
@@ -36,8 +44,8 @@ export default function AdditionalStockCard({
       </Text>
 
       <Text style={styles.subtitle}>
-  Need additional healthy live broiler chicken after placing today's order? Submit a request, and we'll check farm inventory, vehicle availability, and delivery schedules before confirming.
-</Text>
+        You can request an additional order for today's delivery. Our operations team will confirm availability before processing your request.
+      </Text>
 
       <View style={styles.highlightCard}>
         <MaterialCommunityIcons
@@ -52,7 +60,7 @@ export default function AdditionalStockCard({
           </Text>
 
           <Text style={styles.highlightText}>
-            Approval depends on farm inventory, vehicle capacity, and delivery schedule.
+            {message}
           </Text>
         </View>
       </View>
@@ -65,12 +73,12 @@ export default function AdditionalStockCard({
         />
 
         <Text style={styles.infoText}>
-          Requests are reviewed by our operations team, and you'll be notified once they're approved.
+          Additional orders are accepted until {availableUntil}. Approval depends on operational capacity.
         </Text>
       </View>
 
       <PrimaryButton
-        title="REQUEST ADDITIONAL STOCK"
+        title="REQUEST ADDITIONAL ORDER"
         onPress={onRequest}
         style={styles.button}
       />

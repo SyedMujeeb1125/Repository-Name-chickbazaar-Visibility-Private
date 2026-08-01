@@ -1,11 +1,11 @@
-export const Radius={
+export const Radius = Object.freeze({
+  sm: 8,
 
-sm:8,
+  md: 12,
 
-md:12,
+  lg: 18,
 
-lg:18,
+  xl: 24,
+} as const);
 
-xl:24
-
-}
+export type RadiusName = keyof typeof Radius;

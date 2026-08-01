@@ -28,16 +28,17 @@ export default function OrderTrackingScreen({
 }: Props) {
 
   const {
-    orderId = "CB-2026-000245",
-    status = "vehicle_assigned",
-    requestedWeight = 250,
-    estimatedBirds = 165,
-    deliverySlot = "2:00 PM – 4:00 PM",
-    captainName,
-    captainPhone,
-    estimatedInvoice = 37500,
-    advancePaid = 500,
-  } = route.params || {};
+  orderId = "CB-2026-000245",
+  status = "order_confirmed",
+  requestedWeight = 0,
+  estimatedBirds = 0,
+  estimatedInvoice = 0,
+  advancePaid = 500,
+  deliverySlot = "6:00 AM – 8:00 AM",
+  captainName = "",
+  captainPhone = "",
+  vehicleNumber = "",
+} = route.params || {};
 
   const balance =
     estimatedInvoice - advancePaid;
@@ -55,7 +56,6 @@ const destinationLocation = {
 const eta = "18 mins";
 const distance = "2.6 km";
 
-const vehicleNumber = "KA01AB1234";
 const captainRating = 4.9;
 const completedTrips = 824;
 
@@ -92,11 +92,21 @@ const statusConfig = {
   },
 } as const;
 
+const normalizedStatus =
+  status === "new"
+    ? "order_confirmed"
+    : status === "confirmed"
+    ? "order_confirmed"
+    : status === "allocated"
+    ? "farm_allocated"
+    : status === "cancelled"
+    ? "order_confirmed"
+    : status;
+
 const currentStatus =
   statusConfig[
-    (status as keyof typeof statusConfig) ??
-      "order_confirmed"
-  ];
+    normalizedStatus as keyof typeof statusConfig
+  ] ?? statusConfig.order_confirmed;
 
   const timelineSteps = [
   {
@@ -511,7 +521,11 @@ const currentStatus =
   style={styles.callButton}
   onPress={() => {
     if (captainPhone) {
-      Linking.openURL(`tel:${captainPhone}`);
+      const phone = String(captainPhone)
+  .replace(/\s/g, "")
+  .replace("+91", "");
+
+Linking.openURL(`tel:+91${phone}`);
     }
   }}
 >
@@ -625,8 +639,11 @@ const currentStatus =
           </Text>
 
           <TouchableOpacity
-            style={styles.supportButton}
-          >
+  style={styles.supportButton}
+  onPress={() =>
+    Linking.openURL("tel:+919353956243")
+  }
+>
 
             <MaterialCommunityIcons
               name="phone"
@@ -643,11 +660,13 @@ const currentStatus =
         </View>
 
         <TouchableOpacity
-          style={styles.dashboardButton}
-          onPress={() =>
-            navigation.navigate("Dashboard")
-          }
-        >
+  style={styles.dashboardButton}
+  onPress={() =>
+    navigation.navigate("MainTabs", {
+      screen: "Dashboard",
+    })
+  }
+>
 
           <Text style={styles.dashboardButtonText}>
             BACK TO DASHBOARD

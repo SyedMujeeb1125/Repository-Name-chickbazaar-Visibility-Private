@@ -7,51 +7,95 @@ import {
 } from "@/lib/auth";
 
 export async function POST(request: Request) {
-  const formData: any =
-  await request.formData();
+  try {
+    const formData = await request.formData();
 
-  const email = String(formData.get("email") || "")
-    .trim()
-    .toLowerCase();
+    const email = String(
+      formData.get("email") ?? ""
+    )
+      .trim()
+      .toLowerCase();
 
-  const password = String(formData.get("password") || "");
+    const password = String(
+      formData.get("password") ?? ""
+    );
 
-  const adminEmail = (
-    process.env.ADMIN_EMAIL || "info@chickbazaar.com"
-  ).toLowerCase();
+    if (!email || !password) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Email and password are required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-  const adminPassword =
-    process.env.ADMIN_PASSWORD || "Honey@#_112513";
+    const adminEmail = (
+      process.env.ADMIN_EMAIL ??
+      "info@chickbazaar.com"
+    ).toLowerCase();
 
-  console.log("====================================");
-  console.log("ADMIN EMAIL:", adminEmail);
-  console.log("ADMIN PASSWORD:", adminPassword);
-  console.log("ENTERED EMAIL:", email);
-  console.log("ENTERED PASSWORD:", password);
-  console.log("====================================");
+    const adminPassword =
+      process.env.ADMIN_PASSWORD ??
+      "Honey@#_112513";
 
-  if (email !== adminEmail || password !== adminPassword) {
+    if (
+      email !== adminEmail ||
+      password !== adminPassword
+    ) {
+      console.error(
+        "[ADMIN_LOGIN] Invalid login attempt",
+        {
+          email,
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Invalid admin credentials.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const cookieStore =
+      await cookies();
+
+    cookieStore.set(
+      adminCookieName,
+      createSignedToken(
+        "admin"
+      ),
+      adminCookieOptions()
+    );
+
+    return NextResponse.json({
+      success: true,
+      message:
+        "Admin logged in successfully.",
+    });
+  } catch (error) {
+    console.error(
+      "[ADMIN_LOGIN]",
+      error
+    );
+
     return NextResponse.json(
       {
-        message: "Invalid admin credentials.",
-        adminEmail,
-        adminPassword,
-        email,
-        password,
+        success: false,
+        message:
+          "Internal server error.",
       },
-      { status: 401 }
+      {
+        status: 500,
+      }
     );
   }
-
-  const cookieStore = await cookies();
-
-  cookieStore.set(
-    adminCookieName,
-    createSignedToken("admin"),
-    adminCookieOptions()
-  );
-
-  return NextResponse.json({
-    message: "Admin logged in.",
-  });
 }

@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import DeliveryShopSection from "../components/place-order-v2/DeliveryShopSection";
 import EstimateSection from "../components/place-order-v2/EstimateSection";
 import LiveRateSection from "../components/place-order-v2/LiveRateSection";
-import OrderMethodSection, {
-  OrderMethod,
-} from "../components/place-order-v2/OrderMethodSection";
+
 import QuantitySection from "../components/place-order-v2/QuantitySection";
-import ReviewBar from "../components/place-order-v2/ReviewBar";
 import BottomSheet from "../components/ui/BottomSheet";
 
 import { getTodayRate } from "../services/rateService";
@@ -27,7 +26,7 @@ export default function PlaceOrderScreenV2({ navigation }: any) {
   const [showShopSheet, setShowShopSheet] = useState(false);
 
   const [todayRate, setTodayRate] = useState(0);
-  const [method, setMethod] = useState<OrderMethod>("weight");
+  
   const [quantity, setQuantity] = useState(100);
   const [shops, setShops] = useState<any[]>([]);
 
@@ -127,7 +126,7 @@ const formattedDeliveryDate =
     advanceRequired,
     deliveryDate: formattedDeliveryDate,
     notes: "",
-    orderType: method,
+    orderType: "weight",
     deliveryPriority,
     fulfilmentPreference,
     retailerId,
@@ -135,7 +134,10 @@ const formattedDeliveryDate =
 };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+  style={styles.container}
+  edges={["top"]}
+>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
@@ -168,10 +170,7 @@ const formattedDeliveryDate =
           onChange={() => setShowShopSheet(true)}
         />
 
-        <OrderMethodSection
-          value={method}
-          onChange={setMethod}
-        />
+        
 
         <QuantitySection
           selected={quantity}
@@ -184,7 +183,23 @@ const formattedDeliveryDate =
           estimatedAmount={estimatedAmount}
         />
 
-        <View style={{ height: 120 }} />
+        <View style={styles.reviewCard}>
+  <Text style={styles.reviewLabel}>
+    Ready to place your order?
+  </Text>
+
+  <TouchableOpacity
+    style={styles.reviewButton}
+    activeOpacity={0.9}
+    onPress={reviewOrder}
+  >
+    <Text style={styles.reviewButtonText}>
+      Review Order
+    </Text>
+  </TouchableOpacity>
+</View>
+
+        <View style={{ height: 24 }} />
       </ScrollView>
 
       <BottomSheet
@@ -210,10 +225,7 @@ const formattedDeliveryDate =
         }}
       />
 
-      <ReviewBar
-  amount={estimatedAmount}
-  onPress={reviewOrder}
-/>
+      
     </SafeAreaView>
   );
 }
@@ -245,4 +257,30 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     lineHeight: 24,
   },
+
+  reviewCard: {
+  marginTop: 20,
+  marginBottom: 24,
+},
+
+reviewLabel: {
+  fontSize: 16,
+  fontWeight: "600",
+  color: "#111827",
+  marginBottom: 12,
+},
+
+reviewButton: {
+  height: 56,
+  borderRadius: 16,
+  backgroundColor: "#F97316",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+reviewButtonText: {
+  color: "#FFFFFF",
+  fontSize: 17,
+  fontWeight: "700",
+},
 });

@@ -8,9 +8,11 @@
     "scheme": "chickbazaarmobile55",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -18,21 +20,31 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
       ],
+
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBbLKzHvRpfeXoSk2WBzrI4iQ3gQh9hpoQ"
         }
       }
     },
+
+    "androidNavigationBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content"
+    },
+
     "web": {
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       [
         "expo-splash-screen",
@@ -49,14 +61,17 @@
       "@react-native-community/datetimepicker",
       "expo-font"
     ],
+
     "experiments": {
       "reactCompiler": true
     },
+
     "extra": {
       "eas": {
         "projectId": "814779d1-31ca-485d-b6da-58fd085795e4"
       }
     },
+
     "owner": "syed2025"
   }
 }

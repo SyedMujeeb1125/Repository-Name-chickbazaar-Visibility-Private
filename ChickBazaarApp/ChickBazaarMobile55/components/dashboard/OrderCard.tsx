@@ -6,53 +6,62 @@ import DashboardInfoRow from "./DashboardInfoRow";
 
 type Props = {
   onPlaceOrder: () => void;
-};
 
-const ORDER_CUTOFF_HOUR = 19;
+  orderLabel?: string;
+
+  deliveryWindow?: string;
+
+  liveRate?: number;
+};
 
 export default function OrderCard({
   onPlaceOrder,
+  orderLabel = "Tomorrow's Order",
+  deliveryWindow = "6:00 AM – 8:00 AM",
+  liveRate,
 }: Props) {
-  const hour = new Date().getHours();
-
-  const isTomorrowBooking =
-    hour >= ORDER_CUTOFF_HOUR;
-
-  const title = isTomorrowBooking
-    ? "Book Tomorrow's Order"
-    : "Place Today's Order";
-
-  const subtitle = isTomorrowBooking
-    ? "Reserve tomorrow morning's healthy live broiler chicken before stocks fill up."
-    : "Place your order now for healthy live broiler chicken.";
-
-  const buttonTitle = isTomorrowBooking
-    ? "BOOK TOMORROW'S ORDER"
-    : "PLACE TODAY'S ORDER";
-
-  const badgeText = isTomorrowBooking
-    ? "TOMORROW ORDER"
-    : "PLACE TODAY'S ORDER";
-
-  const deliveryWindow = isTomorrowBooking
-    ? "Tomorrow • 6:00 AM – 8:00 AM"
-    : "Today • 6:00 AM – 8:00 AM";
+  const isTomorrow =
+    orderLabel === "Tomorrow's Order";
 
   return (
     <DashboardActionCard
-      badgeText={badgeText}
+      badgeText={
+        isTomorrow
+          ? "TOMORROW ORDER"
+          : "TODAY ORDER"
+      }
       badgeColor="#F97316"
       icon="cart-outline"
       iconBackground="#F97316"
-      title={title}
-      subtitle={subtitle}
+      title={
+        isTomorrow
+          ? "Book Tomorrow's Order"
+          : "Place Today's Order"
+      }
+      subtitle={
+        isTomorrow
+          ? "Reserve tomorrow morning's healthy live broiler chicken."
+          : "Healthy live broiler chicken available today."
+      }
       footer={
         <PrimaryButton
-          title={buttonTitle}
+          title={
+            isTomorrow
+              ? "BOOK TOMORROW'S ORDER"
+              : "PLACE TODAY'S ORDER"
+          }
           onPress={onPlaceOrder}
         />
       }
     >
+      {liveRate ? (
+        <DashboardInfoRow
+          icon="currency-inr"
+          label="Today's Live Rate"
+          value={`₹${liveRate} / Kg`}
+        />
+      ) : null}
+
       <DashboardInfoRow
         icon="clock-outline"
         label="Delivery Window"
@@ -67,7 +76,7 @@ export default function OrderCard({
 
       <DashboardInfoRow
         icon="credit-card-outline"
-        label="Payment Option"
+        label="Payment"
         value="Cash / UPI / Bank Transfer"
       />
 

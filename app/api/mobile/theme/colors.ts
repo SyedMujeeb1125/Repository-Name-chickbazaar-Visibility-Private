@@ -1,4 +1,4 @@
-export const Colors = {
+export const Colors = Object.freeze({
   primary: "#F97316",
   primaryLight: "#FB923C",
 
@@ -19,4 +19,6 @@ export const Colors = {
   subtitle: "#64748B",
 
   light: "#F1F5F9",
-};
+} as const);
+
+export type ColorName = keyof typeof Colors;

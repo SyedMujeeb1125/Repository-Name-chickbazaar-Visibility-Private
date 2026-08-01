@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFF7ED",
     borderColor: "#FED7AA",
+    paddingVertical: 12,
   },
 
   header: {
@@ -51,41 +52,42 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-  width: 44,
-  height: 44,
-  borderRadius: 14,
-  backgroundColor: "#FFFFFF",
-  justifyContent: "center",
-  alignItems: "center",
-  marginRight: 12,
-},
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
 
   titleContainer: {
     flex: 1,
   },
 
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#92400E",
-    marginBottom: 4,
+    marginBottom: 2,
     fontWeight: "600",
   },
 
   rate: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "800",
     color: "#111827",
+    lineHeight: 28,
   },
 
   unit: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#6B7280",
     fontWeight: "600",
   },
 
   updated: {
-    marginTop: 6,
-    fontSize: 13,
+    marginTop: 2,
+    fontSize: 12,
     color: "#78716C",
   },
 });

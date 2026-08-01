@@ -1,71 +1,66 @@
-import {
-  readDb,
-  getRetailerLedger
-} from "@/lib/storage";
+export const dynamic = "force-dynamic";
+
+import { supabase } from "@/lib/supabase";
 
 import { AdminRetailersList } from "@/components/admin-retailers-list";
 
 export default async function RetailersPage() {
-  const db = await readDb();
+  const [
+    { data: retailers, error: retailersError },
+    { data: retailerLocations, error: locationsError },
+    { data: ledger, error: ledgerError },
+  ] = await Promise.all([
+    supabase.from("retailers").select("*"),
+    supabase.from("retailer_locations").select("*"),
+    supabase.from("retailer_ledger").select("*"),
+  ]);
 
-  const ledger =
-    await getRetailerLedger();
+  if (retailersError) {
+    console.error("[RETAILERS]", retailersError);
+  }
 
-  const retailersWithBalance =
-    db.retailers.map(
-      (retailer: any) => {
+  if (locationsError) {
+    console.error("[RETAILER LOCATIONS]", locationsError);
+  }
 
-        const entries =
-          ledger.filter(
-            (l: any) =>
-              l.retailer_id ===
-              retailer.id
-          );
+  if (ledgerError) {
+    console.error("[RETAILER LEDGER]", ledgerError);
+  }
 
-        const debit =
-          entries.reduce(
-            (
-              sum: number,
-              row: any
-            ) =>
-              sum +
-              Number(
-                row.debit || 0
-              ),
-            0
-          );
+  const retailersWithBalance = (retailers ?? []).map(
+    (retailer: any) => {
+      const entries = (ledger ?? []).filter(
+        (row: any) =>
+          row.retailer_id === retailer.id
+      );
 
-        const credit =
-          entries.reduce(
-            (
-              sum: number,
-              row: any
-            ) =>
-              sum +
-              Number(
-                row.credit || 0
-              ),
-            0
-          );
+      const debit = entries.reduce(
+        (sum: number, row: any) =>
+          sum + Number(row.debit ?? 0),
+        0
+      );
 
-        const outstanding =
-          debit - credit;
+      const credit = entries.reduce(
+        (sum: number, row: any) =>
+          sum + Number(row.credit ?? 0),
+        0
+      );
 
-        return {
-          ...retailer,
+      const outstanding =
+        debit - credit;
 
-          outstanding,
-
-          availableCredit:
-            Math.max(
-              0,
-              Number(
-                retailer.creditLimit || 0
-              ) - outstanding
-            )
-        };
-      }
-    );
+      return {
+        ...retailer,
+        outstanding,
+        availableCredit: Math.max(
+          0,
+          Number(
+            retailer.credit_limit ?? 0
+          ) - outstanding
+        ),
+      };
+    }
+  );
 
   return (
     <div>
@@ -74,11 +69,9 @@ export default async function RetailersPage() {
       </h1>
 
       <AdminRetailersList
-        retailers={
-          retailersWithBalance
-        }
+        retailers={retailersWithBalance}
         retailerLocations={
-          db.retailerLocations
+          retailerLocations ?? []
         }
       />
     </div>

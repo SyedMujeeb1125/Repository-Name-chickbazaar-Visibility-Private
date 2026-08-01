@@ -12,36 +12,38 @@ import CBAmount from "../components/common/CBAmount";
 import CBButton from "../components/common/CBButton";
 import CBCard from "../components/common/CBCard";
 import CBHeader from "../components/common/CBHeader";
+import { openOrderTracking } from "../utils/navigation/openOrderTracking";
 
 export default function OrderSuccessScreen({
   navigation,
   route,
 }: any) {
   const {
-  orderId,
-  orderNumber,
-  estimatedAmount = 0,
-  deliveryDate,
-  advancePaid = 0,
-} = route.params ?? {};
+    orderId,
+    orderNumber,
+    estimatedAmount = 0,
+    deliveryDate,
+    advancePaid = 0,
+  } = route.params ?? {};
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
       >
         <CBHeader
-          title="Order Placed Successfully"
-          subtitle="We're preparing your healthy live broiler chicken."
+          title="Order Confirmed"
+          subtitle="Your order has been placed successfully."
         />
 
         {/* Success */}
         <CBCard>
+
           <View style={styles.successCircle}>
             <MaterialCommunityIcons
               name="check"
-              size={58}
+              size={46}
               color="#16A34A"
             />
           </View>
@@ -50,156 +52,138 @@ export default function OrderSuccessScreen({
             Order Confirmed
           </Text>
 
+          <Text style={styles.orderNumberLabel}>
+            Order Number
+          </Text>
+
           <Text style={styles.orderId}>
-  {orderNumber || orderId}
-</Text>
+            {orderNumber || orderId}
+          </Text>
 
-          <View style={styles.statusBadge}>
-            <MaterialCommunityIcons
-              name="food-drumstick"
-              size={18}
-              color="#EA580C"
-            />
-
-            <Text style={styles.statusText}>
-              Healthy Live Broiler Chicken
-            </Text>
-          </View>
         </CBCard>
 
         {/* Delivery */}
+
         <CBCard style={styles.cardSpacing}>
+
           <View style={styles.sectionHeader}>
+
             <MaterialCommunityIcons
               name="truck-fast"
-              size={24}
-              color="#EA580C"
+              size={22}
+              color="#F97316"
             />
 
             <Text style={styles.sectionTitle}>
-              Expected Delivery
+              Delivery
             </Text>
+
           </View>
 
           <View style={styles.deliveryBox}>
+
             <Text style={styles.deliveryDay}>
-              {deliveryDate || "Today"}
+              {deliveryDate || "Tomorrow Morning"}
             </Text>
 
             <Text style={styles.deliveryTime}>
-              Standard Delivery
+              6:00 AM – 8:00 AM
             </Text>
+
           </View>
+
         </CBCard>
 
-        {/* Bill */}
+        {/* Invoice */}
+
         <CBCard style={styles.cardSpacing}>
+
           <View style={styles.sectionHeader}>
+
             <MaterialCommunityIcons
               name="cash-multiple"
-              size={24}
+              size={22}
               color="#16A34A"
             />
 
             <Text style={styles.sectionTitle}>
-              Estimated Bill
+              Invoice Summary
             </Text>
+
           </View>
 
-          <CBAmount amount={estimatedAmount} />
+          <CBAmount
+  amount={estimatedAmount}
+  size={30}
+/>
 
           <View
-  style={{
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E2E8F0",
-  }}
->
-  <Text
-    style={{
-      fontSize: 15,
-      color: "#64748B",
-      marginBottom: 4,
-    }}
-  >
-    Advance Paid
-  </Text>
+            style={{
+              marginTop: 14,
+              paddingTop: 14,
+              borderTopWidth: 1,
+              borderTopColor: "#E5E7EB",
+            }}
+          >
 
-  <Text
-    style={{
-      fontSize: 20,
-      fontWeight: "800",
-      color: "#16A34A",
-    }}
-  >
-    ₹{advancePaid.toLocaleString()}
-  </Text>
-</View>
-
-          <Text style={styles.billNote}>
-            Final amount will be calculated after actual weight at delivery.
-          </Text>
-        </CBCard>
-
-        {/* Information */}
-        <CBCard style={styles.cardSpacing}>
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="information"
-              size={24}
-              color="#2563EB"
-            />
-
-            <Text style={styles.infoTitle}>
-              What Happens Next?
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#64748B",
+                marginBottom: 4,
+              }}
+            >
+              Advance Paid
             </Text>
+
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: "800",
+                color: "#16A34A",
+              }}
+            >
+              ₹{advancePaid.toLocaleString()}
+            </Text>
+
           </View>
 
-          <Text style={styles.infoText}>
-            • Your order has been received successfully.
-          </Text>
-
-          <Text style={styles.infoText}>
-            • Our operations team will allocate the nearest farm.
-          </Text>
-
-          <Text style={styles.infoText}>
-            • You'll receive live tracking once the vehicle is assigned.
-          </Text>
-
-          <Text style={styles.infoText}>
-            • Final billing will be based on actual delivered weight.
-          </Text>
         </CBCard>
 
         {/* Buttons */}
+
         <View style={styles.buttonContainer}>
-  <CBButton
-  title="Track My Order"
+
+          <CBButton
+  title="TRACK ORDER"
   onPress={() =>
-    navigation.navigate("Orders", {
-      screen: "OrderDetails",
-      params: {
-        orderId,
+    openOrderTracking(
+      navigation,
+      {
+        id: orderId,
+        estimatedAmount,
       },
-    })
+      {
+        status: "confirmed",
+      }
+    )
   }
 />
 
-  <View style={{ height: 12 }} />
+          <View style={{ height: 12 }} />
 
-  <CBButton
-    title="Back to Home"
-    variant="outline"
-    onPress={() => navigation.popToTop()}
-  />
-</View>
+          <CBButton
+            title="BACK TO DASHBOARD"
+            variant="outline"
+            onPress={() => navigation.popToTop()}
+          />
+
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -207,121 +191,111 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: 16,
+    paddingBottom: 24,
   },
 
   cardSpacing: {
-    marginTop: 16,
+    marginTop: 12,
   },
 
   successCircle: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: "#DCFCE7",
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 18,
   },
 
   successTitle: {
-    fontSize: 28,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#111827",
+    textAlign: "center",
+  },
+
+  orderNumberLabel: {
+    marginTop: 10,
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    fontWeight: "600",
+  },
+
+  orderId: {
+    marginTop: 4,
+    fontSize: 18,
     fontWeight: "800",
     color: "#0F172A",
     textAlign: "center",
   },
 
-  orderId: {
-    marginTop: 10,
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#334155",
-    textAlign: "center",
-  },
-
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFF7ED",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    alignSelf: "center",
-    marginTop: 20,
-  },
-
-  statusText: {
-    marginLeft: 8,
-    color: "#9A3412",
-    fontWeight: "700",
-    fontSize: 15,
-  },
-
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   },
 
   sectionTitle: {
     marginLeft: 10,
     fontSize: 18,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#111827",
   },
 
   deliveryBox: {
     backgroundColor: "#FFF7ED",
-    padding: 18,
     borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     alignItems: "center",
   },
 
   deliveryDay: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "800",
     color: "#EA580C",
   },
 
   deliveryTime: {
-    marginTop: 6,
-    fontSize: 16,
-    color: "#475569",
+    marginTop: 4,
+    fontSize: 15,
     fontWeight: "600",
+    color: "#475569",
   },
 
   billNote: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: 10,
+    fontSize: 13,
+    lineHeight: 18,
     color: "#64748B",
-    lineHeight: 22,
   },
 
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
 
   infoTitle: {
     marginLeft: 10,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#111827",
   },
 
   infoText: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#64748B",
-    lineHeight: 24,
-    marginBottom: 10,
+    lineHeight: 22,
+    marginBottom: 8,
   },
 
   buttonContainer: {
-    marginTop: 24,
-    marginBottom: 30,
+    marginTop: 18,
+    marginBottom: 20,
   },
 });

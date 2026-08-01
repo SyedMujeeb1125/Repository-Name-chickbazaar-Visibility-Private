@@ -1,37 +1,60 @@
 import { NextResponse } from "next/server";
-
 import { supabase } from "@/lib/supabase";
 
 export async function GET(
   request: Request
 ) {
-  const { searchParams } =
-    new URL(request.url);
+  try {
+    const { searchParams } =
+      new URL(request.url);
 
-  const mobile =
-    searchParams.get("mobile");
+    const mobile =
+      searchParams.get("mobile");
 
-  if (!mobile) {
-    return NextResponse.json([]);
-  }
+    if (!mobile) {
+      return NextResponse.json([]);
+    }
 
-  const {
-    data: shops,
-    error,
-  } = await supabase
-    .from("retailer_locations")
-    .select("*")
-    .eq(
-      "retailer_mobile",
-      mobile
-    )
-    .order("created_at", {
-      ascending: true,
-    });
+    const {
+      data: shops,
+      error,
+    } = await supabase
+      .from("retailer_locations")
+      .select("*")
+      .eq(
+        "retailer_mobile",
+        mobile
+      )
+      .order("created_at", {
+        ascending: true,
+      });
 
-  if (error) {
+    if (error) {
+      console.error(
+        "[SHOPS][GET]",
+        error
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Unable to fetch shops.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    return NextResponse.json(
+      shops ?? []
+    );
+
+  } catch (error) {
+
     console.error(
-      "Shops fetch error:",
+      "[SHOPS][GET]",
       error
     );
 
@@ -39,15 +62,11 @@ export async function GET(
       {
         success: false,
         message:
-          "Unable to fetch shops.",
+          "Internal Server Error.",
       },
       {
         status: 500,
       }
     );
   }
-
-  return NextResponse.json(
-    shops ?? []
-  );
 }

@@ -1,15 +1,31 @@
-import { readDb } from "@/lib/storage";
+export const dynamic = "force-dynamic";
+
+import { supabase } from "@/lib/supabase";
 
 const ZONES = [
   "north",
   "south",
   "east",
   "west",
-  "central"
+  "central",
 ];
 
 export default async function ZoneDemandPage() {
-  const db = await readDb();
+  const [
+    { data: orders, error: ordersError },
+    { data: retailers, error: retailersError },
+  ] = await Promise.all([
+    supabase.from("orders").select("*"),
+    supabase.from("retailers").select("*"),
+  ]);
+
+  if (ordersError) {
+    console.error("[ZONE DEMAND][ORDERS]", ordersError);
+  }
+
+  if (retailersError) {
+    console.error("[ZONE DEMAND][RETAILERS]", retailersError);
+  }
 
   return (
     <div>
@@ -19,64 +35,48 @@ export default async function ZoneDemandPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ZONES.map((zone) => {
-          const zoneOrders =
-            db.orders.filter((order: any) => {
-              const retailer =
-                db.retailers.find(
-                  (r: any) =>
-                    r.mobile ===
-                    order.mobile
-                );
+          const zoneOrders = (orders ?? []).filter(
+            (order: any) => {
+              const retailer = (retailers ?? []).find(
+                (r: any) =>
+                  r.mobile === order.mobile
+              );
 
               return (
                 retailer?.zone === zone &&
-                order.status !==
-                  "cancelled"
+                order.status !== "cancelled"
               );
-            });
+            }
+          );
 
           let birdOrders = 0;
           let weightOrders = 0;
           let totalKg = 0;
 
-          zoneOrders.forEach(
-            (order: any) => {
-              const birds =
-                Number(
-                  order.birds || 0
-                );
+          zoneOrders.forEach((order: any) => {
+            const birds = Number(
+              order.birds ?? 0
+            );
 
-              const avgWeight =
-                Number(
-                  order.averageWeight || 0
-                );
+            const avgWeight = Number(
+              order.average_weight ?? 0
+            );
 
-              const requestedWeight =
-                Number(
-                  order.requestedWeight ||
-                    0
-                );
+            const requestedWeight = Number(
+              order.requested_weight ?? 0
+            );
 
-              if (
-                requestedWeight > 0
-              ) {
-                weightOrders +=
-                  requestedWeight;
-
-                totalKg +=
-                  requestedWeight;
-              } else if (
-                birds > 0 &&
-                avgWeight > 0
-              ) {
-                birdOrders +=
-                  birds;
-
-                totalKg +=
-                  birds * avgWeight;
-              }
+            if (requestedWeight > 0) {
+              weightOrders += requestedWeight;
+              totalKg += requestedWeight;
+            } else if (
+              birds > 0 &&
+              avgWeight > 0
+            ) {
+              birdOrders += birds;
+              totalKg += birds * avgWeight;
             }
-          );
+          });
 
           return (
             <div
@@ -88,40 +88,30 @@ export default async function ZoneDemandPage() {
               </h2>
 
               <p>
-                Orders:
-                {" "}
+                Orders:{" "}
                 <strong>
-                  {
-                    zoneOrders.length
-                  }
+                  {zoneOrders.length}
                 </strong>
               </p>
 
               <p>
-                Bird Orders:
-                {" "}
+                Bird Orders:{" "}
                 <strong>
                   {birdOrders}
                 </strong>
               </p>
 
               <p>
-                Weight Orders:
-                {" "}
+                Weight Orders:{" "}
                 <strong>
-                  {weightOrders}
-                  {" "}Kg
+                  {weightOrders} Kg
                 </strong>
               </p>
 
               <p>
-                Total Demand:
-                {" "}
+                Total Demand:{" "}
                 <strong>
-                  {Math.round(
-                    totalKg
-                  )}
-                  {" "}Kg
+                  {Math.round(totalKg)} Kg
                 </strong>
               </p>
             </div>

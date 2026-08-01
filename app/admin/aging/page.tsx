@@ -1,34 +1,65 @@
 import Link from "next/link";
-import {
-  readDb,
-  getRetailerLedger
-} from "@/lib/storage";
+
+import { supabase } from "@/lib/supabase";
 
 export default async function AgingPage() {
-  const db = await readDb();
+  // ---------------------------------
+  // Retailers
+  // ---------------------------------
 
-  const ledger =
-    await getRetailerLedger();
+  const {
+    data: retailers,
+    error: retailerError,
+  } = await supabase
+    .from("retailers")
+    .select("id, shop_name")
+    .order("shop_name");
 
-  const retailers =
-    db.retailers
+  if (retailerError) {
+    console.error(
+      "[AGING][RETAILERS]",
+      retailerError
+    );
+  }
+
+  // ---------------------------------
+  // Ledger
+  // ---------------------------------
+
+  const {
+    data: ledger,
+    error: ledgerError,
+  } = await supabase
+    .from("retailer_ledger")
+    .select("*");
+
+  if (ledgerError) {
+    console.error(
+      "[AGING][LEDGER]",
+      ledgerError
+    );
+  }
+
+  const report =
+    (retailers ?? [])
       .map((retailer: any) => {
+
         const entries =
-          ledger.filter(
-            (l: any) =>
-              l.retailer_id ===
+          (ledger ?? []).filter(
+            (row: any) =>
+              row.retailer_id ===
               retailer.id
           );
 
         const debit =
           entries.reduce(
             (
-              sum: number,
+              total: number,
               row: any
             ) =>
-              sum +
+              total +
               Number(
-                row.debit || 0
+                row.debit ?? 0
               ),
             0
           );
@@ -36,25 +67,28 @@ export default async function AgingPage() {
         const credit =
           entries.reduce(
             (
-              sum: number,
+              total: number,
               row: any
             ) =>
-              sum +
+              total +
               Number(
-                row.credit || 0
+                row.credit ?? 0
               ),
             0
           );
 
         const outstanding =
-          debit - credit;
+          Math.max(
+            debit - credit,
+            0
+          );
 
         const oldestDebit =
           entries
             .filter(
-              (e: any) =>
+              (row: any) =>
                 Number(
-                  e.debit || 0
+                  row.debit ?? 0
                 ) > 0
             )
             .sort(
@@ -74,6 +108,7 @@ export default async function AgingPage() {
           "0-7 Days";
 
         if (oldestDebit) {
+
           const days =
             Math.floor(
               (
@@ -82,36 +117,40 @@ export default async function AgingPage() {
                   oldestDebit.created_at
                 ).getTime()
               ) /
-                (1000 *
-                  60 *
-                  60 *
-                  24)
+                86400000
             );
 
-          if (days > 30)
+          if (days > 30) {
             aging =
               "30+ Days";
-          else if (
+          } else if (
             days > 15
-          )
+          ) {
             aging =
               "16-30 Days";
-          else if (
+          } else if (
             days > 7
-          )
+          ) {
             aging =
               "8-15 Days";
+          }
+
         }
 
         return {
+
           retailer,
+
           outstanding,
+
           aging,
+
         };
+
       })
       .filter(
-        (r: any) =>
-          r.outstanding > 0
+        (row: any) =>
+          row.outstanding > 0
       );
 
   return (
@@ -121,9 +160,12 @@ export default async function AgingPage() {
       </h1>
 
       <div className="overflow-auto rounded-lg border bg-white">
+
         <table className="w-full">
+
           <thead>
             <tr className="border-b bg-slate-100">
+
               <th className="p-3 text-left">
                 Retailer
               </th>
@@ -139,62 +181,77 @@ export default async function AgingPage() {
               <th className="p-3 text-left">
                 Action
               </th>
+
             </tr>
           </thead>
 
           <tbody>
-            {retailers.map(
-              (r: any) => (
-                <tr
-                  key={
-                    r.retailer.id
-                  }
-                  className="border-b"
+
+            {report.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="p-6 text-center text-slate-500"
                 >
-                  <td className="p-3">
-                    {
-                      r.retailer
-                        .shopName
+                  No outstanding collections.
+                </td>
+              </tr>
+            ) : (
+              report.map(
+                (row: any) => (
+                  <tr
+                    key={
+                      row.retailer.id
                     }
-                  </td>
-
-                  <td className="p-3 font-semibold text-red-600">
-                    ₹
-                    {
-                      r.outstanding
-                    }
-                  </td>
-
-                  <td
-                    className={`p-3 font-semibold ${
-                      r.aging ===
-                      "30+ Days"
-                        ? "text-red-600"
-                        : r.aging ===
-                          "16-30 Days"
-                        ? "text-orange-600"
-                        : r.aging ===
-                          "8-15 Days"
-                        ? "text-yellow-600"
-                        : "text-green-600"
-                    }`}
+                    className="border-b"
                   >
-                    {r.aging}
-                  </td>
+                    <td className="p-3">
+                      {
+                        row.retailer
+                          .shop_name
+                      }
+                    </td>
 
-                  <td className="p-3">
-                    <Link
-                      href={`/admin/collections/${r.retailer.id}`}
-                      className="rounded bg-green-600 px-3 py-2 text-white"
+                    <td className="p-3 font-semibold text-red-600">
+                      ₹
+                      {row.outstanding}
+                    </td>
+
+                    <td
+                      className={`p-3 font-semibold ${
+                        row.aging ===
+                        "30+ Days"
+                          ? "text-red-600"
+                          : row.aging ===
+                            "16-30 Days"
+                          ? "text-orange-600"
+                          : row.aging ===
+                            "8-15 Days"
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      }`}
                     >
-                      Collect Now
-                    </Link>
-                  </td>
-                </tr>
+                      {row.aging}
+                    </td>
+
+                    <td className="p-3">
+                      <Link
+                        href={`/admin/collections/${row.retailer.id}`}
+                        className="rounded bg-green-600 px-3 py-2 text-white"
+                      >
+                        Collect Now
+                      </Link>
+                    </td>
+
+                  </tr>
+                )
               )
             )}
+
           </tbody>
+
         </table>
+
       </div>
     </div>
   );

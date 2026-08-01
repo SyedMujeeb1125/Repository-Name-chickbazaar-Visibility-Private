@@ -3,12 +3,18 @@ import { DashboardState } from "./dashboard";
 export function resolveDashboardState(
   dashboard: any
 ): DashboardState {
-  const hour = new Date().getHours();
+  const business = dashboard?.business ?? {};
 
   const delivery = dashboard?.currentDelivery;
 
+  const deliveredOrder =
+    dashboard?.deliveredOrder;
+
   const outstanding = Number(
-    dashboard?.account?.balanceDue ?? 0
+    dashboard?.outstanding ??
+      delivery?.balanceDue ??
+      deliveredOrder?.balanceDue ??
+      0
   );
 
   // -------------------------------------
@@ -34,18 +40,48 @@ export function resolveDashboardState(
         return DashboardState.OUT_FOR_DELIVERY;
 
       case "delivered":
-        // Delivery completed but payment still pending
         if (outstanding > 0) {
           return DashboardState.PAYMENT_PENDING;
         }
 
-        // Payment completed, retailer can place tomorrow's order
+        if (business.additionalOrderAllowed) {
+          return DashboardState.ADDITIONAL_ORDER;
+        }
+
+        if (business.invoiceAvailable) {
+          return DashboardState.INVOICE_READY;
+        }
+
         return DashboardState.READY_FOR_TOMORROW_ORDER;
+
+      case "cancelled":
+        return DashboardState.NO_ORDER;
+
+      default:
+        return DashboardState.NO_ORDER;
     }
   }
 
   // -------------------------------------
-  // Future scheduled orders
+  // Delivered order completed
+  // -------------------------------------
+
+  if (deliveredOrder) {
+    if (outstanding > 0) {
+      return DashboardState.PAYMENT_PENDING;
+    }
+
+    if (business.additionalOrderAllowed) {
+      return DashboardState.ADDITIONAL_ORDER;
+    }
+
+    if (business.invoiceAvailable) {
+      return DashboardState.INVOICE_READY;
+    }
+  }
+
+  // -------------------------------------
+  // Future order
   // -------------------------------------
 
   if (dashboard?.futureOrder?.confirmationPending) {
@@ -57,19 +93,11 @@ export function resolveDashboardState(
   }
 
   // -------------------------------------
-  // Repeat Tomorrow Order
+  // Booking
   // -------------------------------------
 
-  if (dashboard?.repeatOrder?.available) {
+  if (business.tomorrowRatePublished) {
     return DashboardState.READY_FOR_TOMORROW_ORDER;
-  }
-
-  // -------------------------------------
-  // Booking cutoff crossed but no order
-  // -------------------------------------
-
-  if (hour >= 11 && hour < 18) {
-    return DashboardState.AFTER_CUTOFF;
   }
 
   // -------------------------------------

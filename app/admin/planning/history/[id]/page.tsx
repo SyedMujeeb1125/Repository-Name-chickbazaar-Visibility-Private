@@ -1,4 +1,8 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
+import { notFound } from "next/navigation";
+
 import { supabase } from "@/lib/supabase";
 
 import ApprovePlanningButton from "@/components/admin/ApprovePlanningButton";
@@ -15,19 +19,24 @@ export default async function PlanningRunPage({
 }: Props) {
   const { id } = await params;
 
-  const { data: run, error } =
-    await supabase
-      .from("planning_runs")
-      .select("*")
-      .eq("id", id)
-      .single();
+  const {
+    data: run,
+    error,
+  } = await supabase
+    .from("planning_runs")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  if (error || !run) {
-    return (
-      <div className="p-10">
-        Planning Run not found.
-      </div>
+  if (error) {
+    console.error(
+      "[PLANNING_RUN]",
+      error
     );
+  }
+
+  if (!run) {
+    notFound();
   }
 
   return (
@@ -42,14 +51,21 @@ export default async function PlanningRunPage({
           </h1>
 
           <p className="mt-2 text-slate-500">
-            Delivery Date: {run.delivery_date}
+            Delivery Date:{" "}
+            {run.delivery_date
+              ? new Date(
+                  run.delivery_date
+                ).toLocaleDateString(
+                  "en-IN"
+                )
+              : "-"}
           </p>
 
         </div>
 
         <Link
           href="/admin/planning/history"
-          className="rounded-lg bg-slate-800 px-5 py-3 font-bold text-white"
+          className="rounded-lg bg-slate-800 px-5 py-3 font-bold text-white transition hover:bg-slate-700"
         >
           Back
         </Link>
@@ -60,29 +76,41 @@ export default async function PlanningRunPage({
 
         <div className="rounded-xl bg-blue-600 p-6 text-white">
           <p>Orders</p>
+
           <p className="mt-2 text-4xl font-bold">
-            {run.total_orders}
+            {Number(
+              run.total_orders ?? 0
+            ).toLocaleString("en-IN")}
           </p>
         </div>
 
         <div className="rounded-xl bg-green-600 p-6 text-white">
           <p>Birds</p>
+
           <p className="mt-2 text-4xl font-bold">
-            {run.birds_required}
+            {Number(
+              run.birds_required ?? 0
+            ).toLocaleString("en-IN")}
           </p>
         </div>
 
         <div className="rounded-xl bg-orange p-6 text-white">
-          <p>Weight</p>
+          <p>Weight (kg)</p>
+
           <p className="mt-2 text-4xl font-bold">
-            {run.weight_required}
+            {Number(
+              run.weight_required ?? 0
+            ).toLocaleString("en-IN")}
           </p>
         </div>
 
         <div className="rounded-xl bg-purple-600 p-6 text-white">
           <p>Vehicles</p>
+
           <p className="mt-2 text-4xl font-bold">
-            {run.estimated_vehicles}
+            {Number(
+              run.estimated_vehicles ?? 0
+            ).toLocaleString("en-IN")}
           </p>
         </div>
 
@@ -96,7 +124,7 @@ export default async function PlanningRunPage({
 
         <div className="mt-4">
 
-          <span className="rounded bg-blue-100 px-4 py-2 font-bold text-blue-700">
+          <span className="rounded bg-blue-100 px-4 py-2 font-bold capitalize text-blue-700">
             {run.status}
           </span>
 
@@ -118,7 +146,13 @@ export default async function PlanningRunPage({
             </p>
 
             <p className="font-semibold">
-              {run.generated_at ?? "-"}
+              {run.generated_at
+                ? new Date(
+                    run.generated_at
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                : "-"}
             </p>
           </div>
 
@@ -128,7 +162,13 @@ export default async function PlanningRunPage({
             </p>
 
             <p className="font-semibold">
-              {run.approved_at ?? "-"}
+              {run.approved_at
+                ? new Date(
+                    run.approved_at
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                : "-"}
             </p>
           </div>
 
@@ -138,7 +178,13 @@ export default async function PlanningRunPage({
             </p>
 
             <p className="font-semibold">
-              {run.executed_at ?? "-"}
+              {run.executed_at
+                ? new Date(
+                    run.executed_at
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                : "-"}
             </p>
           </div>
 
@@ -159,14 +205,20 @@ export default async function PlanningRunPage({
       <div className="mt-8 flex gap-4">
 
         {run.status === "draft" && (
-          <ApprovePlanningButton id={run.id} />
+          <ApprovePlanningButton
+            id={run.id}
+          />
         )}
 
-        {run.status === "approved" && (
-          <ExecutePlanningButton id={run.id} />
+        {run.status ===
+          "approved" && (
+          <ExecutePlanningButton
+            id={run.id}
+          />
         )}
 
-        {run.status === "executed" && (
+        {run.status ===
+          "executed" && (
           <div className="rounded-lg bg-green-100 px-6 py-3 font-bold text-green-700">
             ✓ Plan Executed
           </div>

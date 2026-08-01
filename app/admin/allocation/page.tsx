@@ -1,187 +1,321 @@
-import {
-  readDb,
-  getAllocations
-} from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default async function AllocationPage() {
-  const db = await readDb();
+  // -----------------------------------
+  // Orders
+  // -----------------------------------
 
-  const allocations =
-    await getAllocations();
+  const {
+    data: orders,
+    error: ordersError,
+  } = await supabase
+    .from("orders")
+    .select(
+      `
+      id,
+      status,
+      average_weight,
+      birds
+      `
+    )
+    .neq("status", "cancelled");
 
-  const orders = db.orders.filter(
-    (order: any) =>
-      order.status !== "cancelled"
-  );
+  if (ordersError) {
+    console.error(
+      "[ALLOCATION][ORDERS]",
+      ordersError
+    );
+  }
+
+  // -----------------------------------
+  // Farm Inventory
+  // -----------------------------------
+
+  const {
+    data: inventory,
+    error: inventoryError,
+  } = await supabase
+    .from("farm_inventory")
+    .select("*");
+
+  if (inventoryError) {
+    console.error(
+      "[ALLOCATION][INVENTORY]",
+      inventoryError
+    );
+  }
+
+  // -----------------------------------
+  // Farm Partners
+  // -----------------------------------
+
+  const {
+    data: farms,
+    error: farmsError,
+  } = await supabase
+    .from("farm_partners")
+    .select("*")
+    .eq("status", "approved");
+
+  if (farmsError) {
+    console.error(
+      "[ALLOCATION][FARMS]",
+      farmsError
+    );
+  }
+
+  // -----------------------------------
+  // Allocation History
+  // -----------------------------------
+
+  const {
+    data: allocations,
+    error: allocationsError,
+  } = await supabase
+    .from("farm_allocations")
+    .select("*")
+    .order("allocation_date", {
+      ascending: false,
+    });
+
+  if (allocationsError) {
+    console.error(
+      "[ALLOCATION][HISTORY]",
+      allocationsError
+    );
+  }
+
+  // -----------------------------------
+  // Demand Summary
+  // -----------------------------------
 
   const demandSummary =
-    orders.reduce(
+    (orders ?? []).reduce(
       (acc: any, order: any) => {
+
         const weight =
-          order.averageWeight ||
+          order.average_weight ??
           "Not Specified";
 
         acc[weight] =
-          (acc[weight] || 0) +
-          Number(order.birds || 0);
+          (acc[weight] ?? 0) +
+          Number(
+            order.birds ?? 0
+          );
 
         return acc;
+
       },
       {}
     );
+
+  // -----------------------------------
+  // Inventory Summary
+  // -----------------------------------
 
   const inventorySummary =
-    db.farmInventory.reduce(
-      (acc: any, item: any) => {
-        acc[item.weightCategory] =
-          (acc[item.weightCategory] || 0) +
-          Number(item.birdCount || 0);
+    (inventory ?? []).reduce(
+      (
+        acc: any,
+        item: any
+      ) => {
+
+        const key =
+          item.weight_category;
+
+        acc[key] =
+          (acc[key] ?? 0) +
+          Number(
+            item.available_bird_count ??
+            item.bird_count ??
+            0
+          );
 
         return acc;
+
       },
       {}
-    );
-
-  const approvedFarms =
-    db.farmPartners.filter(
-      (farm: any) =>
-        farm.status === "approved"
     );
 
   const availableInventory =
-    db.farmInventory.filter(
+    (inventory ?? []).filter(
       (item: any) =>
-        Number(item.birdCount) > 0
+        Number(
+          item.available_bird_count ??
+          item.bird_count ??
+          0
+        ) > 0
     );
 
   return (
     <div>
+
       <h1 className="mb-6 text-3xl font-bold">
         Farm Allocation
       </h1>
 
+      {/* ------------------------------ */}
+      {/* Demand Summary */}
+      {/* ------------------------------ */}
+
       <div className="rounded-xl border bg-white p-6">
+
         <h2 className="mb-4 text-xl font-bold">
           Demand vs Available Supply
         </h2>
 
-        {Object.entries(
+        {Object.keys(
           demandSummary
         ).length === 0 ? (
-          <p>No demand found.</p>
+
+          <p>
+            No demand found.
+          </p>
+
         ) : (
+
           Object.entries(
             demandSummary
           ).map(
-            ([weight, demand]) => {
+            (
+              [weight, demand]
+            ) => {
+
               const available =
                 inventorySummary[
                   weight
-                ] || 0;
+                ] ?? 0;
 
               return (
                 <div
-                  key={weight}
+                  key={
+                    String(weight)
+                  }
                   className="border-b py-3"
                 >
                   <p>
                     <strong>
-                      {weight}
+                      {String(weight)}
                     </strong>
                   </p>
 
                   <p>
                     Demand:{" "}
-                    {String(demand)}
+                    {String(
+                      demand
+                    )}
                   </p>
 
                   <p>
                     Available:{" "}
                     {available}
                   </p>
+
                 </div>
               );
+
             }
           )
+
         )}
+
       </div>
 
+      {/* ------------------------------ */}
+      {/* Inventory */}
+      {/* ------------------------------ */}
+
       <div className="mt-6 rounded-xl border bg-white p-6">
+
         <h2 className="mb-4 text-xl font-bold">
           Available Farm Inventory
         </h2>
 
         {availableInventory.length === 0 ? (
+
           <p>
             No inventory available.
           </p>
+
         ) : (
+
           availableInventory.map(
-            (inventory: any) => {
+            (
+              stock: any
+            ) => {
+
               const farm =
-                approvedFarms.find(
+                (farms ?? []).find(
                   (f: any) =>
                     f.id ===
-                    inventory.farmId
+                    stock.farm_id
                 );
 
-              const allocated =
-  Number(
-    inventory.reservedBirdCount ?? 0
-  );
+              const reserved =
+                Number(
+                  stock.reserved_bird_count ??
+                  0
+                );
 
-const remaining =
-  Number(
-    inventory.availableBirdCount ??
-    inventory.birdCount
-  );
+              const remaining =
+                Number(
+                  stock.available_bird_count ??
+                  stock.bird_count ??
+                  0
+                );
 
               return (
                 <div
-                  key={inventory.id}
+                  key={
+                    stock.id
+                  }
                   className="border-b py-4"
                 >
                   <p className="font-semibold">
-                    {farm?.farmName ||
-                      inventory.farmId}
+                    {farm?.farm_name ??
+                      stock.farm_id}
                   </p>
 
                   <p>
                     Weight:{" "}
                     {
-                      inventory.weightCategory
+                      stock.weight_category
                     }
                   </p>
 
                   <p>
-  Total Birds:{" "}
-  {inventory.birdCount}
-</p>
+                    Total Birds:{" "}
+                    {
+                      stock.bird_count
+                    }
+                  </p>
 
-<p className="text-orange-600">
-  Reserved:{" "}
-  {allocated}
-</p>
+                  <p className="text-orange-600">
+                    Reserved:{" "}
+                    {reserved}
+                  </p>
 
-<p
-  className={
-    remaining > 0
-      ? "text-green-600"
-      : "text-red-600"
-  }
->
-  Available:{" "}
-  {remaining}
-</p>
+                  <p
+                    className={
+                      remaining > 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    Available:{" "}
+                    {remaining}
+                  </p>
 
                   <p>
                     Cost: ₹
                     {
-                      inventory.procurementPrice
+                      stock.procurement_price
                     }
                   </p>
 
-                  {remaining <= 0 ? (
+                  {/* ===== CONTINUE WITH PART 2 ===== */}
+
+                                    {remaining <= 0 ? (
                     <div className="mt-3 rounded bg-green-100 p-2 text-green-700">
                       Fully Allocated
                     </div>
@@ -195,7 +329,7 @@ const remaining =
                         type="hidden"
                         name="farmId"
                         value={
-                          inventory.farmId
+                          stock.farm_id
                         }
                       />
 
@@ -203,7 +337,7 @@ const remaining =
                         type="hidden"
                         name="farmName"
                         value={
-                          farm?.farmName ||
+                          farm?.farm_name ??
                           ""
                         }
                       />
@@ -212,7 +346,7 @@ const remaining =
                         type="hidden"
                         name="weightCategory"
                         value={
-                          inventory.weightCategory
+                          stock.weight_category
                         }
                       />
 
@@ -232,29 +366,49 @@ const remaining =
                       </button>
                     </form>
                   )}
+
                 </div>
               );
+
             }
           )
+
         )}
+
       </div>
 
+      {/* ------------------------------ */}
+      {/* Allocation History */}
+      {/* ------------------------------ */}
+
       <div className="mt-6 rounded-xl border bg-white p-6">
+
         <h2 className="mb-4 text-xl font-bold">
           Allocation History
         </h2>
 
-        {allocations.length === 0 ? (
-          <p>No allocations yet.</p>
+        {(allocations ?? []).length === 0 ? (
+
+          <p>
+            No allocations yet.
+          </p>
+
         ) : (
-          allocations.map(
-            (allocation: any) => (
+
+          (allocations ?? []).map(
+            (
+              allocation: any
+            ) => (
               <div
-                key={allocation.id}
+                key={
+                  allocation.id
+                }
                 className="border-b py-3"
               >
                 <p className="font-semibold">
-                  {allocation.farm_name}
+                  {
+                    allocation.farm_name
+                  }
                 </p>
 
                 <p>
@@ -273,9 +427,13 @@ const remaining =
 
                 <p>
                   Date:{" "}
-                  {
-                    allocation.allocation_date
-                  }
+                  {allocation.allocation_date
+                    ? new Date(
+                        allocation.allocation_date
+                      ).toLocaleDateString(
+                        "en-IN"
+                      )
+                    : "-"}
                 </p>
 
                 <p className="text-green-600">
@@ -283,11 +441,15 @@ const remaining =
                     allocation.status
                   }
                 </p>
+
               </div>
             )
           )
+
         )}
+
       </div>
+
     </div>
   );
 }

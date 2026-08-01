@@ -41,3 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
+# Temporary files
+*.zip
+project-structure.txt
+structure.txt
+FullProjectCode.txt
+backend.txt

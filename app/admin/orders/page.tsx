@@ -1,14 +1,29 @@
 export const dynamic = "force-dynamic";
 
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 import { AdminOrdersList } from "@/components/admin-orders-list";
 
 export default async function OrdersPage() {
-  const db = await readDb();
+  const {
+    data: orders,
+    error,
+  } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    console.error(
+      "[ADMIN_ORDERS]",
+      error
+    );
+  }
 
   console.log(
     "ADMIN ORDERS COUNT:",
-    db.orders.length
+    orders?.length ?? 0
   );
 
   return (
@@ -18,7 +33,7 @@ export default async function OrdersPage() {
       </h1>
 
       <AdminOrdersList
-        orders={db.orders}
+        orders={orders ?? []}
       />
     </div>
   );

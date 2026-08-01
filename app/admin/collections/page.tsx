@@ -1,28 +1,66 @@
 export const dynamic = "force-dynamic";
+
 import Link from "next/link";
-import {
-  readDb,
-  getRetailerLedger,
-  getRetailerOutstanding,
-} from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default async function CollectionsPage() {
-  const db = await readDb();
+  // ---------------------------------
+  // Retailers
+  // ---------------------------------
 
-  const ledger =
-    await getRetailerLedger();
+  const {
+    data: retailers,
+    error: retailerError,
+  } = await supabase
+    .from("retailers")
+    .select(`
+      id,
+      shop_name,
+      mobile
+    `)
+    .order("shop_name");
 
-  const retailers = await Promise.all(
-    db.retailers.map(
-      async (retailer: any) => {
+  if (retailerError) {
+    console.error(
+      "[COLLECTIONS][RETAILERS]",
+      retailerError
+    );
+  }
+
+  // ---------------------------------
+  // Ledger
+  // ---------------------------------
+
+  const {
+    data: ledger,
+    error: ledgerError,
+  } = await supabase
+    .from("retailer_ledger")
+    .select(`
+      retailer_id,
+      debit,
+      credit,
+      created_at
+    `);
+
+  if (ledgerError) {
+    console.error(
+      "[COLLECTIONS][LEDGER]",
+      ledgerError
+    );
+  }
+
+  const rows =
+    (retailers ?? []).map(
+      (retailer: any) => {
         const entries =
-          ledger.filter(
-            (l: any) =>
-              l.retailer_id ===
+          (ledger ?? []).filter(
+            (entry: any) =>
+              entry.retailer_id ===
               retailer.id
           );
 
-        const credit =
+        const totalDebit =
           entries.reduce(
             (
               sum: number,
@@ -30,22 +68,37 @@ export default async function CollectionsPage() {
             ) =>
               sum +
               Number(
-                row.credit || 0
+                row.debit ?? 0
               ),
             0
           );
 
-        const outstandingData =
-          await getRetailerOutstanding(
-            retailer.id
+        const totalCredit =
+          entries.reduce(
+            (
+              sum: number,
+              row: any
+            ) =>
+              sum +
+              Number(
+                row.credit ?? 0
+              ),
+            0
+          );
+
+        const outstanding =
+          Math.max(
+            totalDebit -
+              totalCredit,
+            0
           );
 
         const lastPayment =
           entries
             .filter(
-              (e: any) =>
+              (row: any) =>
                 Number(
-                  e.credit || 0
+                  row.credit ?? 0
                 ) > 0
             )
             .sort(
@@ -62,22 +115,21 @@ export default async function CollectionsPage() {
             )[0];
 
         return {
-          ...retailer,
-
-          outstanding:
-            outstandingData.outstanding,
-
+          id: retailer.id,
+          shopName:
+            retailer.shop_name,
+          mobile:
+            retailer.mobile,
+          outstanding,
           totalCollected:
-            credit,
-
+            totalCredit,
           lastPaymentDate:
             lastPayment
-              ?.created_at ||
+              ?.created_at ??
             null,
         };
       }
-    )
-  );
+    );
 
   return (
     <div>
@@ -112,54 +164,81 @@ export default async function CollectionsPage() {
           </thead>
 
           <tbody>
-            {retailers.map(
-              (r: any) => (
-                <tr
-                  key={r.id}
-                  className="border-b"
+
+            {/* ===== CONTINUE WITH PART 2 ===== */}
+
+                        {rows.length === 0 ? (
+
+              <tr>
+                <td
+                  colSpan={5}
+                  className="p-6 text-center text-slate-500"
                 >
-                  <td className="p-3">
-                    {r.shopName}
-                  </td>
+                  No retailers found.
+                </td>
+              </tr>
 
-                  <td className="p-3 font-semibold text-red-600">
-                    ₹
-                    {r.outstanding}
-                  </td>
+            ) : (
 
-                  <td className="p-3 text-green-600">
-                    ₹
-                    {r.totalCollected}
-                  </td>
+              rows.map(
+                (row: any) => (
+                  <tr
+                    key={row.id}
+                    className="border-b"
+                  >
+                    <td className="p-3">
+                      {row.shopName}
+                    </td>
 
-                  <td className="p-3">
-                    {r.lastPaymentDate
-                      ? new Date(
-                          r.lastPaymentDate
-                        ).toLocaleDateString()
-                      : "-"}
-                  </td>
+                    <td className="p-3 font-semibold text-red-600">
+                      ₹
+                      {row.outstanding.toLocaleString(
+                        "en-IN"
+                      )}
+                    </td>
 
-                  <td className="p-3">
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/admin/collections/${r.id}`}
-                        className="rounded bg-green-600 px-3 py-2 text-white"
-                      >
-                        Receive Payment
-                      </Link>
+                    <td className="p-3 font-semibold text-green-600">
+                      ₹
+                      {row.totalCollected.toLocaleString(
+                        "en-IN"
+                      )}
+                    </td>
 
-                      <Link
-                        href={`/admin/statement/${r.id}`}
-                        className="rounded bg-blue-600 px-3 py-2 text-white"
-                      >
-                        Statement
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
+                    <td className="p-3">
+                      {row.lastPaymentDate
+                        ? new Date(
+                            row.lastPaymentDate
+                          ).toLocaleDateString(
+                            "en-IN"
+                          )
+                        : "-"}
+                    </td>
+
+                    <td className="p-3">
+                      <div className="flex gap-2">
+
+                        <Link
+                          href={`/admin/collections/${row.id}`}
+                          className="rounded bg-green-600 px-3 py-2 text-white"
+                        >
+                          Receive Payment
+                        </Link>
+
+                        <Link
+                          href={`/admin/statement/${row.id}`}
+                          className="rounded bg-blue-600 px-3 py-2 text-white"
+                        >
+                          Statement
+                        </Link>
+
+                      </div>
+                    </td>
+                  </tr>
+                )
               )
+
             )}
+
           </tbody>
         </table>
       </div>

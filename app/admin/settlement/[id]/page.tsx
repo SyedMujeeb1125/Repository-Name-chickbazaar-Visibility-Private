@@ -1,5 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default async function SettlementDetailPage({
   params,
@@ -8,18 +10,28 @@ export default async function SettlementDetailPage({
 }) {
   const { id } = await params;
 
-  const db = await readDb();
+  const {
+    data: order,
+    error,
+  } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  const order = db.orders.find(
-    (o: any) => o.id === id
-  );
+  if (error) {
+    console.error(
+      "[SETTLEMENT DETAIL]",
+      error
+    );
+  }
 
   if (!order) {
     return notFound();
   }
 
   const podUrl =
-    (order as any).pod_photo_url;
+    order.pod_photo_url;
 
   return (
     <div>
@@ -31,12 +43,12 @@ export default async function SettlementDetailPage({
 
         <p>
           <strong>Order:</strong>{" "}
-          {order.orderNumber}
+          {order.order_number}
         </p>
 
         <p>
           <strong>Retailer:</strong>{" "}
-          {order.shopName}
+          {order.shop_name}
         </p>
 
         <p>
@@ -46,16 +58,16 @@ export default async function SettlementDetailPage({
 
         <p>
           <strong>Delivered At:</strong>{" "}
-          {(order as any).deliveredAt
+          {order.delivered_at
             ? new Date(
-                (order as any).deliveredAt
-              ).toLocaleString()
+                order.delivered_at
+              ).toLocaleString("en-IN")
             : "-"}
         </p>
 
         <p>
           <strong>Delivery Notes:</strong>{" "}
-          {(order as any).deliveryNotes ||
+          {order.delivery_notes ??
             "-"}
         </p>
 
@@ -107,7 +119,7 @@ export default async function SettlementDetailPage({
               step="0.01"
               name="actualWeight"
               defaultValue={
-                order.actualWeight || ""
+                order.actual_weight ?? ""
               }
               className="w-full rounded border p-3"
             />
@@ -123,7 +135,7 @@ export default async function SettlementDetailPage({
               step="0.01"
               name="ratePerKg"
               defaultValue={
-                order.ratePerKg || 0
+                order.rate_per_kg ?? 0
               }
               className="w-full rounded border p-3"
             />

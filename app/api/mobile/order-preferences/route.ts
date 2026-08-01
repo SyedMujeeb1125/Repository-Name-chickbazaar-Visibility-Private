@@ -5,6 +5,7 @@ export async function GET(
   request: NextRequest
 ) {
   try {
+
     const mobile =
       request.nextUrl.searchParams.get(
         "mobile"
@@ -22,9 +23,9 @@ export async function GET(
       );
     }
 
-    // -------------------------------------------------
-    // Find Retailer
-    // -------------------------------------------------
+    // ---------------------------------------
+    // Retailer
+    // ---------------------------------------
 
     const {
       data: retailer,
@@ -33,16 +34,33 @@ export async function GET(
       .from("retailers")
       .select("*")
       .eq("mobile", mobile)
-      .single();
+      .maybeSingle();
 
-    if (
-      retailerError ||
-      !retailer
-    ) {
+    if (retailerError) {
+
+      console.error(
+        "[REPEAT_ORDER][RETAILER]",
+        retailerError
+      );
+
       return NextResponse.json(
         {
           success: false,
-          message: "Retailer not found.",
+          message:
+            "Unable to fetch retailer.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    if (!retailer) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Retailer not found.",
         },
         {
           status: 404,
@@ -50,12 +68,13 @@ export async function GET(
       );
     }
 
-    // -------------------------------------------------
+    // ---------------------------------------
     // Order Preferences
-    // -------------------------------------------------
+    // ---------------------------------------
 
     const {
       data: preferences,
+      error: preferenceError,
     } = await supabase
       .from(
         "retailer_order_preferences"
@@ -67,12 +86,20 @@ export async function GET(
       )
       .maybeSingle();
 
-    // -------------------------------------------------
+    if (preferenceError) {
+      console.error(
+        "[REPEAT_ORDER][PREFERENCES]",
+        preferenceError
+      );
+    }
+
+    // ---------------------------------------
     // Latest Delivered Order
-    // -------------------------------------------------
+    // ---------------------------------------
 
     const {
       data: lastDeliveredOrder,
+      error: deliveredError,
     } = await supabase
       .from("orders")
       .select("*")
@@ -87,12 +114,20 @@ export async function GET(
       .limit(1)
       .maybeSingle();
 
-    // -------------------------------------------------
+    if (deliveredError) {
+      console.error(
+        "[REPEAT_ORDER][DELIVERED]",
+        deliveredError
+      );
+    }
+
+    // ---------------------------------------
     // Active Order
-    // -------------------------------------------------
+    // ---------------------------------------
 
     const {
       data: activeOrder,
+      error: activeOrderError,
     } = await supabase
       .from("orders")
       .select("*")
@@ -114,11 +149,19 @@ export async function GET(
       .limit(1)
       .maybeSingle();
 
+    if (activeOrderError) {
+      console.error(
+        "[REPEAT_ORDER][ACTIVE]",
+        activeOrderError
+      );
+    }
+
     const repeatAvailable =
-      !!lastDeliveredOrder &&
+      Boolean(lastDeliveredOrder) &&
       !activeOrder;
 
     return NextResponse.json({
+
       success: true,
 
       retailer: {
@@ -150,26 +193,42 @@ export async function GET(
               lastDeliveredOrder.delivered_at,
 
             weight:
-              lastDeliveredOrder.actual_weight ??
-              lastDeliveredOrder.requested_weight,
+              Number(
+                lastDeliveredOrder.actual_weight ??
+                lastDeliveredOrder.requested_weight ??
+                0
+              ),
 
             birds:
-              preferences
-                ?.expected_birds ?? 0,
+              Number(
+                preferences?.expected_birds ??
+                0
+              ),
 
             rate:
-              lastDeliveredOrder.rate_per_kg,
+              Number(
+                lastDeliveredOrder.rate_per_kg ??
+                0
+              ),
 
             estimatedAmount:
-              lastDeliveredOrder.final_amount ??
-              lastDeliveredOrder.estimated_amount,
+              Number(
+                lastDeliveredOrder.final_amount ??
+                lastDeliveredOrder.estimated_amount ??
+                0
+              ),
           }
         : {
             available: false,
           },
     });
+
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      "[REPEAT_ORDER]",
+      error
+    );
 
     return NextResponse.json(
       {

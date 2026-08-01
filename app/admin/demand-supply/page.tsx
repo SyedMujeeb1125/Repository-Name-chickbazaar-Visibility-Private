@@ -1,15 +1,106 @@
-import { readDb } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 const ZONES = [
   "north",
   "south",
   "east",
   "west",
-  "central"
+  "central",
 ];
 
 export default async function DemandSupplyPage() {
-  const db = await readDb();
+  // ---------------------------------
+  // Retailers
+  // ---------------------------------
+
+  const {
+    data: retailers,
+    error: retailersError,
+  } = await supabase
+    .from("retailers")
+    .select(`
+      id,
+      mobile,
+      zone
+    `);
+
+  if (retailersError) {
+    console.error(
+      "[DEMAND_SUPPLY][RETAILERS]",
+      retailersError
+    );
+  }
+
+  // ---------------------------------
+  // Orders
+  // ---------------------------------
+
+  const {
+    data: orders,
+    error: ordersError,
+  } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      mobile,
+      status,
+      requested_weight,
+      birds,
+      average_weight
+    `)
+    .neq("status", "cancelled");
+
+  if (ordersError) {
+    console.error(
+      "[DEMAND_SUPPLY][ORDERS]",
+      ordersError
+    );
+  }
+
+  // ---------------------------------
+  // Farms
+  // ---------------------------------
+
+  const {
+    data: farms,
+    error: farmsError,
+  } = await supabase
+    .from("farm_partners")
+    .select(`
+      id,
+      zone,
+      status
+    `)
+    .eq("status", "approved");
+
+  if (farmsError) {
+    console.error(
+      "[DEMAND_SUPPLY][FARMS]",
+      farmsError
+    );
+  }
+
+  // ---------------------------------
+  // Inventory
+  // ---------------------------------
+
+  const {
+    data: inventory,
+    error: inventoryError,
+  } = await supabase
+    .from("farm_inventory")
+    .select(`
+      farm_id,
+      bird_count,
+      weight_category
+    `);
+
+  if (inventoryError) {
+    console.error(
+      "[DEMAND_SUPPLY][INVENTORY]",
+      inventoryError
+    );
+  }
 
   return (
     <div>
@@ -19,23 +110,26 @@ export default async function DemandSupplyPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ZONES.map((zone) => {
-          // DEMAND
+          // -----------------------------
+          // Demand
+          // -----------------------------
 
           const zoneOrders =
-            db.orders.filter((order: any) => {
-              const retailer =
-                db.retailers.find(
-                  (r: any) =>
-                    r.mobile ===
-                    order.mobile
-                );
+            (orders ?? []).filter(
+              (order: any) => {
+                const retailer =
+                  (retailers ?? []).find(
+                    (r: any) =>
+                      r.mobile ===
+                      order.mobile
+                  );
 
-              return (
-                retailer?.zone === zone &&
-                order.status !==
-                  "cancelled"
-              );
-            });
+                return (
+                  retailer?.zone ===
+                  zone
+                );
+              }
+            );
 
           let demandKg = 0;
 
@@ -43,46 +137,48 @@ export default async function DemandSupplyPage() {
             (order: any) => {
               const requestedWeight =
                 Number(
-                  order.requestedWeight ||
+                  order.requested_weight ??
                     0
                 );
 
               const birds =
                 Number(
-                  order.birds || 0
+                  order.birds ?? 0
                 );
 
-              const avgWeight =
+              const averageWeight =
                 Number(
-                  order.averageWeight ||
+                  order.average_weight ??
                     0
                 );
 
               if (
-                requestedWeight > 0
+                requestedWeight >
+                0
               ) {
                 demandKg +=
                   requestedWeight;
               } else if (
                 birds > 0 &&
-                avgWeight > 0
+                averageWeight > 0
               ) {
                 demandKg +=
                   birds *
-                  avgWeight;
+                  averageWeight;
               }
             }
           );
 
-          // SUPPLY
+          // -----------------------------
+          // Supply
+          // -----------------------------
 
           const approvedFarmIds =
-            db.farmPartners
+            (farms ?? [])
               .filter(
                 (farm: any) =>
-                  farm.status ===
-                    "approved" &&
-                  farm.zone === zone
+                  farm.zone ===
+                  zone
               )
               .map(
                 (farm: any) =>
@@ -90,10 +186,10 @@ export default async function DemandSupplyPage() {
               );
 
           const zoneInventory =
-            db.farmInventory.filter(
+            (inventory ?? []).filter(
               (item: any) =>
                 approvedFarmIds.includes(
-                  item.farmId
+                  item.farm_id
                 )
             );
 
@@ -103,12 +199,13 @@ export default async function DemandSupplyPage() {
             (item: any) => {
               const birds =
                 Number(
-                  item.birdCount || 0
+                  item.bird_count ??
+                    0
                 );
 
               const weight =
                 Number(
-                  item.weightCategory ||
+                  item.weight_category ??
                     0
                 );
 
@@ -130,45 +227,42 @@ export default async function DemandSupplyPage() {
               </h2>
 
               <p>
-                Demand:
-                {" "}
+                Demand:{" "}
                 <strong>
                   {Math.round(
                     demandKg
-                  )}
-                  {" "}Kg
+                  )}{" "}
+                  Kg
                 </strong>
               </p>
 
               <p>
-                Supply:
-                {" "}
+                Supply:{" "}
                 <strong>
                   {Math.round(
                     supplyKg
-                  )}
-                  {" "}Kg
+                  )}{" "}
+                  Kg
                 </strong>
               </p>
 
               <p
                 className={
                   balance >= 0
-                    ? "text-green-600 font-bold"
-                    : "text-red-600 font-bold"
+                    ? "font-bold text-green-600"
+                    : "font-bold text-red-600"
                 }
               >
                 {balance >= 0
                   ? "Surplus"
                   : "Shortfall"}
-                :
-                {" "}
+                :{" "}
                 {Math.abs(
                   Math.round(
                     balance
                   )
-                )}
-                {" "}Kg
+                )}{" "}
+                Kg
               </p>
             </div>
           );

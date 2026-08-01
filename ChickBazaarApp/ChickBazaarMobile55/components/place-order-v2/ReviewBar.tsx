@@ -1,10 +1,12 @@
 import React from "react";
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
   amount: number;
@@ -15,8 +17,17 @@ export default function ReviewBar({
   amount,
   onPress,
 }: Props) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: Math.max(insets.bottom, 16),
+        },
+      ]}
+    >
       <View>
         <Text style={styles.label}>
           Estimated Amount
@@ -29,6 +40,7 @@ export default function ReviewBar({
 
       <TouchableOpacity
         style={styles.button}
+        activeOpacity={0.9}
         onPress={onPress}
       >
         <Text style={styles.buttonText}>
@@ -42,13 +54,26 @@ export default function ReviewBar({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
+
     borderTopWidth: 1,
     borderColor: "#E5E7EB",
+
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    elevation: 12,
   },
 
   label: {
@@ -65,8 +90,8 @@ const styles = StyleSheet.create({
 
   button: {
     backgroundColor: "#F97316",
-    paddingHorizontal: 24,
     height: 52,
+    paddingHorizontal: 24,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",

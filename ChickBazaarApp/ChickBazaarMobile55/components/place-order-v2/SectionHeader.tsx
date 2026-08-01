@@ -1,9 +1,9 @@
 import React from "react";
 
 import {
-    StyleSheet,
-    Text,
-    View,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 type Props = {
@@ -37,29 +37,21 @@ export default function SectionHeader({
   );
 }
 
-const styles =
-  StyleSheet.create({
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 12,
+  },
 
-    container: {
-      marginBottom: 18,
-    },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+  },
 
-    title: {
-      fontSize: 20,
-
-      fontWeight: "700",
-
-      color: "#111827",
-    },
-
-    subtitle: {
-      marginTop: 5,
-
-      fontSize: 14,
-
-      color: "#6B7280",
-
-      lineHeight: 20,
-    },
-
+  subtitle: {
+    marginTop: 3,
+    fontSize: 13,
+    color: "#6B7280",
+    lineHeight: 18,
+  },
 });

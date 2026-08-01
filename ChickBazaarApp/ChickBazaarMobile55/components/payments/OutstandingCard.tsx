@@ -1,10 +1,12 @@
 import React from "react";
 
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
+  View,
 } from "react-native";
+
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import Card from "../ui/Card";
 
@@ -15,59 +17,91 @@ type Props = {
 
 export default function OutstandingCard({
   outstanding,
-  creditLimit,
 }: Props) {
 
-  const available =
-    Math.max(creditLimit - outstanding, 0);
-
-  const usedPercentage =
-    creditLimit > 0
-      ? Math.round(
-          (outstanding / creditLimit) * 100
-        )
-      : 0;
+  const paymentPending =
+    outstanding > 0;
 
   return (
 
     <Card>
 
-      <Text style={styles.heading}>
-        Outstanding Balance
-      </Text>
+      <View style={styles.header}>
 
-      <Text style={styles.amount}>
-        ₹
-        {outstanding.toLocaleString()}
-      </Text>
+        <View style={styles.iconContainer}>
 
-      <View style={styles.progressBackground}>
+          <MaterialCommunityIcons
+            name="wallet-outline"
+            size={24}
+            color="#F97316"
+          />
 
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${Math.min(
-                usedPercentage,
-                100
-              )}%`,
-            },
-          ]}
-        />
+        </View>
+
+        <View>
+
+          <Text style={styles.heading}>
+            Business Summary
+          </Text>
+
+          <Text style={styles.subHeading}>
+            Outstanding Balance
+          </Text>
+
+        </View>
 
       </View>
 
-      <View style={styles.row}>
+      <Text style={styles.amount}>
+        ₹{outstanding.toLocaleString()}
+      </Text>
+
+      <View style={styles.statusContainer}>
+
+        <MaterialCommunityIcons
+          name={
+            paymentPending
+              ? "alert-circle"
+              : "check-circle"
+          }
+          size={18}
+          color={
+            paymentPending
+              ? "#F97316"
+              : "#16A34A"
+          }
+        />
+
+        <Text
+          style={[
+            styles.statusText,
+            {
+              color:
+                paymentPending
+                  ? "#F97316"
+                  : "#16A34A",
+            },
+          ]}
+        >
+          {paymentPending
+            ? "Payment Pending"
+            : "No Outstanding Dues"}
+        </Text>
+
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.footer}>
 
         <View>
 
           <Text style={styles.label}>
-            Available Credit
+            Last Updated
           </Text>
 
           <Text style={styles.value}>
-            ₹
-            {available.toLocaleString()}
+            Today
           </Text>
 
         </View>
@@ -75,11 +109,23 @@ export default function OutstandingCard({
         <View>
 
           <Text style={styles.label}>
-            Credit Used
+            Status
           </Text>
 
-          <Text style={styles.value}>
-            {usedPercentage}%
+          <Text
+            style={[
+              styles.value,
+              {
+                color:
+                  paymentPending
+                    ? "#F97316"
+                    : "#16A34A",
+              },
+            ]}
+          >
+            {paymentPending
+              ? "Pending"
+              : "Clear"}
           </Text>
 
         </View>
@@ -94,46 +140,73 @@ export default function OutstandingCard({
 
 const styles = StyleSheet.create({
 
-heading:{
-fontSize:18,
-fontWeight:"700",
-color:"#0F172A",
-},
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 
-amount:{
-fontSize:34,
-fontWeight:"700",
-color:"#EF4444",
-marginVertical:16,
-},
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#FFF7ED",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
 
-progressBackground:{
-height:10,
-backgroundColor:"#E2E8F0",
-borderRadius:6,
-overflow:"hidden",
-},
+  heading: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
 
-progressFill:{
-height:10,
-backgroundColor:"#F97316",
-},
+  subHeading: {
+    marginTop: 2,
+    color: "#64748B",
+    fontSize: 14,
+  },
 
-row:{
-marginTop:18,
-flexDirection:"row",
-justifyContent:"space-between",
-},
+  amount: {
+    marginTop: 22,
+    fontSize: 36,
+    fontWeight: "800",
+    color: "#EF4444",
+  },
 
-label:{
-color:"#64748B",
-fontSize:13,
-},
+  statusContainer: {
+    marginTop: 18,
+    flexDirection: "row",
+    alignItems: "center",
+  },
 
-value:{
-marginTop:6,
-fontWeight:"700",
-fontSize:18,
-},
+  statusText: {
+    marginLeft: 8,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginVertical: 22,
+  },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  label: {
+    fontSize: 13,
+    color: "#64748B",
+  },
+
+  value: {
+    marginTop: 6,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
 
 });

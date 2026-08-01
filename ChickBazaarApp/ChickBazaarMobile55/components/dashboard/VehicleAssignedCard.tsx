@@ -5,19 +5,34 @@ import DashboardActionCard from "./DashboardActionCard";
 import DashboardInfoRow from "./DashboardInfoRow";
 
 type Props = {
+  orderLabel?: string;
+
   vehicleNumber?: string;
+
   driverName?: string;
+
   driverPhone?: string;
+
   deliveryWindow?: string;
+
+  eta?: string;
 
   onTrackOrder: () => void;
 };
 
 export default function VehicleAssignedCard({
+  orderLabel = "Today's Order",
+
   vehicleNumber,
+
   driverName,
+
   driverPhone,
-  deliveryWindow,
+
+  deliveryWindow = "6:00 AM – 8:00 AM",
+
+  eta,
+
   onTrackOrder,
 }: Props) {
   return (
@@ -27,10 +42,10 @@ export default function VehicleAssignedCard({
       icon="truck-check"
       iconBackground="#2563EB"
       title="Vehicle Assigned"
-      subtitle="Your order has been loaded and assigned to a delivery vehicle."
+      subtitle="Your order has been loaded onto the delivery vehicle and is ready for dispatch."
       footer={
         <PrimaryButton
-          title="TRACK ORDER"
+          title={`TRACK ${orderLabel.toUpperCase()}`}
           onPress={onTrackOrder}
         />
       }
@@ -43,7 +58,7 @@ export default function VehicleAssignedCard({
 
       <DashboardInfoRow
         icon="account-outline"
-        label="Driver Name"
+        label="Driver"
         value={driverName ?? "--"}
       />
 
@@ -53,10 +68,18 @@ export default function VehicleAssignedCard({
         value={driverPhone ?? "--"}
       />
 
+      {eta ? (
+        <DashboardInfoRow
+          icon="map-marker-distance"
+          label="Estimated Arrival"
+          value={eta}
+        />
+      ) : null}
+
       <DashboardInfoRow
         icon="clock-outline"
         label="Delivery Window"
-        value={deliveryWindow ?? "Today • 6:00 AM – 8:00 AM"}
+        value={deliveryWindow}
       />
     </DashboardActionCard>
   );

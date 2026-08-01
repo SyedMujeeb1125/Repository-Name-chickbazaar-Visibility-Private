@@ -1,7 +1,15 @@
 export enum DashboardState {
+  // -------------------------------------
+  // Default
+  // -------------------------------------
+
   NO_ORDER = "NO_ORDER",
 
   AFTER_CUTOFF = "AFTER_CUTOFF",
+
+  // -------------------------------------
+  // Order Lifecycle
+  // -------------------------------------
 
   ORDER_CONFIRMED = "ORDER_CONFIRMED",
 
@@ -15,11 +23,34 @@ export enum DashboardState {
 
   DELIVERED = "DELIVERED",
 
+  // -------------------------------------
+  // Payment
+  // -------------------------------------
+
   PAYMENT_PENDING = "PAYMENT_PENDING",
 
-  READY_FOR_TOMORROW_ORDER = "READY_FOR_TOMORROW_ORDER",
+  INVOICE_READY = "INVOICE_READY",
 
-  SCHEDULE_CONFIRMATION_PENDING = "SCHEDULE_CONFIRMATION_PENDING",
+  // -------------------------------------
+  // Additional Order
+  // -------------------------------------
 
-  FUTURE_ORDER_CONFIRMED = "FUTURE_ORDER_CONFIRMED",
+  ADDITIONAL_ORDER = "ADDITIONAL_ORDER",
+
+  // -------------------------------------
+  // Tomorrow Order
+  // -------------------------------------
+
+  READY_FOR_TOMORROW_ORDER =
+    "READY_FOR_TOMORROW_ORDER",
+
+  // -------------------------------------
+  // Future Orders
+  // -------------------------------------
+
+  SCHEDULE_CONFIRMATION_PENDING =
+    "SCHEDULE_CONFIRMATION_PENDING",
+
+  FUTURE_ORDER_CONFIRMED =
+    "FUTURE_ORDER_CONFIRMED",
 }

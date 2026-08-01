@@ -70,18 +70,7 @@ export default function EstimateSection({
           </Text>
         </View>
 
-        <View style={styles.note}>
-          <MaterialCommunityIcons
-            name="information-outline"
-            size={18}
-            color="#F97316"
-          />
-
-          <Text style={styles.noteText}>
-            Final invoice is calculated using
-            the actual delivered weight.
-          </Text>
-        </View>
+        
       </View>
     </SectionCard>
   );
@@ -90,8 +79,8 @@ export default function EstimateSection({
 const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: "#F8FAFC",
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 16,
+    padding: 14,
   },
 
   amountRow: {
@@ -101,21 +90,21 @@ const styles = StyleSheet.create({
   },
 
   amountLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#6B7280",
-    marginBottom: 6,
+    marginBottom: 2,
   },
 
   amount: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: "800",
     color: "#111827",
   },
 
   iconContainer: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: "#FFF7ED",
     justifyContent: "center",
     alignItems: "center",
@@ -124,40 +113,40 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#E5E7EB",
-    marginVertical: 18,
+    marginVertical: 12,
   },
 
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 8,
   },
 
   left: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#6B7280",
   },
 
   right: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
     color: "#111827",
   },
 
   note: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     backgroundColor: "#FFF7ED",
-    borderRadius: 14,
-    padding: 12,
-    marginTop: 10,
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 8,
   },
 
   noteText: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 13,
+    marginLeft: 8,
+    fontSize: 12,
     color: "#92400E",
-    lineHeight: 18,
+    lineHeight: 16,
   },
 });

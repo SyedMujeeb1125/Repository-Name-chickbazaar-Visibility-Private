@@ -6,6 +6,8 @@ import React, {
 
 import { useFocusEffect } from "@react-navigation/native";
 
+import { openOrderTracking } from "../utils/navigation/openOrderTracking";
+
 import {
   Alert,
   ImageBackground,
@@ -224,26 +226,10 @@ const onRefresh = async () => {
     return <LoadingView />;
   }
 
-  const dashboardState = dashboard?.businessStatus;
-
-  const currentHour = new Date().getHours();
-
-const rateMode =
-  currentHour >= 19
-    ? "tomorrow"
-    : currentHour <= 17
-    ? "today"
-    : "publishing";
-
-const deliveryDate =
-  rateMode === "tomorrow"
-    ? "Tomorrow's Delivery"
-    : "Today's Delivery";
-
-const updatedAt =
-  rateMode === "publishing"
-    ? "Publishing at 7:00 PM"
-    : "Updated • 7:00 PM";
+  const dashboardState =
+  dashboard?.dashboardState ??
+  dashboard?.businessState ??
+  dashboard?.businessStatus;
 
     const activeOrder = dashboard?.recentOrders?.find(
   (order: any) =>
@@ -268,6 +254,7 @@ const updatedAt =
       >
 
         <ScrollView
+  scrollEnabled={!drawerVisible}
   showsVerticalScrollIndicator={false}
   contentContainerStyle={styles.container}
   refreshControl={
@@ -295,96 +282,114 @@ const updatedAt =
               setDrawerVisible(true)
             }
             onNotificationPress={() =>
-              navigation.navigate(
-                "Activity"
-              )
-            }
+  navigation.navigate("Activity")
+}
           />
 
           <LiveRateCard
-  mode={rateMode}
-  rate={
-    rateMode === "tomorrow"
-      ? Number(dashboard?.tomorrowRate ?? dashboard?.todayRate ?? 150)
-      : Number(dashboard?.todayRate ?? 150)
+  mode={
+    dashboard?.business?.tomorrowRatePublished
+      ? "tomorrow"
+      : "today"
   }
+  rate={
+    dashboard?.business?.tomorrowRatePublished
+      ? Number(
+          dashboard?.tomorrowRate ??
+            dashboard?.todayRate ??
+          150
+        )
+      : Number(
+          dashboard?.todayRate ?? 150
+        )
+  }
+  yesterdayRate={Number(
+    dashboard?.yesterdayRate ??
+      dashboard?.business?.yesterdayRate ??
+      dashboard?.todayRate ??
+    150
+  )}
 />
 
-          <DashboardHeroRenderer
-  state={dashboardState}
+<View style={{ marginTop: 16 }}>
+  <DashboardHeroRenderer
+    state={dashboardState}
 
-  account={dashboard?.account}
-
-  repeatOrder={dashboard?.repeatOrder}
-
-  deliveryStatus={
-    dashboard?.currentDelivery?.status
-  }
-
-  orderWeight={
-    dashboard?.currentDelivery?.requestedWeight ??
-    activeOrder?.requested_weight
-  }
-
-  rate={
-    activeOrder?.rate_per_kg
-  }
-
-  estimatedAmount={
-    dashboard?.currentDelivery?.estimatedAmount ??
-    activeOrder?.estimated_amount
-  }
-
-  deliveryWindow={
-    dashboard?.currentDelivery?.deliveryWindow ??
-    "Today's Delivery"
-  }
-
-  driverName={
-    dashboard?.currentDelivery?.captain
-  }
-
-  driverPhone={
-    dashboard?.currentDelivery?.driverPhone
-  }
-
-  vehicleNumber={
-    dashboard?.currentDelivery?.vehicle ??
-    activeOrder?.assigned_vehicle
-  }
-
-  eta={
-    dashboard?.currentDelivery?.eta
-  }
-
-  onPlaceOrder={() =>
-    navigation.navigate("Order")
-  }
-
-  onTrackOrder={() => {
-    if (activeOrder?.id) {
-      navigation.navigate("OrderDetails", {
-        orderId: activeOrder.id,
-      });
-    } else {
-      navigation.navigate("Orders");
+    orderLabel={
+      dashboard?.business?.orderLabel
     }
-  }}
 
-  onRepeatOrder={repeatOrderNow}
+    account={dashboard?.account}
 
-  placingRepeatOrder={
-    placingRepeatOrder
+    repeatOrder={dashboard?.repeatOrder}
+
+    deliveryStatus={
+      dashboard?.currentDelivery?.status
+    }
+
+    orderWeight={
+      dashboard?.currentDelivery
+        ?.requestedWeight ??
+      activeOrder?.requested_weight
+    }
+
+    rate={
+      activeOrder?.rate_per_kg ??
+      dashboard?.todayRate
+    }
+
+    estimatedAmount={
+      dashboard?.currentDelivery
+        ?.estimatedAmount ??
+      activeOrder?.estimated_amount
+    }
+
+    deliveryWindow={
+      dashboard?.currentDelivery
+        ?.deliveryWindow
+    }
+
+    driverName={
+      dashboard?.currentDelivery?.captain
+    }
+
+    driverPhone={
+      dashboard?.currentDelivery?.driverPhone
+    }
+
+    vehicleNumber={
+      dashboard?.currentDelivery?.vehicle ??
+      activeOrder?.assigned_vehicle
+    }
+
+    eta={dashboard?.currentDelivery?.eta}
+
+    onPlaceOrder={() =>
+  navigation.navigate("PlaceOrderV2")
+}
+
+    onTrackOrder={() => {
+  if (activeOrder) {
+    openOrderTracking(
+    navigation,
+    activeOrder
+);
+  } else {
+    navigation.navigate("Orders");
   }
+}}
 
-  onChangeQuantity={() =>
-    navigation.navigate("Order")
-  }
-/>
+    onRepeatOrder={repeatOrderNow}
+
+    onMakePayment={() =>
+      navigation.navigate("Business")
+    }
+  />
+</View>
 
 <View
   style={{
-    marginTop: 20,
+    marginTop: 16,
   }}
 >
   <RetailerAccountCard
@@ -402,15 +407,13 @@ const updatedAt =
 
 <View
   style={{
-    marginTop: 28,
+    marginTop: 16,
   }}
 >
   <QuickActionsSection
     onShops={() =>
-      navigation.navigate("Profile", {
-        screen: "MyShops",
-      })
-    }
+  navigation.navigate("MyShops")
+}
     onOrders={() =>
       navigation.navigate("Orders")
     }
@@ -423,148 +426,133 @@ const updatedAt =
   />
 </View>
 
-          <OrdersSection
-            orders={
-              dashboard?.recentOrders ||
-              []
-            }
-            onOrderPress={(
-              orderId
-            ) =>
-              navigation.navigate(
-                "OrderDetails",
-                {
-                  orderId,
-                }
-              )
-            }
-          />
+          <View
+  style={{
+    marginTop: 16,
+  }}
+>
+  <OrdersSection
+    orders={
+      dashboard?.recentOrders || []
+    }
+    onOrderPress={(orderId) =>
+  navigation.navigate("OrderDetails", {
+    orderId,
+  })
+}
+  />
+</View>
 
         </ScrollView>
 
         <SideDrawer
-          visible={
-            drawerVisible
-          }
-          shopName={
-            dashboard?.shopName ||
-            "Retailer"
-          }
-          retailerId={
-            dashboard?.retailerId ||
-            "CB-000001"
-          }
+  visible={drawerVisible}
+  shopName={
+    dashboard?.shopName ||
+    "Retailer"
+  }
+  retailerId={
+    dashboard?.retailerId ||
+    "CB-000001"
+  }
 
-          onClose={() =>
-            setDrawerVisible(
-              false
-            )
-          }
+  onClose={() =>
+    setDrawerVisible(false)
+  }
 
-          onDashboard={() =>
-            setDrawerVisible(
-              false
-            )
-          }
+  onDashboard={() => {
+  setDrawerVisible(false);
 
-          onShops={() => {
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "Home",
+      },
+    ],
+  });
+}}
 
-            setDrawerVisible(
-              false
-            );
+  onShops={() => {
+  setDrawerVisible(false);
+  navigation.navigate("MyShops");
+}}
 
-            navigation.navigate(
-              "Profile",
-              {
-                screen:
-                  "MyShops",
-              }
-            );
+  onOrders={() => {
+  setDrawerVisible(false);
 
-          }}
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "Orders",
+      },
+    ],
+  });
+}}
 
-          onOrders={() => {
+  onBusiness={() => {
+  setDrawerVisible(false);
 
-            setDrawerVisible(
-              false
-            );
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "Business",
+      },
+    ],
+  });
+}}
 
-            navigation.navigate(
-              "Orders"
-            );
 
-          }}
 
-          onBusiness={() => {
+  onPayments={() => {
+  setDrawerVisible(false);
+  navigation.navigate("Payments");
+}}
 
-            setDrawerVisible(
-              false
-            );
+  onNotifications={() => {
+  setDrawerVisible(false);
+  navigation.navigate("Activity");
+}}
 
-            navigation.navigate(
-              "Business"
-            );
+  onProfile={() => {
+  setDrawerVisible(false);
 
-          }}
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "Profile",
+      },
+    ],
+  });
+}}
 
-          onPayments={() => {
+  onHelp={() => {
+    setDrawerVisible(false);
 
-            setDrawerVisible(
-              false
-            );
+    Alert.alert(
+      "Coming Soon",
+      "Help & Support will be available in a future update."
+    );
+  }}
 
-            navigation.navigate(
-              "Business"
-            );
+  onSettings={() => {
+    setDrawerVisible(false);
 
-          }}
+    Alert.alert(
+      "Coming Soon",
+      "Settings will be available in a future update."
+    );
+  }}
 
-          onNotifications={() => {
+  onLogout={async () => {
+    setDrawerVisible(false);
 
-            setDrawerVisible(
-              false
-            );
-
-            navigation.navigate(
-              "Activity"
-            );
-
-          }}
-
-          onProfile={() => {
-
-            setDrawerVisible(
-              false
-            );
-
-            navigation.navigate(
-              "Profile"
-            );
-
-          }}
-
-          onHelp={() =>
-            setDrawerVisible(
-              false
-            )
-          }
-
-          onSettings={() =>
-            setDrawerVisible(
-              false
-            )
-          }
-
-          onLogout={async () => {
-
-            setDrawerVisible(
-              false
-            );
-
-            await logout();
-
-          }}
-        />
+    await logout();
+  }}
+/>
 
       </ImageBackground>
 
@@ -578,15 +566,14 @@ const styles =
   StyleSheet.create({
 
     safeArea: {
-      flex: 1,
-      backgroundColor:
-        "#FFF8F2",
-    },
+  flex: 1,
+  backgroundColor: "transparent",
+},
 
     container: {
-      paddingHorizontal: 10,
-      paddingTop: 10,
-      paddingBottom: 120,
-    },
+  paddingHorizontal: 10,
+  paddingTop: 10,
+  paddingBottom: 24,
+},
 
   });

@@ -10,31 +10,39 @@ export type LiveRateMode =
 type Props = {
   mode: LiveRateMode;
   rate?: number;
+  yesterdayRate?: number;
 };
 
 const RATE_CONFIG = {
   today: {
     icon: "calendar-today",
     badge: "LIVE RATE",
-    heading: "Today's Live Rate",
   },
   tomorrow: {
     icon: "calendar-arrow-right",
     badge: "LIVE RATE",
-    heading: "Tomorrow's Live Rate",
   },
   publishing: {
     icon: "clock-outline",
     badge: "RATE UPDATE",
-    heading: "Tomorrow's Live Rate",
   },
 } as const;
 
 export default function LiveRateCard({
   mode,
   rate,
+  yesterdayRate,
 }: Props) {
   const config = RATE_CONFIG[mode];
+
+  const difference =
+    rate != null && yesterdayRate != null
+      ? rate - yesterdayRate
+      : null;
+
+  const isHigher = difference != null && difference > 0;
+  const isLower = difference != null && difference < 0;
+  const isSame = difference === 0;
 
   return (
     <View style={styles.card}>
@@ -56,43 +64,87 @@ export default function LiveRateCard({
       {mode === "publishing" ? (
         <>
           <Text style={styles.publishHeading}>
-            Tomorrow's Live Rate
+            Tomorrow's Broiler Rate
           </Text>
 
           <Text style={styles.publishSubtitle}>
-            Tomorrow's live rate will be published today at 7:00 PM.
+            Tomorrow's rate will be published today at 7:00 PM.
           </Text>
         </>
       ) : (
-        <>
-          <Text style={styles.heading}>
-            {config.heading}
-          </Text>
-
-          <View style={styles.rateRow}>
-            <Text style={styles.rate}>
-              {rate != null
-                ? `₹${rate.toLocaleString("en-IN")}`
-                : "--"}
+        <View style={styles.contentRow}>
+          {/* LEFT */}
+          <View style={styles.leftSection}>
+            <Text style={styles.heading}>
+              {mode === "today"
+                ? "Today's Broiler Rate"
+                : "Tomorrow's Broiler Rate"}
             </Text>
 
-            <Text style={styles.unit}>
-              /kg
+            <View style={styles.rateRow}>
+              <Text style={styles.rate}>
+                {rate != null
+                  ? `₹${rate.toLocaleString("en-IN")}`
+                  : "--"}
+              </Text>
+
+              <Text style={styles.unit}>/kg</Text>
+            </View>
+
+            <Text style={styles.updateText}>
+              Price updates daily at 7:00 PM
             </Text>
           </View>
 
-          {mode === "today" && (
-            <View style={styles.infoContainer}>
-              <Text style={styles.deliveryText}>
-                Today's Delivery
-              </Text>
+          <View style={styles.divider} />
 
-              <Text style={styles.updatedText}>
-                Updated • 7:00 PM
-              </Text>
-            </View>
-          )}
-        </>
+          {/* RIGHT */}
+          <View style={styles.rightSection}>
+            <Text style={styles.compareLabel}>
+              vs Yesterday
+            </Text>
+
+            {difference == null ? (
+              <>
+                <Text style={styles.compareValue}>
+                  --
+                </Text>
+
+                <Text style={styles.compareStatus}>
+                  Awaiting comparison
+                </Text>
+              </>
+            ) : (
+              <>
+                <View style={styles.compareRow}>
+                  <MaterialCommunityIcons
+                    name={
+                      isHigher
+                        ? "arrow-up-bold"
+                        : isLower
+                        ? "arrow-down-bold"
+                        : "minus"
+                    }
+                    size={18}
+                    color="#FFFFFF"
+                  />
+
+                  <Text style={styles.compareValue}>
+                    ₹{Math.abs(difference)}
+                  </Text>
+                </View>
+
+                <Text style={styles.compareStatus}>
+                  {isHigher
+                    ? "Higher than yesterday"
+                    : isLower
+                    ? "Lower than yesterday"
+                    : "No Change"}
+                </Text>
+              </>
+            )}
+          </View>
+        </View>
       )}
     </View>
   );
@@ -102,20 +154,19 @@ const styles = StyleSheet.create({
   card: {
     overflow: "hidden",
     backgroundColor: "#F97316",
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
-    marginBottom: 1,
-    minHeight: 76,
+    borderRadius: 22,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 12,
+    marginBottom: 2,
     shadowColor: "#000",
-    shadowOpacity: 3,
-    shadowRadius: 14,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 5,
     },
-    elevation: 8,
+    elevation: 6,
   },
 
   pattern1: {
@@ -130,8 +181,8 @@ const styles = StyleSheet.create({
 
   pattern2: {
     position: "absolute",
-    right: 5,
-    bottom: -45,
+    right: 0,
+    bottom: -40,
     width: 110,
     height: 110,
     borderRadius: 55,
@@ -153,35 +204,91 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 11,
     fontWeight: "800",
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
+  },
+
+  contentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  leftSection: {
+    flex: 1,
+  },
+
+  divider: {
+    width: 1,
+    alignSelf: "stretch",
+    backgroundColor: "rgba(255,255,255,0.20)",
+    marginHorizontal: 16,
+  },
+
+  rightSection: {
+    width: 105,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   heading: {
-    marginTop: 8,
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "900",
+    fontSize: 15,
+    fontWeight: "800",
+    marginBottom: 2,
   },
 
   rateRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    marginTop: 4,
   },
 
   rate: {
     color: "#FFFFFF",
     fontSize: 30,
     fontWeight: "900",
-    lineHeight: 30,
+    lineHeight: 34,
   },
 
   unit: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
-    marginLeft: 5,
-    marginBottom: 3,
+    marginLeft: 4,
+    marginBottom: 4,
+  },
+
+  updateText: {
+    marginTop: 4,
+    color: "#FFF7ED",
+    fontSize: 11,
+    lineHeight: 15,
+  },
+
+  compareLabel: {
+    color: "#FFE7D1",
+    fontSize: 11,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+
+  compareRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  compareValue: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "900",
+    marginLeft: 2,
+  },
+
+  compareStatus: {
+    marginTop: 4,
+    color: "#FFF7ED",
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 15,
   },
 
   publishHeading: {
@@ -194,23 +301,7 @@ const styles = StyleSheet.create({
   publishSubtitle: {
     marginTop: 8,
     color: "#FFF7ED",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  infoContainer: {
-    marginTop: 12,
-  },
-
-  deliveryText: {
-    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "700",
-  },
-
-  updatedText: {
-    marginTop: 4,
-    color: "#FFF7ED",
-    fontSize: 13,
+    lineHeight: 22,
   },
 });

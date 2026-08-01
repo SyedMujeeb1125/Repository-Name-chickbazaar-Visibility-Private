@@ -1,12 +1,21 @@
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export default async function RatesPage() {
-  const { data } = await supabase
+  const {
+    data,
+    error,
+  } = await supabase
     .from("daily_rates")
     .select("*")
     .order("created_at", {
-      ascending: false
+      ascending: false,
     });
+
+  if (error) {
+    console.error("[RATES]", error);
+  }
 
   return (
     <div>
@@ -43,19 +52,17 @@ export default async function RatesPage() {
           Rate History
         </h2>
 
-        {data?.map((rate: any) => (
+        {(data ?? []).map((rate: any) => (
           <div
             key={rate.id}
-            className="flex justify-between border-b py-3"
+            className="flex justify-between border-b py-3 last:border-0"
           >
             <span>
-              ₹{rate.rate}/Kg
+              ₹{Number(rate.rate).toLocaleString("en-IN")}/Kg
             </span>
 
             <span>
-              {new Date(
-                rate.created_at
-              ).toLocaleDateString()}
+              {new Date(rate.created_at).toLocaleDateString("en-IN")}
             </span>
           </div>
         ))}

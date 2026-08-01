@@ -4,46 +4,60 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    console.log("================================");
-    console.log("MOBILE PAYMENT VERIFY");
-    console.log(body);
-    console.log("================================");
-
     const { paymentId } = body;
 
-    if (!paymentId) {
+    if (!paymentId || typeof paymentId !== "string") {
       return NextResponse.json(
         {
           success: false,
           message: "Payment ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // Mock verification for now.
-    // Later this will be replaced with Razorpay signature verification.
+    // Mock verification.
+    // Replace this block with Razorpay signature verification later.
+
+    const verified = paymentId.startsWith("PAY");
+
+    if (!verified) {
+      return NextResponse.json(
+        {
+          success: false,
+          verified: false,
+          message: "Invalid payment.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    console.info(
+      `[PAYMENT] Payment verified: ${paymentId}`
+    );
 
     return NextResponse.json({
       success: true,
       verified: true,
       paymentId,
+      gateway: "mock",
       message: "Payment verified successfully.",
     });
-
-  } catch (error: any) {
-
-    console.error(error);
+  } catch (error) {
+    console.error("[PAYMENT][VERIFY]", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          error?.message ??
-          "Payment verification failed.",
+        message: "Payment verification failed.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
-
   }
 }
