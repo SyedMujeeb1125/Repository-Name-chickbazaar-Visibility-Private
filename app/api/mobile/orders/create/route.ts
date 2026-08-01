@@ -6,7 +6,8 @@ import { STANDARD_DELIVERY_SLOTS } from "@/lib/deliverySlots";
 
 import {
   getBusinessDeliveryDate,
-  isStandardBookingOpen,
+  isBookingAllowed,
+  isExpressPhase,
 } from "@/lib/businessPhase";
 
 export async function POST(request: NextRequest) {
@@ -29,12 +30,12 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
 
-    if (!isStandardBookingOpen(now)) {
+    if (!isBookingAllowed(now)) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Standard booking is currently closed. Booking opens every day at 7:00 PM.",
+            "Booking is temporarily closed between 5:00 PM and 7:00 PM. Booking will reopen at 7:00 PM.",
         },
         {
           status: 400,

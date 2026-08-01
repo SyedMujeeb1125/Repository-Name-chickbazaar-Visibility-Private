@@ -1,40 +1,75 @@
 export enum BusinessPhase {
-  BOOKING = "BOOKING",
-  STANDARD_DELIVERY = "STANDARD_DELIVERY",
-  EXPRESS_DELIVERY = "EXPRESS_DELIVERY",
+  TOMORROW_BOOKING = "TOMORROW_BOOKING",
+  TODAY_BOOKING = "TODAY_BOOKING",
+  EXPRESS = "EXPRESS",
+  CLOSED = "CLOSED",
 }
 
-export function getBusinessPhase(date: Date = new Date()): BusinessPhase {
+export function getBusinessPhase(
+  date: Date = new Date()
+): BusinessPhase {
   const hour = date.getHours();
 
+  // 7 PM - 11:59 PM
   if (hour >= 19) {
-    return BusinessPhase.BOOKING;
+    return BusinessPhase.TOMORROW_BOOKING;
   }
 
-  if (hour >= 5 && hour < 11) {
-    return BusinessPhase.STANDARD_DELIVERY;
+  // 12 AM - 6:59 AM
+  if (hour < 7) {
+    return BusinessPhase.TODAY_BOOKING;
   }
 
-  return BusinessPhase.EXPRESS_DELIVERY;
-}
-
-export function getBusinessDeliveryDate(date: Date = new Date()): Date {
-  const deliveryDate = new Date(date);
-
-  if (date.getHours() >= 19) {
-    deliveryDate.setDate(deliveryDate.getDate() + 1);
+  // 7 AM - 4:59 PM
+  if (hour < 17) {
+    return BusinessPhase.EXPRESS;
   }
 
-  deliveryDate.setHours(0, 0, 0, 0);
-
-  return deliveryDate;
+  // 5 PM - 6:59 PM
+  return BusinessPhase.CLOSED;
 }
 
-export function isStandardBookingOpen(date: Date = new Date()): boolean {
-  return date.getHours() >= 19;
-}
+export function getBusinessDeliveryDate(
+  date: Date = new Date()
+): Date {
+  const delivery = new Date(date);
 
-export function isExpressOrderingOpen(date: Date = new Date()): boolean {
   const hour = date.getHours();
-  return hour >= 11 && hour < 17;
+
+  // Orders after 7 PM are for tomorrow
+  if (hour >= 19) {
+    delivery.setDate(delivery.getDate() + 1);
+  }
+
+  delivery.setHours(0, 0, 0, 0);
+
+  return delivery;
+}
+
+export function isBookingAllowed(
+  date: Date = new Date()
+): boolean {
+  return getBusinessPhase(date) !== BusinessPhase.CLOSED;
+}
+
+export function isExpressPhase(
+  date: Date = new Date()
+): boolean {
+  return (
+    getBusinessPhase(date) ===
+    BusinessPhase.EXPRESS
+  );
+}
+
+// Backward compatibility
+export function isStandardBookingOpen(
+  date: Date = new Date()
+): boolean {
+  return isBookingAllowed(date);
+}
+
+export function isExpressOrderingOpen(
+  date: Date = new Date()
+): boolean {
+  return isExpressPhase(date);
 }

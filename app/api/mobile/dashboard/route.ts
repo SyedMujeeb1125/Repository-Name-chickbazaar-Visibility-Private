@@ -5,8 +5,8 @@ import {
   BusinessPhase,
   getBusinessPhase,
   getBusinessDeliveryDate,
-  isStandardBookingOpen,
-  isExpressOrderingOpen,
+  isBookingAllowed,
+  isExpressPhase,
 } from "@/lib/businessPhase";
 
 import { STANDARD_DELIVERY_SLOTS } from "@/lib/deliverySlots";
@@ -214,10 +214,10 @@ const businessDeliveryDateString =
     .split("T")[0];
 
 const standardBookingOpen =
-  isStandardBookingOpen(now);
+  isBookingAllowed(now);
 
 const expressOrderingOpen =
-  isExpressOrderingOpen(now);
+  isExpressPhase(now);
 
     const activeStatuses = [
   "new",
