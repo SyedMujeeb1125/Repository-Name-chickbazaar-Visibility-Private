@@ -1,244 +1,436 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
+import { verifySignedToken } from "@/lib/auth";
 import { PAYMENT_CONFIG } from "@/lib/payment-config";
-import { STANDARD_DELIVERY_SLOTS } from "@/lib/deliverySlots";
-
 import {
+  getBusinessPhase,
   getBusinessDeliveryDate,
-  isBookingAllowed,
-  isExpressPhase,
-} from "@/lib/businessPhase";
+} from "@/lib/business/businessEngine";
+import { BusinessPhase } from "@/lib/types/business";
+import {
+  getTodayRate,
+  getTomorrowRate,
+} from "@/lib/rate-service";
+
+type DeliverySlot = {
+  id: string;
+  label: string;
+  start: string;
+  end: string;
+};
+
+const DELIVERY_WAVES: Record<string, DeliverySlot> = {
+  wave1: {
+    id: "wave1",
+    label: "06:00 AM - 08:00 AM",
+    start: "06:00",
+    end: "08:00",
+  },
+  wave2: {
+    id: "wave2",
+    label: "08:00 AM - 10:00 AM",
+    start: "08:00",
+    end: "10:00",
+  },
+  wave3: {
+    id: "wave3",
+    label: "10:00 AM - 12:00 PM",
+    start: "10:00",
+    end: "12:00",
+  },
+  wave4: {
+    id: "wave4",
+    label: "12:00 PM - 02:00 PM",
+    start: "12:00",
+    end: "14:00",
+  },
+};
+
+function parsePaymentReference(paymentId: string) {
+  const subject = verifySignedToken(paymentId);
+
+  if (!subject) {
+    return null;
+  }
+
+  const parts = subject.split(":");
+
+  if (
+    parts.length !== 4 ||
+    parts[0] !== "payment"
+  ) {
+    return null;
+  }
+
+  const amount = Number(parts[2]);
+
+  if (!Number.isFinite(amount)) {
+    return null;
+  }
+
+  return {
+    retailerId: parts[1],
+    amount,
+    nonce: parts[3],
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    const mobile = getMobileAuthenticatedRetailer(request);
+
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required.",
+        },
+        { status: 401 }
+      );
+    }
+
     const {
-  retailerId,
-  paymentId,
-  selectedShop,
-  quantity,
-  deliverySlot,
-  orderType,
-  notes,
-} = body;
+      data: authenticatedRetailer,
+      error: authenticatedRetailerError,
+    } = await supabase
+      .from("retailers")
+      .select("*")
+      .eq("mobile", mobile)
+      .maybeSingle();
 
-    // =====================================================
-    // Business Rules
-    // =====================================================
+    if (authenticatedRetailerError) {
+      console.error(
+        "[ORDER CREATE][RETAILER]",
+        authenticatedRetailerError
+      );
 
-    const now = new Date();
-
-    if (!isBookingAllowed(now)) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Booking is temporarily closed between 5:00 PM and 7:00 PM. Booking will reopen at 7:00 PM.",
+          message: "Unable to verify retailer.",
         },
-        {
-          status: 400,
-        }
+        { status: 500 }
       );
     }
 
-    // =====================================================
-    // Validation
-    // =====================================================
-
-    if (!retailerId || typeof retailerId !== "string") {
+    if (!authenticatedRetailer) {
       return NextResponse.json(
         {
           success: false,
-          message: "Retailer ID is required.",
+          message: "Retailer not found.",
         },
-        {
-          status: 400,
-        }
+        { status: 404 }
       );
     }
 
-    if (!paymentId || typeof paymentId !== "string") {
+    const retailerId = authenticatedRetailer.id;
+
+    // -----------------------------------------------------
+    // Canonical mobile order payload
+    // -----------------------------------------------------
+
+    const canonicalPayload =
+      body?.payload ?? body?.orderData?.payload ?? null;
+
+    const draft =
+      body?.draft ?? body?.orderData?.draft ?? null;
+
+    const requestedWeight = Number(
+      canonicalPayload?.requestedWeight ??
+      draft?.requestedWeight ??
+      body?.requestedWeight ??
+      body?.quantity
+    );
+
+    const deliveryLocationId =
+      canonicalPayload?.deliveryLocationId ??
+      draft?.deliveryLocation?.id ??
+      body?.deliveryLocationId;
+
+    const deliveryWaveId =
+      canonicalPayload?.deliveryWaveId ??
+      draft?.deliveryWave?.id ??
+      body?.deliveryWaveId;
+
+    const orderMethod =
+      canonicalPayload?.orderMethod ??
+      draft?.orderMethod ??
+      body?.orderMethod ??
+      "WEIGHT";
+
+    const notes =
+      canonicalPayload?.notes ??
+      draft?.notes ??
+      body?.notes ??
+      "";
+
+    const estimatedBirds = Number(
+      canonicalPayload?.estimatedBirds ??
+      draft?.estimatedBirds ??
+      (requestedWeight > 0
+        ? Math.ceil(requestedWeight / 2.2)
+        : 0)
+    );
+
+    const paymentId = body?.paymentId;
+
+    if (
+      !Number.isFinite(requestedWeight) ||
+      requestedWeight <= 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Requested weight should be greater than zero.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !deliveryLocationId ||
+      typeof deliveryLocationId !== "string"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Delivery location is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !deliveryWaveId ||
+      typeof deliveryWaveId !== "string"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Delivery wave is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !paymentId ||
+      typeof paymentId !== "string"
+    ) {
       return NextResponse.json(
         {
           success: false,
           message: "Payment ID is required.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    if (!quantity || Number(quantity) <= 0) {
+    // -----------------------------------------------------
+    // Verify payment cryptographically
+    // -----------------------------------------------------
+
+    const payment = parsePaymentReference(paymentId);
+
+    if (!payment) {
       return NextResponse.json(
         {
           success: false,
-          message: "Quantity should be greater than zero.",
+          message: "Invalid or expired payment reference.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-        if (
-      deliverySlot === undefined ||
-      deliverySlot === null
+    if (payment.retailerId !== retailerId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Payment does not belong to this retailer.",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (
+      payment.amount !== PAYMENT_CONFIG.ADVANCE_AMOUNT
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Delivery slot is required.",
+          message: "Invalid advance payment amount.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    // =====================================================
-    // Validate Delivery Slot
-    // =====================================================
+    // -----------------------------------------------------
+    // Business rules
+    // -----------------------------------------------------
 
-    const slot = STANDARD_DELIVERY_SLOTS.find(
-  (
-    s: (typeof STANDARD_DELIVERY_SLOTS)[number]
-  ) =>
-    s.id === Number(deliverySlot) ||
-    s.label === String(deliverySlot)
-);
+    const now = new Date();
+    const businessPhase = getBusinessPhase(now);
+
+    if (
+      businessPhase === BusinessPhase.BOOKING_CLOSED
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Ordering is closed between 5:00 PM and 7:00 PM. Ordering will reopen at 7:00 PM.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const isTomorrowBooking =
+      businessPhase === BusinessPhase.BOOKING;
+
+    // -----------------------------------------------------
+    // Resolve delivery location securely
+    // -----------------------------------------------------
+
+    const {
+      data: selectedLocation,
+      error: locationError,
+    } = await supabase
+      .from("retailer_locations")
+      .select("*")
+      .eq("id", deliveryLocationId)
+      .eq("retailer_mobile", mobile)
+      .maybeSingle();
+
+    if (locationError) {
+      console.error(
+        "[ORDER CREATE][LOCATION]",
+        locationError
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to verify delivery location.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!selectedLocation) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Delivery location not found or does not belong to this retailer.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // -----------------------------------------------------
+    // Resolve delivery wave
+    // -----------------------------------------------------
+
+    const slot = DELIVERY_WAVES[deliveryWaveId];
 
     if (!slot) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid delivery slot selected.",
+          message: "Invalid delivery wave selected.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    // =====================================================
-    // Business Delivery Date
-    // =====================================================
+    // -----------------------------------------------------
+    // Server-authoritative delivery date
+    // -----------------------------------------------------
 
     const businessDeliveryDate =
       getBusinessDeliveryDate(now)
         .toISOString()
         .split("T")[0];
 
-    // =====================================================
-    // Duplicate Payment Check
-    // =====================================================
+    // -----------------------------------------------------
+    // Server-authoritative rate
+    // -----------------------------------------------------
 
-    const { data: existingPayment } =
-      await supabase
-        .from("orders")
-        .select("id")
-        .eq(
-          "advance_payment_id",
-          paymentId
-        )
-        .maybeSingle();
+    const todayRateRecord =
+      await getTodayRate(now);
+
+    const tomorrowRateRecord =
+      await getTomorrowRate(now);
+
+    const todayRate = Number(
+      todayRateRecord?.rate ?? 0
+    );
+
+    const tomorrowRate = Number(
+      tomorrowRateRecord?.rate ?? 0
+    );
+
+    const liveRate = isTomorrowBooking
+      ? tomorrowRate
+      : todayRate;
+
+    if (liveRate <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: isTomorrowBooking
+            ? "Tomorrow's rate is not available yet."
+            : "Today's live rate is not available.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // -----------------------------------------------------
+    // Prevent payment replay
+    // -----------------------------------------------------
+
+    const {
+      data: existingPayment,
+      error: paymentLookupError,
+    } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("advance_payment_id", paymentId)
+      .maybeSingle();
+
+    if (paymentLookupError) {
+      console.error(
+        "[ORDER CREATE][PAYMENT LOOKUP]",
+        paymentLookupError
+      );
+    }
 
     if (existingPayment) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "This payment has already been used.",
+          message: "This payment has already been used.",
         },
-        {
-          status: 409,
-        }
+        { status: 409 }
       );
     }
 
-    // =====================================================
-    // Fetch Retailer
-    // =====================================================
-
-    const {
-      data: retailer,
-      error: retailerError,
-    } = await supabase
-      .from("retailers")
-      .select("*")
-      .eq("id", retailerId)
-      .single();
-
-    if (retailerError || !retailer) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Retailer not found.",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    // =====================================================
-// Fetch Live Rate
-// =====================================================
-
-const { data: dailyRate, error: rateError } =
-  await supabase
-    .from("daily_rates")
-    .select("rate")
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(1)
-    .single();
-
-if (rateError || !dailyRate) {
-  return NextResponse.json(
-    {
-      success: false,
-      message:
-        "Today's live rate is not available.",
-    },
-    {
-      status: 500,
-    }
-  );
-}
-
-const liveRate = Number(dailyRate.rate);
-
-if (liveRate <= 0) {
-  return NextResponse.json(
-    {
-      success: false,
-      message:
-        "Invalid live rate configured.",
-    },
-    {
-      status: 500,
-    }
-  );
-}
-
-    // =====================================================
-    // Prevent Duplicate Orders
-    // =====================================================
+    // -----------------------------------------------------
+    // Prevent duplicate active orders
+    // -----------------------------------------------------
 
     const {
       data: existingOrder,
     } = await supabase
       .from("orders")
       .select("id")
-      .eq("mobile", retailer.mobile)
-      .eq(
-        "delivery_date",
-        businessDeliveryDate
-      )
+      .eq("mobile", authenticatedRetailer.mobile)
+      .eq("delivery_date", businessDeliveryDate)
       .in("status", [
         "new",
         "confirmed",
@@ -256,250 +448,253 @@ if (liveRate <= 0) {
           message:
             "You already have an active order for this delivery date.",
         },
-        {
-          status: 409,
-        }
+        { status: 409 }
       );
     }
 
-    // =====================================================
-    // Generate IDs
-    // =====================================================
+    // -----------------------------------------------------
+    // Calculate authoritative pricing
+    // -----------------------------------------------------
 
     const orderId = crypto.randomUUID();
 
-const { data: orderNumber, error: sequenceError } =
-  await supabase.rpc("generate_order_number");
+    const {
+      data: orderNumber,
+      error: sequenceError,
+    } = await supabase.rpc(
+      "generate_order_number"
+    );
 
-if (sequenceError || !orderNumber) {
-  throw new Error(
-    "Unable to generate order number."
-  );
-}
+    if (
+      sequenceError ||
+      !orderNumber
+    ) {
+      throw new Error(
+        "Unable to generate order number."
+      );
+    }
 
     const advanceAmount =
       PAYMENT_CONFIG.ADVANCE_AMOUNT;
 
     const estimatedAmount =
-  Number(quantity) * liveRate;
+      requestedWeight * liveRate;
 
-const balanceDue = Math.max(
-  estimatedAmount - advanceAmount,
-  0
-);
+    const balanceDue = Math.max(
+      estimatedAmount - advanceAmount,
+      0
+    );
 
-    // =====================================================
-// Insert Order
-// =====================================================
+    // -----------------------------------------------------
+    // Insert order
+    // -----------------------------------------------------
 
-const { error } = await supabase
-  .from("orders")
-  .insert({
-    id: orderId,
+    const { error } = await supabase
+      .from("orders")
+      .insert({
+        id: orderId,
+        retailer_id: retailerId,
+        created_at: new Date().toISOString(),
 
-    created_at: new Date().toISOString(),
+        status: "new",
 
-    status: "new",
+        shop_name:
+          selectedLocation.shop_name ??
+          authenticatedRetailer.shop_name,
 
-    // -------------------------------------------------
-    // Retailer
-    // -------------------------------------------------
+        owner_name:
+          selectedLocation.contact_person ??
+          authenticatedRetailer.owner_name,
 
-    shop_name: retailer.shop_name,
+        mobile: authenticatedRetailer.mobile,
+        email: authenticatedRetailer.email,
 
-    owner_name: retailer.owner_name,
+        address:
+          selectedLocation.address ??
+          authenticatedRetailer.address,
 
-    mobile: retailer.mobile,
+        order_number: orderNumber,
 
-    email: retailer.email,
+        order_type: orderMethod,
 
-    address: retailer.address,
+        delivery_type:
+          isTomorrowBooking
+            ? "TOMORROW"
+            : "STANDARD",
 
-    // -------------------------------------------------
-    // Order
-    // -------------------------------------------------
+        delivery_date:
+          businessDeliveryDate,
 
-    order_number: orderNumber,
+        delivery_slot_label:
+          slot.label,
 
-    order_type: orderType ?? "STANDARD",
+        delivery_slot_start:
+          slot.start,
 
-    delivery_type: "STANDARD",
+        delivery_slot_end:
+          slot.end,
 
-    delivery_date: businessDeliveryDate,
+        notes,
 
-    delivery_slot_label: slot.label,
+        birds:
+          Number.isFinite(estimatedBirds)
+            ? estimatedBirds
+            : 0,
 
-    delivery_slot_start: slot.start,
+        average_weight: null,
 
-    delivery_slot_end: slot.end,
+        requested_weight:
+          requestedWeight,
 
-    notes: notes ?? "",
+        rate_per_kg:
+          liveRate,
 
-    // -------------------------------------------------
-    // Chicken
-    // -------------------------------------------------
+        estimated_amount:
+          estimatedAmount,
 
-    birds: "0",
+        actual_weight: null,
 
-    average_weight: "",
+        final_amount: null,
 
-    requested_weight: Number(quantity),
+        delivery_shop_name:
+          selectedLocation.shop_name,
 
-    rate_per_kg: liveRate,
+        latitude:
+          selectedLocation.latitude ??
+          null,
 
-    estimated_amount: Number(estimatedAmount),
+        longitude:
+          selectedLocation.longitude ??
+          null,
 
-    actual_weight: null,
+        assigned_farm: null,
+        assigned_driver: null,
+        assigned_vehicle: null,
 
-    final_amount: null,
+        zone: null,
 
-    // -------------------------------------------------
-    // Delivery
-    // -------------------------------------------------
+        tracking_notes: null,
+        delivery_notes: null,
+        delivered_at: null,
+        pod_photo_url: null,
+        pod_uploaded_at: null,
 
-    delivery_shop_name:
-      selectedShop?.shop_name ??
-      retailer.shop_name,
+        payment_status:
+          balanceDue > 0
+            ? "partially_paid"
+            : "paid",
 
-    latitude:
-      selectedShop?.latitude ?? null,
+        payment_type: "advance",
 
-    longitude:
-      selectedShop?.longitude ?? null,
+        payment_mode: "UPI",
 
-    assigned_farm: null,
+        payment_amount:
+          advanceAmount,
 
-    assigned_driver: null,
+        advance_percentage:
+          PAYMENT_CONFIG.ADVANCE_PERCENTAGE,
 
-    assigned_vehicle: null,
+        advance_required:
+          advanceAmount,
 
-    zone: null,
+        advance_amount:
+          advanceAmount,
 
-    tracking_notes: null,
+        advance_payment_mode:
+          "online",
 
-    delivery_notes: null,
+        advance_payment_status:
+          "paid",
 
-    delivered_at: null,
+        advance_payment_id:
+          paymentId,
 
-    pod_photo_url: null,
+        razorpay_order_id:
+          null,
 
-    pod_uploaded_at: null,
+        razorpay_payment_id:
+          paymentId,
 
-    // -------------------------------------------------
-    // Payment
-    // -------------------------------------------------
+        upi_transaction_id:
+          paymentId,
 
-    payment_status: "pending",
+        outstanding_amount:
+          balanceDue,
 
-    payment_type: "advance",
+        final_bill_amount:
+          estimatedAmount,
 
-    payment_mode: "UPI",
+        cash_received: 0,
 
-    payment_amount: 0,
+        upi_received:
+          advanceAmount,
 
-    advance_percentage:
-      PAYMENT_CONFIG.ADVANCE_PERCENTAGE,
+        total_paid:
+          advanceAmount,
 
-    advance_required:
-      PAYMENT_CONFIG.ADVANCE_AMOUNT,
+        balance_due:
+          balanceDue,
 
-    advance_amount: advanceAmount,
+        payment_collected_by:
+          null,
 
-    advance_payment_mode: "online",
+        payment_collected_at:
+          null,
+      });
 
-    advance_payment_status: "paid",
+    if (error) {
+      console.error(
+        "[ORDER CREATE]",
+        error
+      );
 
-    advance_payment_id: paymentId,
-
-    razorpay_order_id: null,
-
-    razorpay_payment_id: paymentId,
-
-    upi_transaction_id: paymentId,
-
-    outstanding_amount: 0,
-
-    final_bill_amount: 0,
-
-    cash_received: 0,
-
-    upi_received: advanceAmount,
-
-    total_paid: advanceAmount,
-
-    balance_due: balanceDue,
-
-    payment_collected_by: null,
-
-    payment_collected_at: null,
-  });
-
-if (error) {
-  console.error("[ORDER CREATE]", error);
-
-  return NextResponse.json(
-    {
-      success: false,
-      message: error.message,
-    },
-    {
-      status: 500,
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: 500 }
+      );
     }
-  );
-}
 
-console.info(
-  `[ORDER] ${orderNumber} created successfully`
-);
+    console.info(
+      `[ORDER] ${orderNumber} created successfully`
+    );
 
-return NextResponse.json({
-  success: true,
+    return NextResponse.json({
+      success: true,
+      message: "Order created successfully.",
+      orderId,
+      orderNumber,
+      liveRate,
+      estimatedAmount,
+      advanceAmount,
+      balanceDue,
+      paymentId,
+      deliveryDate:
+        businessDeliveryDate,
+      deliveryLocationId,
+      deliverySlot: {
+        id: slot.id,
+        label: slot.label,
+        start: slot.start,
+        end: slot.end,
+      },
+    });
+  } catch (error: any) {
+    console.error(
+      "[ORDER][CREATE]",
+      error
+    );
 
-  message: "Order created successfully.",
-
-  orderId,
-
-  orderNumber,
-
-  liveRate,
-
-estimatedAmount,
-
-advanceAmount,
-
-balanceDue,
-
-  paymentId,
-
-  deliveryDate: businessDeliveryDate,
-
-  deliverySlot: {
-    id: slot.id,
-    label: slot.label,
-    start: slot.start,
-    end: slot.end,
-  },
-
-  });
-
-} catch (error: any) {
-
-console.error(
-  "[ORDER][CREATE]",
-  error
-);
-
-return NextResponse.json(
-  {
-    success: false,
-    message:
-      error?.message ??
-      "Unable to create order.",
-  },
-  {
-    status: 500,
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          error?.message ??
+          "Unable to create order.",
+      },
+      { status: 500 }
+    );
   }
-);
-
-}
 }
