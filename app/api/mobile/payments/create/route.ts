@@ -1,29 +1,62 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { createSignedToken } from "@/lib/auth";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
+import { supabase } from "@/lib/supabase";
 
 const ADVANCE_AMOUNT = 500;
+const PAYMENT_REFERENCE_TTL_SECONDS = 15 * 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const mobile = getMobileAuthenticatedRetailer(request);
 
-    const {
-      retailerId,
-      amount,
-      orderData,
-    } = body;
-
-    if (!retailerId || typeof retailerId !== "string") {
+    if (!mobile) {
       return NextResponse.json(
         {
           success: false,
-          message: "Retailer ID is required.",
+          message: "Authentication required.",
         },
-        { status: 400 }
+        { status: 401 }
       );
     }
 
-    if (typeof amount !== "number" || amount <= 0) {
+    const {
+      data: retailer,
+      error: retailerError,
+    } = await supabase
+      .from("retailers")
+      .select("id")
+      .eq("mobile", mobile)
+      .maybeSingle();
+
+    if (retailerError) {
+      console.error("[PAYMENT][RETAILER]", retailerError);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to verify retailer.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!retailer) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Retailer not found.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+
+    const amount = Number(body.amount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json(
         {
           success: false,
@@ -33,29 +66,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // During mock mode we only accept the configured advance amount.
     if (amount !== ADVANCE_AMOUNT) {
       return NextResponse.json(
         {
           success: false,
-          message: `Advance amount must be ₹${ADVANCE_AMOUNT}.`,
+          message: `Advance amount must be ?${ADVANCE_AMOUNT}.`,
         },
         { status: 400 }
       );
     }
 
-    const paymentReference = `PAYREQ_${crypto.randomUUID()}`;
+    const nonce = crypto.randomUUID();
+
+    const paymentReference = createSignedToken(
+      `payment:${retailer.id}:${amount}:${nonce}`,
+      PAYMENT_REFERENCE_TTL_SECONDS
+    );
 
     console.info(
-      `[PAYMENT] Payment request created: ${paymentReference}`
+      `[PAYMENT] Payment request created for retailer ${retailer.id}`
     );
 
     return NextResponse.json({
       success: true,
       paymentReference,
-      retailerId,
+      paymentId: paymentReference,
+      retailerId: retailer.id,
       amount,
-      orderData,
       gateway: "mock",
       status: "created",
       message: "Payment request created successfully.",
@@ -68,9 +105,7 @@ export async function POST(request: NextRequest) {
         success: false,
         message: "Unable to create payment request.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
