@@ -30,3 +30,38 @@ export async function getLoggedInRetailerMobile(): Promise<string | null> {
     return null;
   }
 }
+/**
+ * Returns the Bearer token from a mobile Authorization header.
+ * Returns null if the header is missing or malformed.
+ */
+export function getBearerToken(request: Request): string | null {
+  const authorization = request.headers.get("authorization");
+
+  if (!authorization) {
+    return null;
+  }
+
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+
+  if (!match) {
+    return null;
+  }
+
+  return match[1].trim() || null;
+}
+
+/**
+ * Returns the authenticated retailer's mobile number
+ * from the mobile Bearer Authorization header.
+ */
+export function getMobileAuthenticatedRetailer(
+  request: Request
+): string | null {
+  const token = getBearerToken(request);
+
+  if (!token) {
+    return null;
+  }
+
+  return verifySignedToken(token);
+}

@@ -1,18 +1,32 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextResponse } from "next/server";
 
 import { supabase } from "@/lib/supabase";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
 export async function POST(
   request: Request
 ) {
   try {
+    const mobile =
+      getMobileAuthenticatedRetailer(request);
+
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
 
     const body =
       await request.json();
 
     const {
-      mobile,
       shopName,
       ownerName,
       address,
@@ -20,12 +34,11 @@ export async function POST(
       longitude,
     } = body;
 
-    if (!mobile) {
+    if (!shopName) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Mobile number is required.",
+          message: "Shop name is required.",
         },
         {
           status: 400,
@@ -33,12 +46,11 @@ export async function POST(
       );
     }
 
-    if (!shopName) {
+    if (!ownerName) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Shop name is required.",
+          message: "Contact person is required.",
         },
         {
           status: 400,
@@ -50,8 +62,7 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Address is required.",
+          message: "Address is required.",
         },
         {
           status: 400,
@@ -65,36 +76,20 @@ export async function POST(
     } = await supabase
       .from("retailer_locations")
       .insert({
-        id:
-          crypto.randomUUID(),
-
-        retailer_mobile:
-          mobile,
-
-        shop_name:
-          shopName,
-
-        contact_person:
-          ownerName ?? null,
-
+        id: crypto.randomUUID(),
+        retailer_mobile: mobile,
+        shop_name: shopName,
+        contact_person: ownerName,
         mobile,
-
         address,
-
-        latitude:
-          latitude ?? null,
-
-        longitude:
-          longitude ?? null,
-
-        created_at:
-          new Date().toISOString(),
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+        created_at: new Date().toISOString(),
       })
       .select()
       .single();
 
     if (error) {
-
       console.error(
         "[SHOP][CREATE]",
         error
@@ -103,14 +98,12 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Unable to add shop.",
+          message: "Unable to add shop.",
         },
         {
           status: 500,
         }
       );
-
     }
 
     return NextResponse.json({
@@ -119,7 +112,6 @@ export async function POST(
     });
 
   } catch (error) {
-
     console.error(
       "[SHOP][CREATE]",
       error
@@ -128,8 +120,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Internal Server Error.",
+        message: "Internal Server Error.",
       },
       {
         status: 500,

@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
 export async function GET(
   request: Request
 ) {
   try {
-    const { searchParams } =
-      new URL(request.url);
+    const mobile = getMobileAuthenticatedRetailer(request);
 
-    const mobile =
-      searchParams.get("mobile");
+    if (!mobile) {
+      return NextResponse.json(
+        { success: false, message: "Authentication required." },
+        { status: 401 }
+      );
+    }
 
     if (!mobile) {
       return NextResponse.json([]);
