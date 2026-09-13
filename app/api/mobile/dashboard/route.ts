@@ -12,7 +12,7 @@ import { BusinessPhase } from "@/lib/types/business";
 import {
   getTodayRate,
   getTomorrowRate,
-  getYesterdayRate,
+  getPreviousPublishedRate,
 } from "@/lib/rate-service";
 
 import { STANDARD_DELIVERY_SLOTS } from "@/lib/deliverySlots";
@@ -199,7 +199,7 @@ export async function GET(request: Request) {
 
     
     const yesterdayRateRecord =
-      await getYesterdayRate(now);
+      await getPreviousPublishedRate(now);
 const tomorrowRateRecord =
       await getTomorrowRate(now);
 

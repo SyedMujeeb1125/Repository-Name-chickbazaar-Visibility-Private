@@ -115,6 +115,53 @@ export async function getTodayRate(
   );
 }
 
+
+export async function getPreviousPublishedRate(
+  date: Date = new Date()
+) {
+  const today = getBusinessDateString(date);
+
+  const primary = await supabase
+    .from("daily_rates")
+    .select("*")
+    .lt("effective_date", today)
+    .order("effective_date", {
+      ascending: false,
+    })
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (!primary.error) {
+    return primary.data;
+  }
+
+  const fallback = await supabase
+    .from("daily_rates")
+    .select("*")
+    .lt("rate_date", today)
+    .order("rate_date", {
+      ascending: false,
+    })
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (fallback.error) {
+    console.error(
+      "[RATE_SERVICE][PREVIOUS]",
+      fallback.error
+    );
+
+    return null;
+  }
+
+  return fallback.data;
+}
 export async function getYesterdayRate(
   date: Date = new Date()
 ) {
