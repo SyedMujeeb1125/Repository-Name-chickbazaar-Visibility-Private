@@ -115,6 +115,18 @@ export async function getTodayRate(
   );
 }
 
+export async function getYesterdayRate(
+  date: Date = new Date()
+) {
+  const today = getBusinessDateString(date);
+  const yesterday = new Date(`${today}T12:00:00Z`);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+
+  return getRateForDate(
+    yesterday.toISOString().slice(0, 10)
+  );
+}
+
 /**
  * Tomorrow's staged rate.
  */
@@ -125,3 +137,4 @@ export async function getTomorrowRate(
     getTomorrowBusinessDateString(date)
   );
 }
+

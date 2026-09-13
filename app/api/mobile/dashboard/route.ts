@@ -1,13 +1,19 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
 import {
-  BusinessPhase,
   getBusinessPhase,
   getBusinessDeliveryDate,
-  isBookingAllowed,
-  isExpressPhase,
-} from "@/lib/businessPhase";
+} from "@/lib/business/businessEngine";
+
+import { BusinessPhase } from "@/lib/types/business";
+
+import {
+  getTodayRate,
+  getTomorrowRate,
+  getYesterdayRate,
+} from "@/lib/rate-service";
 
 import { STANDARD_DELIVERY_SLOTS } from "@/lib/deliverySlots";
 
@@ -86,23 +92,21 @@ function getDashboardState(
 }
 
 export async function GET(request: Request) {
+  const mobile = getMobileAuthenticatedRetailer(request);
+
+  if (!mobile) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Authentication required.",
+      },
+      {
+        status: 401,
+      }
+    );
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-
-    const mobile = searchParams.get("mobile");
-
-    if (!mobile) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Mobile is required.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
     // -----------------------------
     // Fetch retailer
     // -----------------------------
@@ -182,17 +186,62 @@ export async function GET(request: Request) {
     );
 
     // -----------------------------
-    // Live Rate
+    // Live Rate + Business Phase
     // -----------------------------
 
-    const { data: rate } = await supabase
-      .from("daily_rates")
-      .select("rate")
-      .order("created_at", {
-        ascending: false,
-      })
-      .limit(1)
-      .single();
+    const now = new Date();
+
+    const businessPhase =
+      getBusinessPhase(now);
+
+    const todayRateRecord =
+      await getTodayRate(now);
+
+    
+    const yesterdayRateRecord =
+      await getYesterdayRate(now);
+const tomorrowRateRecord =
+      await getTomorrowRate(now);
+
+    const todayRate =
+      Number(todayRateRecord?.rate ?? 0);
+
+    
+    const yesterdayRate =
+      Number(yesterdayRateRecord?.rate ?? 0);
+const tomorrowRate =
+      Number(tomorrowRateRecord?.rate ?? 0);
+
+    const tomorrowRatePublished =
+      businessPhase === BusinessPhase.BOOKING &&
+      tomorrowRate > 0;
+
+    const tomorrowBookingOpen =
+      businessPhase === BusinessPhase.BOOKING;
+
+    const standardDeliveryOpen =
+      businessPhase === BusinessPhase.STANDARD_DELIVERY;
+
+    const expressOrderingOpen =
+      businessPhase === BusinessPhase.EXPRESS_DELIVERY;
+
+    const orderingOpen =
+      tomorrowBookingOpen ||
+      standardDeliveryOpen ||
+      expressOrderingOpen;
+
+    const businessDeliveryDate =
+      getBusinessDeliveryDate(now);
+
+    const businessDeliveryDateString =
+      businessDeliveryDate
+        .toISOString()
+        .split("T")[0];
+
+    const visibleRate =
+      businessPhase === BusinessPhase.BOOKING
+        ? tomorrowRate
+        : todayRate;
 
     const pendingOrders = (orders || []).filter(
       (order: any) =>
@@ -200,24 +249,6 @@ export async function GET(request: Request) {
           order.status
         )
     );
-
-    const now = new Date();
-
-const businessPhase = getBusinessPhase(now);
-
-const businessDeliveryDate =
-  getBusinessDeliveryDate(now);
-
-const businessDeliveryDateString =
-  businessDeliveryDate
-    .toISOString()
-    .split("T")[0];
-
-const standardBookingOpen =
-  isBookingAllowed(now);
-
-const expressOrderingOpen =
-  isExpressPhase(now);
 
     const activeStatuses = [
   "new",
@@ -260,9 +291,6 @@ const invoiceAvailable =
   !!deliveredOrder &&
   outstanding === 0;
 
-const tomorrowRatePublished =
-  standardBookingOpen;
-
       return NextResponse.json({
       success: true,
 
@@ -274,21 +302,30 @@ const tomorrowRatePublished =
 
   tomorrowRatePublished,
 
-  standardBookingOpen,
+  tomorrowBookingOpen,
+
+  standardDeliveryOpen,
 
   expressOrderingOpen,
+
+  orderingOpen,
 
   additionalOrderAllowed,
 
   invoiceAvailable,
 
   orderLabel:
-    standardBookingOpen
+    tomorrowBookingOpen
       ? "Tomorrow's Order"
-      : "Today's Order",
+      : expressOrderingOpen
+        ? "Today's Express Order"
+        : standardDeliveryOpen
+          ? "Today's Order"
+          : "Ordering Closed",
 
   availableSlots:
-    standardBookingOpen
+    tomorrowBookingOpen ||
+    standardDeliveryOpen
       ? STANDARD_DELIVERY_SLOTS
       : [],
 },
@@ -300,7 +337,21 @@ const tomorrowRatePublished =
         retailer.shopName ??
         "",
 
-      todayRate: Number(rate?.rate ?? 0),
+      todayRate: todayRate,
+
+      tomorrowRate:
+        tomorrowRatePublished
+          ? tomorrowRate
+          : null,
+
+      visibleRate: visibleRate,
+
+      
+      rates: {
+        today: todayRate,
+        yesterday: yesterdayRate > 0 ? yesterdayRate : null,
+        tomorrow: tomorrowRatePublished ? tomorrowRate : null,
+      },
 
       totalOrders: orders?.length ?? 0,
 
@@ -432,3 +483,4 @@ balanceDue:
     );
   }
 }
+
