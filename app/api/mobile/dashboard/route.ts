@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
@@ -186,6 +186,51 @@ export async function GET(request: Request) {
     );
 
     // -----------------------------
+    // Canonical Business Summary
+    // -----------------------------
+    // Business-level payment totals come from
+    // the retailer ledger, not legacy credit fields
+    // or inconsistent historical order fields.
+    const totalPaid = Math.max(
+      totalCredit,
+      0
+    );
+
+    // Purchased quantity represents chicken that
+    // was actually delivered/completed. Requested
+    // weight is not counted as purchased until delivery.
+    const purchasedKg = (orders ?? []).reduce(
+      (sum: number, order: any) => {
+        const status = String(
+          order.status ?? ''
+        ).toLowerCase();
+
+        if (
+          status !== 'delivered' &&
+          status !== 'completed'
+        ) {
+          return sum;
+        }
+
+        return (
+          sum +
+          Math.max(
+            Number(order.actual_weight ?? 0),
+            0
+          )
+        );
+      },
+      0
+    );
+
+    const businessSummary = {
+      outstandingBalance: outstanding,
+      totalOrders: orders?.length ?? 0,
+      purchasedKg,
+      totalPaid,
+    };
+
+    // -----------------------------
     // Live Rate + Business Phase
     // -----------------------------
 
@@ -358,6 +403,8 @@ const invoiceAvailable =
       pendingOrders: pendingOrders.length,
 
       outstanding,
+
+      businessSummary,
 
       currentDelivery: currentDelivery
         ? {
