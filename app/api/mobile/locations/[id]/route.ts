@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 import {
   deleteLocation,
   getLocationById,
@@ -13,7 +14,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-
     const { id } = await params;
 
     if (!id) {
@@ -28,10 +28,23 @@ export async function GET(
       );
     }
 
-    const location =
-      await getLocationById(id);
+    const mobile = getMobileAuthenticatedRetailer(request);
 
-    if (!location) {
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const location = await getLocationById(id);
+
+    if (!location || location.retailer_mobile !== mobile) {
       return NextResponse.json(
         {
           success: false,
@@ -44,19 +57,13 @@ export async function GET(
     }
 
     return NextResponse.json(location);
-
   } catch (error) {
-
-    console.error(
-      "[LOCATION][GET]",
-      error
-    );
+    console.error("[LOCATION][GET]", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Internal Server Error.",
+        message: "Internal Server Error.",
       },
       {
         status: 500,
@@ -70,7 +77,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-
     const { id } = await params;
 
     if (!id) {
@@ -85,8 +91,35 @@ export async function PATCH(
       );
     }
 
-    const body =
-      await request.json();
+    const mobile = getMobileAuthenticatedRetailer(request);
+
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const location = await getLocationById(id);
+
+    if (!location || location.retailer_mobile !== mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Location not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const body = await request.json();
 
     if (
       body.latitude !== undefined &&
@@ -99,8 +132,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid coordinates.",
+          message: "Invalid coordinates.",
         },
         {
           status: 400,
@@ -115,8 +147,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid pincode.",
+          message: "Invalid pincode.",
         },
         {
           status: 400,
@@ -124,18 +155,13 @@ export async function PATCH(
       );
     }
 
-    const updated =
-      await updateLocation(
-        id,
-        body
-      );
+    const updated = await updateLocation(id, body);
 
     if (!updated) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Unable to update location.",
+          message: "Unable to update location.",
         },
         {
           status: 500,
@@ -144,19 +170,13 @@ export async function PATCH(
     }
 
     return NextResponse.json(updated);
-
   } catch (error) {
-
-    console.error(
-      "[LOCATION][PATCH]",
-      error
-    );
+    console.error("[LOCATION][PATCH]", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Internal Server Error.",
+        message: "Internal Server Error.",
       },
       {
         status: 500,
@@ -170,15 +190,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-
     const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Location ID is required.",
+          message: "Location ID is required.",
         },
         {
           status: 400,
@@ -186,15 +204,41 @@ export async function DELETE(
       );
     }
 
-    const success =
-      await deleteLocation(id);
+    const mobile = getMobileAuthenticatedRetailer(request);
+
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const location = await getLocationById(id);
+
+    if (!location || location.retailer_mobile !== mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Location not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const success = await deleteLocation(id);
 
     if (!success) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Unable to delete location.",
+          message: "Unable to delete location.",
         },
         {
           status: 500,
@@ -205,19 +249,13 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
     });
-
   } catch (error) {
-
-    console.error(
-      "[LOCATION][DELETE]",
-      error
-    );
+    console.error("[LOCATION][DELETE]", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Internal Server Error.",
+        message: "Internal Server Error.",
       },
       {
         status: 500,

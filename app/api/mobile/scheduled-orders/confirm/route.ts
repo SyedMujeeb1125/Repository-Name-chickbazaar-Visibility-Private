@@ -1,14 +1,28 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { PAYMENT_CONFIG } from "@/lib/payment-config";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
 export async function POST(request: NextRequest) {
   try {
+    const mobile = getMobileAuthenticatedRetailer(request);
+
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
     const body = await request.json();
 
     const {
-      mobile,
       scheduleId,
       quantityKg,
     } = body;
@@ -16,18 +30,6 @@ export async function POST(request: NextRequest) {
     // -------------------------
     // Validation
     // -------------------------
-
-    if (!mobile || typeof mobile !== "string") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Mobile number is required.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
 
     if (!scheduleId) {
       return NextResponse.json(
@@ -71,6 +73,49 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: "Retailer not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // -------------------------
+    // Verify schedule ownership
+    // -------------------------
+
+    const {
+      data: schedule,
+      error: scheduleError,
+    } = await supabase
+      .from("scheduled_orders")
+      .select("*")
+      .eq("id", scheduleId)
+      .eq("retailer_id", retailer.id)
+      .maybeSingle();
+
+    if (scheduleError) {
+      console.error(
+        "[SCHEDULE_CONFIRM][LOOKUP]",
+        scheduleError
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to verify schedule.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    if (!schedule) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Schedule not found.",
         },
         {
           status: 404,
@@ -127,6 +172,8 @@ export async function POST(request: NextRequest) {
       .toISOString()
       .split("T")[0];
 
+    const now = new Date().toISOString();
+
     const orderNumber =
       `CB-${new Date().getFullYear()}-${Math.floor(
         100000 + Math.random() * 900000
@@ -146,7 +193,7 @@ export async function POST(request: NextRequest) {
 
         order_number: orderNumber,
 
-        created_at: new Date().toISOString(),
+        created_at: now,
 
         status: "new",
 
@@ -211,38 +258,44 @@ export async function POST(request: NextRequest) {
     // Save Confirmation
     // -------------------------
 
-    const { error: confirmationError } =
-      await supabase
-        .from(
-          "scheduled_order_confirmations"
-        )
-        .insert({
-          id: crypto.randomUUID(),
+    const {
+      error: confirmationError,
+    } = await supabase
+      .from("scheduled_order_confirmations")
+      .insert({
+        id: crypto.randomUUID(),
 
-          schedule_id: scheduleId,
+        schedule_id: scheduleId,
 
-          retailer_id: retailer.id,
+        retailer_id: retailer.id,
 
-          delivery_date: today,
+        delivery_date: today,
 
-          quantity_kg: requestedWeight,
+        quantity_kg: requestedWeight,
 
-          status: "confirmed",
+        status: "confirmed",
 
-          confirmed_at:
-            new Date().toISOString(),
+        confirmed_at: now,
 
-          created_at:
-            new Date().toISOString(),
+        created_at: now,
 
-          updated_at:
-            new Date().toISOString(),
-        });
+        updated_at: now,
+      });
 
     if (confirmationError) {
       console.error(
         "[SCHEDULE_CONFIRM]",
         confirmationError
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to save schedule confirmation.",
+        },
+        {
+          status: 500,
+        }
       );
     }
 
@@ -250,22 +303,31 @@ export async function POST(request: NextRequest) {
     // Update Schedule
     // -------------------------
 
-    const { error: scheduleError } =
-      await supabase
-        .from("scheduled_orders")
-        .update({
-          last_confirmed_at:
-            new Date().toISOString(),
+    const {
+      error: scheduleUpdateError,
+    } = await supabase
+      .from("scheduled_orders")
+      .update({
+        last_confirmed_at: now,
+        updated_at: now,
+      })
+      .eq("id", scheduleId)
+      .eq("retailer_id", retailer.id);
 
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq("id", scheduleId);
-
-    if (scheduleError) {
+    if (scheduleUpdateError) {
       console.error(
         "[SCHEDULE_UPDATE]",
-        scheduleError
+        scheduleUpdateError
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to update schedule.",
+        },
+        {
+          status: 500,
+        }
       );
     }
 
@@ -277,9 +339,7 @@ export async function POST(request: NextRequest) {
       success: true,
       order,
     });
-
   } catch (error) {
-
     console.error(
       "[SCHEDULE_CONFIRM]",
       error
@@ -288,8 +348,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Internal Server Error.",
+        message: "Internal Server Error.",
       },
       {
         status: 500,

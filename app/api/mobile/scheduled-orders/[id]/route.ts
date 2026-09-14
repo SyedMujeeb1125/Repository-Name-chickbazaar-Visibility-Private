@@ -1,11 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
 type Context = {
   params: Promise<{
     id: string;
   }>;
 };
+
+async function getAuthenticatedRetailer(request: NextRequest) {
+  const mobile = getMobileAuthenticatedRetailer(request);
+
+  if (!mobile) {
+    return {
+      mobile: null,
+      retailer: null,
+      response: NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      ),
+    };
+  }
+
+  const {
+    data: retailer,
+    error,
+  } = await supabase
+    .from("retailers")
+    .select("id")
+    .eq("mobile", mobile)
+    .maybeSingle();
+
+  if (error || !retailer) {
+    return {
+      mobile,
+      retailer: null,
+      response: NextResponse.json(
+        {
+          success: false,
+          message: "Retailer not found.",
+        },
+        {
+          status: 404,
+        }
+      ),
+    };
+  }
+
+  return {
+    mobile,
+    retailer,
+    response: null,
+  };
+}
 
 export async function PUT(
   request: NextRequest,
@@ -25,6 +77,14 @@ export async function PUT(
         }
       );
     }
+
+    const auth = await getAuthenticatedRetailer(request);
+
+    if (auth.response) {
+      return auth.response;
+    }
+
+    const retailer = auth.retailer!;
 
     const body = await request.json();
 
@@ -79,6 +139,7 @@ export async function PUT(
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
+      .eq("retailer_id", retailer.id)
       .select()
       .maybeSingle();
 
@@ -112,9 +173,7 @@ export async function PUT(
       success: true,
       schedule: data,
     });
-
   } catch (error) {
-
     console.error("[SCHEDULE][UPDATE]", error);
 
     return NextResponse.json(
@@ -148,13 +207,24 @@ export async function DELETE(
       );
     }
 
-    const { error } = await supabase
+    const auth = await getAuthenticatedRetailer(request);
+
+    if (auth.response) {
+      return auth.response;
+    }
+
+    const retailer = auth.retailer!;
+
+    const { data, error } = await supabase
       .from("scheduled_orders")
       .update({
         is_active: false,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("retailer_id", retailer.id)
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       console.error("[SCHEDULE][DELETE]", error);
@@ -170,12 +240,22 @@ export async function DELETE(
       );
     }
 
+    if (!data) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Schedule not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
     return NextResponse.json({
       success: true,
     });
-
   } catch (error) {
-
     console.error("[SCHEDULE][DELETE]", error);
 
     return NextResponse.json(

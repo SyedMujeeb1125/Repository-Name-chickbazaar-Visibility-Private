@@ -1,32 +1,32 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { PAYMENT_CONFIG } from "@/lib/payment-config";
+import { getMobileAuthenticatedRetailer } from "@/lib/retailer";
 
 export async function POST(request: NextRequest) {
   try {
+    const mobile = getMobileAuthenticatedRetailer(request);
+
+    if (!mobile) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
     const body = await request.json();
 
-    const {
-      mobile,
-      weight,
-    } = body;
+    const { weight } = body;
 
     // -------------------------
     // Validation
     // -------------------------
-
-    if (!mobile || typeof mobile !== "string") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Mobile number is required.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
 
     if (!weight || Number(weight) <= 0) {
       return NextResponse.json(
@@ -203,13 +203,8 @@ export async function POST(request: NextRequest) {
       success: true,
       order: data,
     });
-
   } catch (error) {
-
-    console.error(
-      "[QUICK_ORDER]",
-      error
-    );
+    console.error("[QUICK_ORDER]", error);
 
     return NextResponse.json(
       {
